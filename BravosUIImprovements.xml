@@ -2,6 +2,7 @@
 
   <Script file="CastBarTimers.lua"/>
   <Script file="QuickKeybindModeShortcut.lua"/>
+  <Script file="CallToArms.lua"/>
   <Script file="BravosUIImprovements.lua"/>
 
   <Frame name="BUIIOptionsPanel" hidden="false">
@@ -183,6 +184,39 @@
           <OnClick function="BUII_TooltipExpansion_OnClick"/>
         </Scripts>
       </CheckButton>
+
+      <CheckButton name="$parentCallToArms" parentKey="CallToArms" inherits="InterfaceOptionsCheckButtonTemplate">
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeKey="$parent.TooltipExpansion" relativePoint="BOTTOMLEFT" x="0" y="0"/>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString name="$parentLabel" text="Call to Arms (LFG Satchel alerts)" inherits="GameFontNormalSmall">
+              <Anchors>
+                <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnClick function="BUII_CallToArms_OnClick"/>
+        </Scripts>
+      </CheckButton>
+
+      <Frame name="$parentCallToArmsSound" parentKey="CallToArmsSound" inherits="UIDropDownMenuTemplate">
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeKey="$parent.CallToArms" relativePoint="BOTTOMLEFT" x="20" y="-10"/>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString name="$parentLabel" text="Alert Sound" inherits="GameFontNormalSmall">
+              <Anchors>
+                <Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" x="16" y="3"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+      </Frame>
 
     </Frames>
 

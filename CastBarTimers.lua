@@ -39,14 +39,14 @@ local function restoreSpellNameText()
 end
 
 local function setTimerText(castBarFrame, timerTextFrame)
-  local timeLeft = nil;
-  if (castBarFrame.casting) then
-    timeLeft = castBarFrame.maxValue - castBarFrame:GetValue();
-  elseif (castBarFrame.channeling) then
+  local timeLeft = nil
+  if castBarFrame.casting then
+    timeLeft = castBarFrame.maxValue - castBarFrame:GetValue()
+  elseif castBarFrame.channeling then
     timeLeft = castBarFrame:GetValue()
   end
-  if (timeLeft) then
-    timeLeft = (timeLeft < 0.1) and 0.01 or timeLeft;
+  if timeLeft then
+    timeLeft = (timeLeft < 0.1) and 0.01 or timeLeft
     timerTextFrame.text:SetText(string.format("%.1f", timeLeft))
   end
 end
