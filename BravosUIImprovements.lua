@@ -282,6 +282,7 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       BUIIDatabase["call_to_arms"] = false
       BUIIDatabase["call_to_arms_ineligible"] = false
       BUIIDatabase["call_to_arms_roles"] = { tank = true, healer = true, damage = true }
+      BUIIDatabase["ion_mode"] = false
       BUIIDatabase["queue_status_button_position"] = {
         point = "BOTTOMRIGHT",
         relativeTo = nil,
@@ -303,6 +304,9 @@ function BUII_OnEventHandler(self, event, arg1, ...)
     end
     if BUIIDatabase["call_to_arms_sound_id"] == nil then
       BUIIDatabase["call_to_arms_sound_id"] = 17316
+    end
+    if BUIIDatabase["ion_mode"] == nil then
+      BUIIDatabase["ion_mode"] = false
     end
 
     if BUIICharacterDatabase == nil then
@@ -382,6 +386,11 @@ function BUII_OnEventHandler(self, event, arg1, ...)
         end
       end
       UIDropDownMenu_SetText(_G["BUIIOptionsPanelCallToArmsSound"], text)
+    end
+
+    if BUIIDatabase["ion_mode"] then
+      BUII_Ion_Enable()
+      _G["BUIIOptionsPanelIon"]:SetChecked(true)
     end
   end
 end
@@ -496,5 +505,15 @@ function BUII_CallToArmsSound_Initialize(self, level, menuList)
     info.func = BUII_CallToArmsSound_OnClick
     info.checked = (BUIIDatabase["call_to_arms_sound_id"] == option.value)
     UIDropDownMenu_AddButton(info)
+  end
+end
+
+function BUII_Ion_OnClick(self)
+  if self:GetChecked() then
+    BUII_Ion_Enable()
+    BUIIDatabase["ion_mode"] = true
+  else
+    BUII_Ion_Disable()
+    BUIIDatabase["ion_mode"] = false
   end
 end

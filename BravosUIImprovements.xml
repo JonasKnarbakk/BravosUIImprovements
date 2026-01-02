@@ -3,6 +3,7 @@
   <Script file="CastBarTimers.lua"/>
   <Script file="QuickKeybindModeShortcut.lua"/>
   <Script file="CallToArms.lua"/>
+  <Script file="Ion.lua"/>
   <Script file="BravosUIImprovements.lua"/>
 
   <Frame name="BUIIOptionsPanel" hidden="false">
@@ -217,6 +218,24 @@
           </Layer>
         </Layers>
       </Frame>
+
+      <CheckButton name="$parentIon" parentKey="Ion" inherits="InterfaceOptionsCheckButtonTemplate">
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeKey="$parent.CallToArmsSound" relativePoint="BOTTOMLEFT" x="-20" y="-10"/>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString name="$parentLabel" text="Ion Mode" inherits="GameFontNormalSmall">
+              <Anchors>
+                <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnClick function="BUII_Ion_OnClick"/>
+        </Scripts>
+      </CheckButton>
 
     </Frames>
 
