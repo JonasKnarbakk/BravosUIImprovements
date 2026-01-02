@@ -1,9 +1,11 @@
-## Interface: 110005
+## Interface: 110207, 120001
 ## Title: Bravo's UI Improvements
+## Category: User Interface
 ## Notes: Lightweight improvements to the default Blizzard UI
+## Author: Bravofist-TarrenMill
 ## SavedVariables: BUIIDatabase
 ## SavedVariablesPerCharacter: BUIICharacterDatabase
-## IconTexture: Interface\AddOns\BravosUIImprovements\Media\icon
+## IconTexture: Interface\AddOns\BravosUIImprovements\Media\Textures\icon
 ## X-Curse-Project-ID: 701258
 
 BravosUIImprovements.xml

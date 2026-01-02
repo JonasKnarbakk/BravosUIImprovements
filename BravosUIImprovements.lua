@@ -2,6 +2,16 @@ local addonName, addon = ...
 local spellBarHookSet = false
 local stanceBarHookSet = false
 
+-- Sound Options
+local soundOptions = {
+  { text = "LFG Reward", value = 17316 },
+  { text = "Raid Warning", value = 8959 },
+  { text = "Ready Check", value = 8960 },
+  { text = "Quest", value = 618 },
+  { text = "Coins", value = 120 },
+  { text = "Kaching", value = "Interface\\AddOns\\BravosUIImprovements\\Media\\Sound\\kaching.ogg" },
+}
+
 local function handleTargetFrameSpellBar_OnUpdate(self, arg1, ...)
   if BUIIDatabase["castbar_on_top"] then
     self:SetPoint("TOPLEFT", TargetFrame, "TOPLEFT", 45, 20)
@@ -19,9 +29,9 @@ local function handleFocusFrameSpellBar_OnUpdate(self, arg1, ...)
 end
 
 local function setPlayerClassColor()
-  local _, const_class = UnitClass("player");
+  local _, const_class = UnitClass("player")
   local r, g, b = GetClassColor(const_class)
-  local playerHealthBar;
+  local playerHealthBar
 
   if PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarArea ~= nil then
     playerHealthBar = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarArea.HealthBar
@@ -68,10 +78,12 @@ end
 local function stanceBar_OnUpdate()
   if BUIICharacterDatabase["hide_stance_bar"] then
     local point, _, relativePoint, xOffset, yOffset = StanceBar:GetPoint()
-    if point ~= "TOPLEFT" or
-        relativePoint ~= "TOPLEFT" or
-        math.ceil(xOffset) ~= math.ceil(0 - (StanceBar:GetWidth() + 100)) or
-        yOffset ~= 0 then
+    if
+      point ~= "TOPLEFT"
+      or relativePoint ~= "TOPLEFT"
+      or math.ceil(xOffset) ~= math.ceil(0 - (StanceBar:GetWidth() + 100))
+      or yOffset ~= 0
+    then
       StanceBar:ClearAllPoints()
       StanceBar:SetClampedToScreen(false)
       StanceBar:SetPoint("TOPLEFT", UIParent, "TOPLEFT", math.ceil(0 - (StanceBar:GetWidth() + 100)), 0)
@@ -104,7 +116,8 @@ local function setHideStanceBar(shouldHide)
     BUIICharacterDatabase["hide_stance_bar"] = shouldHide
     StanceBar:ClearAllPoints()
     StanceBar:SetClampedToScreen(true)
-    StanceBar:SetPoint(BUIICharacterDatabase["stance_bar_position"]["point"],
+    StanceBar:SetPoint(
+      BUIICharacterDatabase["stance_bar_position"]["point"],
       UIParent,
       BUIICharacterDatabase["stance_bar_position"]["relativePoint"],
       BUIICharacterDatabase["stance_bar_position"]["xOffset"],
@@ -177,7 +190,7 @@ local function handleUnitFramePortraitUpdate(self)
   end
 
   if UnitIsPlayer(self.unit) and UnitIsConnected(self.unit) and BUIIDatabase["class_color"] then
-    local _, const_class = UnitClass(self.unit);
+    local _, const_class = UnitClass(self.unit)
     local r, g, b = GetClassColor(const_class)
     healthBar:SetStatusBarDesaturated(true)
     healthBar:SetStatusBarColor(r, g, b)
@@ -203,10 +216,55 @@ function BUII_OnLoadHandler(self)
   if InterfaceOptions_AddCategory then
     InterfaceOptions_AddCategory(self)
   else
-    local category, layout = Settings.RegisterCanvasLayoutCategory(self, self.name);
-    Settings.RegisterAddOnCategory(category);
+    local category, layout = Settings.RegisterCanvasLayoutCategory(self, self.name)
+    Settings.RegisterAddOnCategory(category)
     addon.settingsCategory = category
   end
+
+  UIDropDownMenu_Initialize(_G["BUIIOptionsPanelCallToArmsSound"], BUII_CallToArmsSound_Initialize)
+end
+
+function BUII_CallToArmsSound_OnClick(self, arg1, arg2, checked)
+  BUIIDatabase["call_to_arms_sound_id"] = arg1
+  UIDropDownMenu_SetSelectedValue(_G["BUIIOptionsPanelCallToArmsSound"], arg1)
+end
+
+function BUII_CallToArmsSound_Initialize(self, level, menuList)
+  local info = UIDropDownMenu_CreateInfo()
+
+  if not BUIIDatabase then
+    return
+  end
+
+  info.text = "LFG Reward"
+  info.value = 17316
+  info.func = BUII_CallToArmsSound_OnClick
+  info.checked = (BUIIDatabase["call_to_arms_sound_id"] == 17316)
+  UIDropDownMenu_AddButton(info)
+
+  info.text = "Raid Warning"
+  info.value = 8959
+  info.func = BUII_CallToArmsSound_OnClick
+  info.checked = (BUIIDatabase["call_to_arms_sound_id"] == 8959)
+  UIDropDownMenu_AddButton(info)
+
+  info.text = "Ready Check"
+  info.value = 8960
+  info.func = BUII_CallToArmsSound_OnClick
+  info.checked = (BUIIDatabase["call_to_arms_sound_id"] == 8960)
+  UIDropDownMenu_AddButton(info)
+
+  info.text = "Quest"
+  info.value = 618
+  info.func = BUII_CallToArmsSound_OnClick
+  info.checked = (BUIIDatabase["call_to_arms_sound_id"] == 618)
+  UIDropDownMenu_AddButton(info)
+
+  info.text = "Coins"
+  info.value = 120
+  info.func = BUII_CallToArmsSound_OnClick
+  info.checked = (BUIIDatabase["call_to_arms_sound_id"] == 120)
+  UIDropDownMenu_AddButton(info)
 end
 
 function BUII_OnEventHandler(self, event, arg1, ...)
@@ -221,6 +279,9 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       BUIIDatabase["quick_keybind_shortcut"] = false
       BUIIDatabase["improved_edit_mode"] = false
       BUIIDatabase["tooltip_expansion"] = false
+      BUIIDatabase["call_to_arms"] = false
+      BUIIDatabase["call_to_arms_ineligible"] = false
+      BUIIDatabase["call_to_arms_roles"] = { tank = true, healer = true, damage = true }
       BUIIDatabase["queue_status_button_position"] = {
         point = "BOTTOMRIGHT",
         relativeTo = nil,
@@ -228,6 +289,20 @@ function BUII_OnEventHandler(self, event, arg1, ...)
         xOffset = 0,
         yOffset = 0,
       }
+    end
+
+    -- Ensure new keys are initialized for existing users
+    if BUIIDatabase["call_to_arms"] == nil then
+      BUIIDatabase["call_to_arms"] = false
+    end
+    if BUIIDatabase["call_to_arms_ineligible"] == nil then
+      BUIIDatabase["call_to_arms_ineligible"] = false
+    end
+    if BUIIDatabase["call_to_arms_roles"] == nil then
+      BUIIDatabase["call_to_arms_roles"] = { tank = true, healer = true, damage = true }
+    end
+    if BUIIDatabase["call_to_arms_sound_id"] == nil then
+      BUIIDatabase["call_to_arms_sound_id"] = 17316
     end
 
     if BUIICharacterDatabase == nil then
@@ -288,6 +363,25 @@ function BUII_OnEventHandler(self, event, arg1, ...)
     if BUIIDatabase["tooltip_expansion"] then
       BUII_TooltipImprovements_Enabled()
       _G["BUIIOptionsPanelTooltipExpansion"]:SetChecked(true)
+    end
+
+    if BUIIDatabase["call_to_arms"] then
+      BUII_CallToArms_Enable()
+      _G["BUIIOptionsPanelCallToArms"]:SetChecked(true)
+    end
+
+    if BUIIDatabase["call_to_arms_sound_id"] then
+      UIDropDownMenu_SetSelectedValue(_G["BUIIOptionsPanelCallToArmsSound"], BUIIDatabase["call_to_arms_sound_id"])
+
+      -- Find text for stored value
+      local text = "Alert Sound"
+      for _, option in ipairs(soundOptions) do
+        if option.value == BUIIDatabase["call_to_arms_sound_id"] then
+          text = option.text
+          break
+        end
+      end
+      UIDropDownMenu_SetText(_G["BUIIOptionsPanelCallToArmsSound"], text)
     end
   end
 end
@@ -357,5 +451,50 @@ function BUII_TooltipExpansion_OnClick(self)
   else
     BUII_TooltipImprovements_Disable()
     BUIIDatabase["tooltip_expansion"] = false
+  end
+end
+
+function BUII_CallToArms_OnClick(self)
+  if self:GetChecked() then
+    BUII_CallToArms_Enable()
+    BUIIDatabase["call_to_arms"] = true
+  else
+    BUII_CallToArms_Disable()
+    BUIIDatabase["call_to_arms"] = false
+  end
+end
+
+function BUII_CallToArmsSound_OnClick(self, arg1, arg2, checked)
+  BUIIDatabase["call_to_arms_sound_id"] = arg1
+  UIDropDownMenu_SetSelectedValue(_G["BUIIOptionsPanelCallToArmsSound"], arg1)
+
+  -- Debugging
+  -- print("Selected Value:", arg1, type(arg1))
+
+  -- Find text for selected value
+  local text = "Alert Sound"
+  for _, option in ipairs(soundOptions) do
+    -- print("Checking option:", option.value, type(option.value))
+    if option.value == arg1 then
+      text = option.text
+      break
+    end
+  end
+  UIDropDownMenu_SetText(_G["BUIIOptionsPanelCallToArmsSound"], text)
+end
+
+function BUII_CallToArmsSound_Initialize(self, level, menuList)
+  if not BUIIDatabase then
+    return
+  end
+
+  for _, option in ipairs(soundOptions) do
+    local info = UIDropDownMenu_CreateInfo()
+    info.text = option.text
+    info.value = option.value
+    info.arg1 = option.value -- Pass value as arg1 to OnClick
+    info.func = BUII_CallToArmsSound_OnClick
+    info.checked = (BUIIDatabase["call_to_arms_sound_id"] == option.value)
+    UIDropDownMenu_AddButton(info)
   end
 end

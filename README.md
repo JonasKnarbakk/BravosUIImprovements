@@ -16,6 +16,7 @@ All features are optional and if they're not enabled no code related to that fea
 - Hide Stance Bar
 - Add Quick Keybind Mode button to ESC menu
 - Expansion in tooltip
+- Call to Arms notifications
 - Improved Edit Mode:
     - Added On Hover visibility to action bars, bags and micro menu
     - Hide macro text on action bars

@@ -138,20 +138,31 @@ local function addOptionToSettingsDialog(settingIndex, optionType, settingData)
 
   local settingPool = editModeSettingsDialog:GetSettingPool(optionType)
 
-  if (settingPool) then
+  if settingPool then
     local settingFrame = settingPool:Acquire()
     settingFrame:SetPoint("TOPLEFT")
     settingFrame.layoutIndex = settingIndex
     settingFrame:Show()
 
-    editModeSettingsDialog:Show();
-    editModeSettingsDialog:Layout();
+    editModeSettingsDialog:Show()
+    editModeSettingsDialog:Layout()
     settingFrame:SetupSetting(settingData)
   end
 end
 
-local function setupFrame(frame, frameName, frameTemplate, parent, point, overlayWidth, overlayHeight, onMouseDownFunc,
-                          onMouseUpFunc, label, databaseName)
+local function setupFrame(
+  frame,
+  frameName,
+  frameTemplate,
+  parent,
+  point,
+  overlayWidth,
+  overlayHeight,
+  onMouseDownFunc,
+  onMouseUpFunc,
+  label,
+  databaseName
+)
   if not frame then
     frame = CreateFrame("Frame", frameName, parent, frameTemplate)
     frame:SetSize(overlayWidth, overlayHeight)
@@ -159,16 +170,26 @@ local function setupFrame(frame, frameName, frameTemplate, parent, point, overla
     frame.Selection:SetScript("OnMouseDown", onMouseDownFunc)
     frame.Selection:SetScript("OnMouseUp", onMouseUpFunc)
     frame.Selection.Label:SetText(label)
+
+    -- Override EditModeSystemSelectionTemplate methods that rely on 'system' being set
+    frame.Selection.GetLabelText = function()
+      return label
+    end
+    frame.Selection.CheckShowInstructionalTooltip = function()
+      return false
+    end
   end
 
   -- TODO: Implement support for layouts
   if BUIIDatabase[databaseName] then
     frame:GetParent():ClearAllPoints()
-    frame:GetParent():SetPoint(BUIIDatabase[databaseName]["point"],
+    frame:GetParent():SetPoint(
+      BUIIDatabase[databaseName]["point"],
       UIParent,
       BUIIDatabase[databaseName]["relativePoint"],
       BUIIDatabase[databaseName]["xOffset"],
-      BUIIDatabase[databaseName]["yOffset"])
+      BUIIDatabase[databaseName]["yOffset"]
+    )
   end
 
   return frame
@@ -183,16 +204,20 @@ local function restorePosition(frame, databaseName)
   if BUIIDatabase[databaseName] then
     local point, _, relativePoint, xOffset, yOffset = frame:GetPoint()
 
-    if point ~= BUIIDatabase[databaseName]["point"] or
-        relativePoint ~= BUIIDatabase[databaseName]["relativePoint"] or
-        xOffset ~= BUIIDatabase[databaseName]["xOffset"] or
-        yOffset ~= BUIIDatabase[databaseName]["yOffset"] then
+    if
+      point ~= BUIIDatabase[databaseName]["point"]
+      or relativePoint ~= BUIIDatabase[databaseName]["relativePoint"]
+      or xOffset ~= BUIIDatabase[databaseName]["xOffset"]
+      or yOffset ~= BUIIDatabase[databaseName]["yOffset"]
+    then
       frame:ClearAllPoints()
-      frame:SetPoint(BUIIDatabase[databaseName]["point"],
+      frame:SetPoint(
+        BUIIDatabase[databaseName]["point"],
         UIParent,
         BUIIDatabase[databaseName]["relativePoint"],
         BUIIDatabase[databaseName]["xOffset"],
-        BUIIDatabase[databaseName]["yOffset"])
+        BUIIDatabase[databaseName]["yOffset"]
+      )
     end
   end
 end
@@ -244,7 +269,9 @@ end
 
 --- Called when EditMode is enabled
 local function editMode_OnEnter()
-  if InCombatLockdown() then return end
+  if InCombatLockdown() then
+    return
+  end
 
   showFrameHighlight(queueStatusButtonOverlayFrame)
 
@@ -259,7 +286,9 @@ end
 
 --- Called when EditMode is disabled
 local function editMode_OnExit()
-  if InCombatLockdown() then return end
+  if InCombatLockdown() then
+    return
+  end
   hideFrameHighlight(queueStatusButtonOverlayFrame)
 
   -- When exiting edit mode we need to hide aciton bars if they have VisibilityMode.ON_HOVER,
@@ -286,7 +315,9 @@ end
 
 -- Called when the player leaves combat
 local function combat_OnExit()
-  if InCombatLockdown() then return end
+  if InCombatLockdown() then
+    return
+  end
 
   for frameName, mode in pairs(FrameVisibility) do
     local frame = _G[frameName]
@@ -313,10 +344,19 @@ local function queueStatusButtonOverlayFrame_OnUpdate()
 end
 
 local function setupQueueStatusButton()
-  queueStatusButtonOverlayFrame = setupFrame(statusTrackingBarOverlayFrame, "BUIIQueueStatusButtonOverlay",
-    "BUIIQueueStatusButtonEditModeSystemTemplate", QueueStatusButton, "BOTTOMRIGHT", QueueStatusButton:GetWidth(),
-    QueueStatusButton:GetHeight(), queueStatusButtonOverlayFrame_OnMouseDown,
-    queueStatusButtonOverlayFrame_OnMouseUp, "Queue Status Button", "queue_status_button_position")
+  queueStatusButtonOverlayFrame = setupFrame(
+    statusTrackingBarOverlayFrame,
+    "BUIIQueueStatusButtonOverlay",
+    "BUIIQueueStatusButtonEditModeSystemTemplate",
+    QueueStatusButton,
+    "BOTTOMRIGHT",
+    QueueStatusButton:GetWidth(),
+    QueueStatusButton:GetHeight(),
+    queueStatusButtonOverlayFrame_OnMouseDown,
+    queueStatusButtonOverlayFrame_OnMouseUp,
+    "Queue Status Button",
+    "queue_status_button_position"
+  )
   if not queueStatusButtonOverlayFrameHook then
     QueueStatusButton:HookScript("OnUpdate", queueStatusButtonOverlayFrame_OnUpdate)
     queueStatusButtonOverlayFrameHook = true
@@ -340,12 +380,14 @@ local function settingsDialogMainMenuBarAddOptions()
   local hideMacroTextData = {
     displayInfo = hideMacroText,
     currentValue = hideMacroTextEnabled["MainMenuBar"] == true and 1 or 0,
-    settingName = HUD_EDIT_MODE_SETTING_ACTION_BAR_HIDE_MACRO_TEXT
+    settingName = HUD_EDIT_MODE_SETTING_ACTION_BAR_HIDE_MACRO_TEXT,
   }
 
-  addOptionToSettingsDialog(enum_EditModeActionBarSetting_HideMacroText,
+  addOptionToSettingsDialog(
+    enum_EditModeActionBarSetting_HideMacroText,
     Enum.ChrCustomizationOptionType.Checkbox,
-    hideMacroTextData)
+    hideMacroTextData
+  )
 
   local abbreviateKeybindings = {
     setting = enum_EditModeActionBarSetting_AbbreviateKeybindings,
@@ -356,12 +398,14 @@ local function settingsDialogMainMenuBarAddOptions()
   local abbreviateKeybindingsData = {
     displayInfo = abbreviateKeybindings,
     currentValue = abbreviatedKeybindingsEnabled["MainMenuBar"] == true and 1 or 0,
-    settingName = HUD_EDIT_MODE_SETTING_ACTION_BAR_ABBREVIATE_KEYBINDINGS
+    settingName = HUD_EDIT_MODE_SETTING_ACTION_BAR_ABBREVIATE_KEYBINDINGS,
   }
 
-  addOptionToSettingsDialog(enum_EditModeActionBarSetting_AbbreviateKeybindings,
+  addOptionToSettingsDialog(
+    enum_EditModeActionBarSetting_AbbreviateKeybindings,
     Enum.ChrCustomizationOptionType.Checkbox,
-    abbreviateKeybindingsData)
+    abbreviateKeybindingsData
+  )
 
   local barVisibility = {
     setting = enum_EditModeActionBarSetting_BarVisibility,
@@ -370,36 +414,38 @@ local function settingsDialogMainMenuBarAddOptions()
     options = {
       {
         value = Enum.ActionBarVisibleSetting.Always,
-        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_ALWAYS
+        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_ALWAYS,
       },
       {
         value = Enum.ActionBarVisibleSetting.InCombat,
-        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_IN_COMBAT
+        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_IN_COMBAT,
       },
       {
         value = Enum.ActionBarVisibleSetting.OutOfCombat,
-        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_OUT_OF_COMBAT
+        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_OUT_OF_COMBAT,
       },
       {
         value = Enum.ActionBarVisibleSetting.Hidden,
-        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_HIDDEN
+        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_HIDDEN,
       },
       {
         value = enum_ActionBarVisibleSetting_OnHover,
-        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_ON_HOVER
+        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_ON_HOVER,
       },
-    }
+    },
   }
 
   local barVisibilityData = {
     displayInfo = barVisibility,
     currentValue = FrameVisibility["MainMenuBar"],
-    settingName = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING
+    settingName = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING,
   }
 
-  addOptionToSettingsDialog(enum_EditModeActionBarSetting_BarVisibility,
+  addOptionToSettingsDialog(
+    enum_EditModeActionBarSetting_BarVisibility,
     Enum.ChrCustomizationOptionType.Dropdown,
-    barVisibilityData)
+    barVisibilityData
+  )
 end
 
 --- Add the additional settings to MultiBar e.g any action bar that isn't the main one
@@ -413,10 +459,13 @@ local function settingsDialogMultiBarAddOptions(frameName)
   local hideMacroTextData = {
     displayInfo = hideMacroText,
     currentValue = hideMacroTextEnabled[frameName] == true and 1 or 0,
-    settingName = HUD_EDIT_MODE_SETTING_ACTION_BAR_HIDE_MACRO_TEXT
+    settingName = HUD_EDIT_MODE_SETTING_ACTION_BAR_HIDE_MACRO_TEXT,
   }
-  addOptionToSettingsDialog(enum_EditModeActionBarSetting_HideMacroText, Enum.ChrCustomizationOptionType.Checkbox,
-    hideMacroTextData)
+  addOptionToSettingsDialog(
+    enum_EditModeActionBarSetting_HideMacroText,
+    Enum.ChrCustomizationOptionType.Checkbox,
+    hideMacroTextData
+  )
 
   local abbreviateKeybindings = {
     setting = enum_EditModeActionBarSetting_AbbreviateKeybindings,
@@ -427,12 +476,14 @@ local function settingsDialogMultiBarAddOptions(frameName)
   local abbreviateKeybindingsData = {
     displayInfo = abbreviateKeybindings,
     currentValue = abbreviatedKeybindingsEnabled[frameName] == true and 1 or 0,
-    settingName = HUD_EDIT_MODE_SETTING_ACTION_BAR_ABBREVIATE_KEYBINDINGS
+    settingName = HUD_EDIT_MODE_SETTING_ACTION_BAR_ABBREVIATE_KEYBINDINGS,
   }
 
-  addOptionToSettingsDialog(enum_EditModeActionBarSetting_AbbreviateKeybindings,
+  addOptionToSettingsDialog(
+    enum_EditModeActionBarSetting_AbbreviateKeybindings,
     Enum.ChrCustomizationOptionType.Checkbox,
-    abbreviateKeybindingsData)
+    abbreviateKeybindingsData
+  )
 end
 
 --- Add the additional settings to BagsBar
@@ -444,36 +495,38 @@ local function settingsDialogBagBarAddOptions()
     options = {
       {
         value = Enum.ActionBarVisibleSetting.Always,
-        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_ALWAYS
+        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_ALWAYS,
       },
       {
         value = Enum.ActionBarVisibleSetting.InCombat,
-        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_IN_COMBAT
+        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_IN_COMBAT,
       },
       {
         value = Enum.ActionBarVisibleSetting.OutOfCombat,
-        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_OUT_OF_COMBAT
+        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_OUT_OF_COMBAT,
       },
       {
         value = Enum.ActionBarVisibleSetting.Hidden,
-        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_HIDDEN
+        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_HIDDEN,
       },
       {
         value = enum_ActionBarVisibleSetting_OnHover,
-        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_ON_HOVER
+        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_ON_HOVER,
       },
-    }
+    },
   }
 
   local barVisibilityData = {
     displayInfo = barVisibility,
     currentValue = FrameVisibility["BagsBar"],
-    settingName = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING
+    settingName = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING,
   }
 
-  addOptionToSettingsDialog(enum_EditModeActionBarSetting_BarVisibility,
+  addOptionToSettingsDialog(
+    enum_EditModeActionBarSetting_BarVisibility,
     Enum.ChrCustomizationOptionType.Dropdown,
-    barVisibilityData)
+    barVisibilityData
+  )
 end
 
 --- Add the additional settings to MicroMenu
@@ -485,43 +538,47 @@ local function settingsDialogMicroMenuAddOptions()
     options = {
       {
         value = Enum.ActionBarVisibleSetting.Always,
-        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_ALWAYS
+        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_ALWAYS,
       },
       {
         value = Enum.ActionBarVisibleSetting.InCombat,
-        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_IN_COMBAT
+        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_IN_COMBAT,
       },
       {
         value = Enum.ActionBarVisibleSetting.OutOfCombat,
-        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_OUT_OF_COMBAT
+        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_OUT_OF_COMBAT,
       },
       {
         value = Enum.ActionBarVisibleSetting.Hidden,
-        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_HIDDEN
+        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_HIDDEN,
       },
       {
         value = enum_ActionBarVisibleSetting_OnHover,
-        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_ON_HOVER
+        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_ON_HOVER,
       },
-    }
+    },
   }
 
   local barVisibilityData = {
     displayInfo = barVisibility,
     currentValue = FrameVisibility["MicroMenu"],
-    settingName = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING
+    settingName = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING,
   }
 
-  addOptionToSettingsDialog(enum_EditModeActionBarSetting_BarVisibility,
+  addOptionToSettingsDialog(
+    enum_EditModeActionBarSetting_BarVisibility,
     Enum.ChrCustomizationOptionType.Dropdown,
-    barVisibilityData)
+    barVisibilityData
+  )
 end
 
 --- Hooked to EditModeSystemSettingsDialog:UpdateSettings
 ---@param self table EditModeSystemSettingsDialog
 ---@param systemFrame table The frame the settings belong to e.g MainMenuBar
 local function editModeSystemSettingsDialog_OnUpdateSettings(self, systemFrame)
-  if not editModeImprovedEnabled then return end
+  if not editModeImprovedEnabled then
+    return
+  end
 
   if systemFrame == self.attachedToSystem then
     local currentFrameName = systemFrame:GetName()
@@ -542,13 +599,19 @@ end
 ---@param self table Frame that triggered the OnEnter event
 local function actionBar_OnEnter(self)
   if strfind(self:GetName(), "ActionButton") then
-    if FrameVisibility["MainMenuBar"] ~= VisibilityMode.ON_HOVER then return end
+    if FrameVisibility["MainMenuBar"] ~= VisibilityMode.ON_HOVER then
+      return
+    end
     mainMenuBar:SetAlpha(1)
   elseif bagFrames[self:GetName()] then
-    if FrameVisibility["BagsBar"] ~= VisibilityMode.ON_HOVER then return end
+    if FrameVisibility["BagsBar"] ~= VisibilityMode.ON_HOVER then
+      return
+    end
     bagsBar:SetAlpha(1)
   elseif microMenuFrames[self:GetName()] then
-    if FrameVisibility["MicroMenu"] ~= VisibilityMode.ON_HOVER then return end
+    if FrameVisibility["MicroMenu"] ~= VisibilityMode.ON_HOVER then
+      return
+    end
     microMenu:SetAlpha(1)
   else
     for actionBarName, mode in pairs(FrameVisibility) do
@@ -563,13 +626,19 @@ end
 ---@param self table Frame that triggered the OnLeave event
 local function actionBar_OnLeave(self)
   if strfind(self:GetName(), "ActionButton") then
-    if FrameVisibility["MainMenuBar"] ~= VisibilityMode.ON_HOVER then return end
+    if FrameVisibility["MainMenuBar"] ~= VisibilityMode.ON_HOVER then
+      return
+    end
     mainMenuBar:SetAlpha(0)
   elseif bagFrames[self:GetName()] then
-    if FrameVisibility["BagsBar"] ~= VisibilityMode.ON_HOVER then return end
+    if FrameVisibility["BagsBar"] ~= VisibilityMode.ON_HOVER then
+      return
+    end
     bagsBar:SetAlpha(0)
   elseif microMenuFrames[self:GetName()] then
-    if FrameVisibility["MicroMenu"] ~= VisibilityMode.ON_HOVER then return end
+    if FrameVisibility["MicroMenu"] ~= VisibilityMode.ON_HOVER then
+      return
+    end
     microMenu:SetAlpha(0)
   else
     for actionBarName, mode in pairs(FrameVisibility) do
@@ -602,7 +671,9 @@ end
 ---@param self table Frame the action bar button that is updating its text
 local function keybind_OnUpdateHotkey(self)
   if strfind(self:GetName(), "ActionButton") then
-    if not abbreviatedKeybindingsEnabled["MainMenuBar"] then return end
+    if not abbreviatedKeybindingsEnabled["MainMenuBar"] then
+      return
+    end
     frameSetAbbreviatedText(self, true)
   else
     for actionBarName, enabled in pairs(abbreviatedKeybindingsEnabled) do
@@ -679,7 +750,9 @@ end
 local function hideMacroTextSettings_OnUpdate()
   for frameName, enabled in pairs(hideMacroTextEnabled) do
     for i = 12, 1, -1 do
-      if frameName == "MainMenuBar" then frameName = "Action" end
+      if frameName == "MainMenuBar" then
+        frameName = "Action"
+      end
       local button = _G[frameName .. "Button" .. i .. "Name"]
       if button then
         if enabled then
@@ -697,7 +770,9 @@ end
 local function abbreviatedKeybinginsSettings_OnUpdate()
   for frameName, enabled in pairs(abbreviatedKeybindingsEnabled) do
     for i = 12, 1, -1 do
-      if frameName == "MainMenuBar" then frameName = "Action" end
+      if frameName == "MainMenuBar" then
+        frameName = "Action"
+      end
       local button = _G[frameName .. "Button" .. i]
       if button then
         frameSetAbbreviatedText(button, enabled)
@@ -725,8 +800,10 @@ local function editModeSystemSettingsDialog_OnSettingValueChanged(self, setting,
   end
 
   -- small hack to align setting value with action bars enum
-  if ((currentFrameName == "BagsBar" or currentFrameName == "MicroMenu") and setting == 3) or
-      (currentFrameName == "MainMenuBar" and setting == enum_EditModeActionBarSetting_BarVisibility) then
+  if
+    ((currentFrameName == "BagsBar" or currentFrameName == "MicroMenu") and setting == 3)
+    or (currentFrameName == "MainMenuBar" and setting == enum_EditModeActionBarSetting_BarVisibility)
+  then
     setting = Enum.EditModeActionBarSetting.VisibleSetting
   end
 
@@ -741,11 +818,15 @@ local function editModeSystemSettingsDialog_OnSettingValueChanged(self, setting,
       FrameVisibility[currentFrameName] = VisibilityMode.ALWAYS_VISIBLE
       frameVisibilitySettings_OnUpdate()
       editModeSettingsDialog:UpdateSettings(currentFrame)
-    elseif setting == Enum.EditModeActionBarSetting.VisibleSetting and value == Enum.ActionBarVisibleSetting.InCombat then
+    elseif
+      setting == Enum.EditModeActionBarSetting.VisibleSetting and value == Enum.ActionBarVisibleSetting.InCombat
+    then
       FrameVisibility[currentFrameName] = VisibilityMode.IN_COMBAT
       frameVisibilitySettings_OnUpdate()
       editModeSettingsDialog:UpdateSettings(currentFrame)
-    elseif setting == Enum.EditModeActionBarSetting.VisibleSetting and value == Enum.ActionBarVisibleSetting.OutOfCombat then
+    elseif
+      setting == Enum.EditModeActionBarSetting.VisibleSetting and value == Enum.ActionBarVisibleSetting.OutOfCombat
+    then
       FrameVisibility[currentFrameName] = VisibilityMode.OUT_OF_COMBAT
       frameVisibilitySettings_OnUpdate()
       editModeSettingsDialog:UpdateSettings(currentFrame)
@@ -753,7 +834,9 @@ local function editModeSystemSettingsDialog_OnSettingValueChanged(self, setting,
       FrameVisibility[currentFrameName] = VisibilityMode.HIDDEN
       frameVisibilitySettings_OnUpdate()
       editModeSettingsDialog:UpdateSettings(currentFrame)
-    elseif setting == Enum.EditModeActionBarSetting.VisibleSetting and value == enum_ActionBarVisibleSetting_OnHover then
+    elseif
+      setting == Enum.EditModeActionBarSetting.VisibleSetting and value == enum_ActionBarVisibleSetting_OnHover
+    then
       FrameVisibility[currentFrameName] = VisibilityMode.ON_HOVER
       frameVisibilitySettings_OnUpdate()
       editModeSettingsDialog:UpdateSettings(currentFrame)
@@ -773,11 +856,11 @@ local function setupEditModeSystemSettingsDialog()
     frameHookSet["EditModeSystemSettingsDialog"] = true
 
     -- Add the On Hover option for MultiBar frames
-    local actionBarDropdownOptions = EditModeSettingDisplayInfoManager.systemSettingDisplayInfo
-        [Enum.EditModeSystem.ActionBar][Enum.EditModeActionBarSetting.VisibleSetting + 1].options
+    local actionBarDropdownOptions =
+      EditModeSettingDisplayInfoManager.systemSettingDisplayInfo[Enum.EditModeSystem.ActionBar][Enum.EditModeActionBarSetting.VisibleSetting + 1].options
     local extraOption = {
       value = enum_ActionBarVisibleSetting_OnHover,
-      text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_ON_HOVER
+      text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_ON_HOVER,
     }
     table.insert(actionBarDropdownOptions, extraOption)
   end
@@ -818,10 +901,16 @@ function BUII_ImprovedEditModeEnable()
   EventRegistry:RegisterCallback("EditMode.Enter", editMode_OnEnter, "BUII_ImprovedEditMode_OnEnter")
   EventRegistry:RegisterCallback("EditMode.Exit", editMode_OnExit, "BUII_ImprovedEditMode_OnExit")
 
-  EventRegistry:RegisterFrameEventAndCallback("PLAYER_REGEN_DISABLED", combat_OnEnter,
-    "BUII_ImprovedEditMode_OnCombatEnter")
-  EventRegistry:RegisterFrameEventAndCallback("PLAYER_REGEN_ENABLED", combat_OnExit,
-    "BUII_ImprovedEditMode_OnCombatLeave")
+  EventRegistry:RegisterFrameEventAndCallback(
+    "PLAYER_REGEN_DISABLED",
+    combat_OnEnter,
+    "BUII_ImprovedEditMode_OnCombatEnter"
+  )
+  EventRegistry:RegisterFrameEventAndCallback(
+    "PLAYER_REGEN_ENABLED",
+    combat_OnExit,
+    "BUII_ImprovedEditMode_OnCombatLeave"
+  )
 
   editModeImprovedEnabled = true
 end

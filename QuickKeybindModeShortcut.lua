@@ -25,10 +25,17 @@ local function quickKeybinddModeAddButton()
     else
       -- Legacy way, will not be needed after The War Within releases (likely pre-patch)
       if not quickKeybindModeShortcutFrame then
-        quickKeybindModeShortcutFrame = CreateFrame("Button", "BUIIQuickKeybindModeShortcutMenuButton", GameMenuFrame, "GameMenuButtonTemplate")
+        quickKeybindModeShortcutFrame =
+          CreateFrame("Button", "BUIIQuickKeybindModeShortcutMenuButton", GameMenuFrame, "GameMenuButtonTemplate")
         quickKeybindModeShortcutFrame:SetText("Quick Keybind Mode")
         quickKeybindModeShortcutFrame:SetScript("OnClick", quickKeybindModeShortcutFrame_OnClick)
-	quickKeybindModeShortcutFrame:SetPoint("TOP", GameMenuButtonContinue, "BOTTOM", 0, -(quickKeybindModeShortcutFrame:GetHeight() / 1.5))
+        quickKeybindModeShortcutFrame:SetPoint(
+          "TOP",
+          GameMenuButtonContinue,
+          "BOTTOM",
+          0,
+          -(quickKeybindModeShortcutFrame:GetHeight() / 1.5)
+        )
       end
 
       -- Try and match the look we will have when using AddSection and AddButton
@@ -54,7 +61,11 @@ function BUII_QuickKeybindModeShortcutEnable()
   if not gameMenuFrameHook_OnShow then
     gameMenuFrameHook_OnShow = true
     GameMenuFrame:HookScript("OnShow", quickKeybinddModeAddButton)
-    EventRegistry:RegisterCallback("QuickKeybindFrame.QuickKeybindModeDisabled", quickKeybindMode_OnDisable, "BUII_QuickKeybindMode_OnDisable")
+    EventRegistry:RegisterCallback(
+      "QuickKeybindFrame.QuickKeybindModeDisabled",
+      quickKeybindMode_OnDisable,
+      "BUII_QuickKeybindMode_OnDisable"
+    )
   end
 end
 
