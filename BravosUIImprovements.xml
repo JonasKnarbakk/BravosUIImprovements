@@ -227,7 +227,7 @@
         </Anchors>
         <Layers>
           <Layer level="ARTWORK">
-            <FontString name="$parentLabel" text="Ion Mode (Play sound on death)" inherits="GameFontNormalSmall">
+            <FontString name="$parentLabel" text="Ion Mode" inherits="GameFontNormalSmall">
               <Anchors>
                 <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
               </Anchors>
