@@ -178,6 +178,10 @@ local function MarkLayoutDirty()
   end
 end
 
+local function BUII_FormatScale(value)
+  return string.format("%.2f", value)
+end
+
 -- Hook for Edit Mode Settings Dialog
 local function groupTools_OnUpdateSettings(self, systemFrame)
   if systemFrame == self.attachedToSystem and systemFrame.system == Enum.EditModeSystem.BUII_GroupTools then
@@ -188,6 +192,7 @@ local function groupTools_OnUpdateSettings(self, systemFrame)
       minValue = 0.5,
       maxValue = 2.0,
       stepSize = 0.05,
+      formatter = BUII_FormatScale,
     }
 
     local scaleSettingData = {
@@ -214,6 +219,8 @@ end
 local function groupTools_OnSettingValueChanged(self, setting, value)
   local currentFrame = self.attachedToSystem
   if setting == enum_GroupToolsSetting_Scale and currentFrame and currentFrame.system == Enum.EditModeSystem.BUII_GroupTools then
+    -- Round to two decimal places
+    value = math.floor(value * 100 + 0.5) / 100
     currentFrame:SetScale(value)
     updatePending()
     MarkLayoutDirty()
