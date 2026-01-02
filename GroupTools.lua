@@ -108,6 +108,11 @@ local function UpdateVisibility()
 end
 
 local function onEvent(self, event)
+  if event == "EDIT_MODE_LAYOUTS_UPDATED" then
+    BUII_ApplySavedPosition()
+    return
+  end
+
   UpdateBattleRez()
   UpdateVisibility()
   if event == "PLAYER_ENTERING_WORLD" or event == "ENCOUNTER_START" then
@@ -117,16 +122,37 @@ local function onEvent(self, event)
   end
 end
 
-local function BUII_ApplySavedPosition()
+local function BUII_GetActiveLayoutKey()
+  if not EditModeManagerFrame then return "Default" end
+  local layoutInfo = EditModeManagerFrame:GetActiveLayoutInfo()
+  if not layoutInfo then return "Default" end
+  return layoutInfo.layoutName or "Unknown"
+end
+
+function BUII_ApplySavedPosition()
   if not frame then return end
-  if BUIIDatabase["group_tools_pos"] then
-    local pos = BUIIDatabase["group_tools_pos"]
-    if pos.scale then frame:SetScale(pos.scale) end
+  
+  local layoutKey = BUII_GetActiveLayoutKey()
+  BUIIDatabase["group_tools_layouts"] = BUIIDatabase["group_tools_layouts"] or {}
+  
+  local pos = BUIIDatabase["group_tools_layouts"][layoutKey]
+  
+  -- Fallback to old global setting ONLY if we have NEVER saved any layout-specific settings
+  if not pos and not next(BUIIDatabase["group_tools_layouts"]) and BUIIDatabase["group_tools_pos"] then
+    pos = BUIIDatabase["group_tools_pos"]
+  end
+
+  if pos then
+    frame:SetScale(pos.scale or 1.0)
     frame:ClearAllPoints()
-    -- Support both new offsetX/offsetY and legacy x/y
     local x = pos.offsetX or pos.x or 0
     local y = pos.offsetY or pos.y or 0
     frame:SetPoint(pos.point or "CENTER", UIParent, pos.relativePoint or "CENTER", x, y)
+  else
+    -- Reset to Default (Center, 1.0 scale)
+    frame:SetScale(1.0)
+    frame:ClearAllPoints()
+    frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
   end
 end
 
@@ -209,7 +235,7 @@ local function BUII_GroupTools_Initialize()
 
   frame.systemIndex = 0
   
-  -- MANDATORY: Blizzard expects this data structure for interaction events
+  -- Mandatory fields
   frame.systemInfo = {
     system = Enum.EditModeSystem.BUII_GroupTools,
     systemIndex = 0,
@@ -224,10 +250,18 @@ local function BUII_GroupTools_Initialize()
     self:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
     updatePending()
     MarkLayoutDirty()
+    if EditModeSystemSettingsDialog then
+      EditModeSystemSettingsDialog:UpdateButtons(self)
+    end
   end
 
   frame.UpdateSystem = function(self, systemInfo)
+    pendingSettings = nil
+    self.hasActiveChanges = false
     BUII_ApplySavedPosition()
+    if EditModeSystemSettingsDialog and EditModeSystemSettingsDialog.attachedToSystem == self then
+      EditModeSystemSettingsDialog:UpdateSettings(self)
+    end
   end
 
   frame.HasActiveChanges = function(self)
@@ -235,9 +269,7 @@ local function BUII_GroupTools_Initialize()
   end
 
   frame.RevertChanges = function(self)
-    pendingSettings = nil
-    self.hasActiveChanges = false
-    BUII_ApplySavedPosition()
+    self:UpdateSystem()
     if EditModeManagerFrame then
       EditModeManagerFrame:CheckForSystemActiveChanges()
     end
@@ -308,6 +340,9 @@ local function BUII_GroupTools_Initialize()
     frame.Selection:ShowHighlighted()
     updatePending()
     MarkLayoutDirty()
+    if EditModeSystemSettingsDialog then
+      EditModeSystemSettingsDialog:UpdateButtons(frame)
+    end
   end
 
   frame.Selection:SetScript("OnMouseUp", function(self, button)
@@ -325,28 +360,36 @@ local function BUII_GroupTools_Initialize()
   end
 
   -- Hook Edit Mode Save/Revert/LayoutSwitch
-  if EditModeManagerFrame then
-    hooksecurefunc(EditModeManagerFrame, "SaveLayouts", function()
-      if pendingSettings then
-        BUIIDatabase["group_tools_pos"] = BUIIDatabase["group_tools_pos"] or {}
-        for k, v in pairs(pendingSettings) do
-          BUIIDatabase["group_tools_pos"][k] = v
-        end
-        pendingSettings = nil
-        frame.hasActiveChanges = false
+  EventRegistry:RegisterCallback("EditMode.SavedLayouts", function()
+    if pendingSettings then
+      local layoutKey = BUII_GetActiveLayoutKey()
+      BUIIDatabase["group_tools_layouts"] = BUIIDatabase["group_tools_layouts"] or {}
+      BUIIDatabase["group_tools_layouts"][layoutKey] = {}
+      for k, v in pairs(pendingSettings) do
+        BUIIDatabase["group_tools_layouts"][layoutKey][k] = v
       end
-    end)
-
-    hooksecurefunc(EditModeManagerFrame, "RevertAllChanges", function()
       pendingSettings = nil
       frame.hasActiveChanges = false
-      BUII_ApplySavedPosition()
+    end
+  end, "BUII_GroupTools_OnSave")
+
+  if EditModeManagerFrame then
+    hooksecurefunc(EditModeManagerFrame, "RevertAllChanges", function()
+      frame:UpdateSystem()
       if EditModeManagerFrame then
         EditModeManagerFrame:CheckForSystemActiveChanges()
       end
     end)
 
+    hooksecurefunc(EditModeManagerFrame, "RevertSystemChanges", function(self, systemFrame)
+      if systemFrame == frame then
+        frame:UpdateSystem()
+      end
+    end)
+
     hooksecurefunc(EditModeManagerFrame, "SelectLayout", function()
+      pendingSettings = nil
+      frame.hasActiveChanges = false
       BUII_ApplySavedPosition()
     end)
   end
@@ -391,6 +434,7 @@ function BUII_GroupTools_Enable()
   frame:RegisterEvent("ENCOUNTER_END")
   frame:RegisterEvent("SPELL_UPDATE_CHARGES")
   frame:RegisterEvent("SPELL_UPDATE_COOLDOWN")
+  frame:RegisterEvent("EDIT_MODE_LAYOUTS_UPDATED")
   frame:SetScript("OnEvent", onEvent)
 
   EventRegistry:RegisterCallback("EditMode.Enter", editMode_OnEnter, "BUII_GroupTools_OnEnter")
