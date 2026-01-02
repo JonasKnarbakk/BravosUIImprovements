@@ -172,40 +172,50 @@ local function OnUpdateSettings(self, systemFrame)
 
     -- If we have registered settings
     if frame.buiiSettingsConfig then
-      local sliderPool = self:GetSettingPool(Enum.ChrCustomizationOptionType.Slider)
-      -- Support for Checkbox/Dropdown later can be added here
+      self.Settings:Show()
 
-      if sliderPool then
-        self.Settings:Show()
+      -- Acquire pools using the correct Enums as defined in EditModeDialogs.lua
+      local sliderPool = self:GetSettingPool(Enum.EditModeSettingDisplayType.Slider)
+      local checkboxPool = self:GetSettingPool(Enum.ChrCustomizationOptionType.Checkbox)
+      local dropdownPool = self:GetSettingPool(Enum.EditModeSettingDisplayType.Dropdown)
 
-        for _, config in ipairs(frame.buiiSettingsConfig) do
-          if config.type == Enum.EditModeSettingDisplayType.Slider then
-            local settingData = {
-              displayInfo = {
-                setting = config.setting,
-                name = config.name,
-                type = config.type,
-                minValue = config.minValue,
-                maxValue = config.maxValue,
-                stepSize = config.stepSize,
-                formatter = config.formatter,
-              },
-              currentValue = config.getter(frame),
-              settingName = config.name,
-            }
-
-            local sliderFrame = sliderPool:Acquire()
-            sliderFrame:SetPoint("TOPLEFT")
-            sliderFrame.layoutIndex = config.setting
-            sliderFrame:Show()
-            sliderFrame:SetupSetting(settingData)
-          end
+      for _, config in ipairs(frame.buiiSettingsConfig) do
+        local pool
+        if config.type == Enum.EditModeSettingDisplayType.Slider then
+          pool = sliderPool
+        elseif config.type == Enum.ChrCustomizationOptionType.Checkbox then
+          pool = checkboxPool
+        elseif config.type == Enum.EditModeSettingDisplayType.Dropdown then
+          pool = dropdownPool
         end
 
-        self.Settings:Layout()
-        self.Buttons:SetPoint("TOPLEFT", self.Settings, "BOTTOMLEFT", 0, -12)
-        self:UpdateButtons(systemFrame)
+        if pool then
+          local settingData = {
+            displayInfo = {
+              setting = config.setting,
+              name = config.name,
+              type = config.type,
+              minValue = config.minValue,
+              maxValue = config.maxValue,
+              stepSize = config.stepSize,
+              formatter = config.formatter,
+              options = config.options,
+            },
+            currentValue = config.getter(frame),
+            settingName = config.name,
+          }
+
+          local settingFrame = pool:Acquire()
+          settingFrame:SetPoint("TOPLEFT")
+          settingFrame.layoutIndex = config.setting
+          settingFrame:Show()
+          settingFrame:SetupSetting(settingData)
+        end
       end
+
+      self.Settings:Layout()
+      self.Buttons:SetPoint("TOPLEFT", self.Settings, "BOTTOMLEFT", 0, -12)
+      self:UpdateButtons(systemFrame)
     end
   end
 end
@@ -221,6 +231,12 @@ local function OnSettingValueChanged(self, setting, value)
           config.setter(frame, value)
           UpdatePending(frame)
           MarkLayoutDirty(frame)
+
+          -- Trigger UI Refresh for non-sliders (e.g. Dropdowns need to update selected text)
+          -- Sliders handle their own visual state during drag, and refreshing would interrupt them.
+          if config.type ~= Enum.EditModeSettingDisplayType.Slider then
+            self:UpdateSettings(frame)
+          end
           break
         end
       end
