@@ -10,7 +10,9 @@ local enum_GroupToolsSetting_FontSize = 21
 local pendingSettings = nil
 
 local function UpdateBattleRez()
-  if not frame then return end
+  if not frame then
+    return
+  end
   local spellChargeInfo = C_Spell.GetSpellCharges(20484)
   local greyCol = "|cFFAAAAAA"
   local redCol = "|cFFB40000"
@@ -32,7 +34,9 @@ local function UpdateBattleRez()
         local crInfo = C_Spell.GetSpellCooldown(cr)
         if crInfo then
           local isReady = false
-          pcall(function() isReady = (crInfo.startTime == 0) end)
+          pcall(function()
+            isReady = (crInfo.startTime == 0)
+          end)
           if isReady then
             bRezText:SetText(greyCol .. "BR: " .. greenCol .. "Ready")
           else
@@ -56,7 +60,9 @@ local function UpdateBattleRez()
         if C_Item.GetItemCount(itemID) > 0 then
           local start, duration, enable = GetItemCooldown(itemID)
           local isReady = false
-          pcall(function() isReady = (start == 0) end)
+          pcall(function()
+            isReady = (start == 0)
+          end)
           if isReady then
             bRezText:SetText(greyCol .. "BR: " .. greenCol .. "Ready")
           else
@@ -88,8 +94,14 @@ local function UpdateBattleRez()
   local chargesStr = "?"
   local nextText = ""
 
-  pcall(function() chargesStr = tostring(charges) end)
-  pcall(function() if charges < 1 then color = redCol end end)
+  pcall(function()
+    chargesStr = tostring(charges)
+  end)
+  pcall(function()
+    if charges < 1 then
+      color = redCol
+    end
+  end)
 
   pcall(function()
     if started and duration and duration > 0 and maxCharges and charges < maxCharges then
@@ -105,7 +117,9 @@ local function UpdateBattleRez()
 end
 
 local function UpdateVisibility()
-  if not frame then return end
+  if not frame then
+    return
+  end
   local inInstance, instanceType = IsInInstance()
   if inInstance and (instanceType == "party" or instanceType == "raid") then
     frame:Show()
@@ -125,17 +139,27 @@ local function onEvent(self, event)
   UpdateBattleRez()
   UpdateVisibility()
   if event == "PLAYER_ENTERING_WORLD" or event == "ENCOUNTER_START" then
-    if timerFrame then timerFrame:Show() end
+    if timerFrame then
+      timerFrame:Show()
+    end
   elseif event == "ENCOUNTER_END" then
-    if timerFrame then timerFrame:Show() end
+    if timerFrame then
+      timerFrame:Show()
+    end
   end
 end
 
 function BUII_GetActiveLayoutKey()
-  if not EditModeManagerFrame then return "Default" end
-  local layoutInfo = EditModeManagerFrame:GetActiveLayoutInfo()
-  if not layoutInfo or not layoutInfo.layoutName then return "Default" end
-  return layoutInfo.layoutName
+  local layoutName = "Default"
+  pcall(function()
+    if EditModeManagerFrame then
+      local layoutInfo = EditModeManagerFrame:GetActiveLayoutInfo()
+      if layoutInfo and layoutInfo.layoutName then
+        layoutName = layoutInfo.layoutName
+      end
+    end
+  end)
+  return layoutName
 end
 
 local function BUII_CommitPendingChanges()
@@ -151,21 +175,23 @@ local function BUII_CommitPendingChanges()
       fontSize = pendingSettings.fontSize,
     }
     pendingSettings = nil
-    if frame then 
-      frame.hasActiveChanges = false 
-      frame.currentFontSize = BUIIDatabase["group_tools_layouts"][layoutKey].fontSize
+    if frame then
+      frame.hasActiveChanges = false
     end
-    UpdateBattleRez()
+    -- Visual refresh to ensure it's locked in
+    BUII_ApplySavedPosition()
   end
 end
 
 function BUII_ApplySavedPosition()
-  if not frame then return end
-  
+  if not frame then
+    return
+  end
+
   local layoutKey = BUII_GetActiveLayoutKey()
   local layouts = BUIIDatabase["group_tools_layouts"] or {}
   local pos = layouts[layoutKey]
-  
+
   -- Fallback to old global setting ONLY if we have NEVER saved any layout-specific settings
   if not pos and not next(layouts) and BUIIDatabase["group_tools_pos"] then
     pos = BUIIDatabase["group_tools_pos"]
@@ -189,10 +215,17 @@ function BUII_ApplySavedPosition()
   end
 
   frame.currentFontSize = fontSize
-  if frame:GetScale() ~= scale then frame:SetScale(scale) end
-  
+  if frame:GetScale() ~= scale then
+    frame:SetScale(scale)
+  end
+
   local currentPoint, _, currentRel, currentX, currentY = frame:GetPoint()
-  if currentPoint ~= point or currentRel ~= relPoint or math.abs(currentX - x) > 0.1 or math.abs(currentY - y) > 0.1 then
+  if
+    currentPoint ~= point
+    or currentRel ~= relPoint
+    or math.abs(currentX - x) > 0.1
+    or math.abs(currentY - y) > 0.1
+  then
     frame:ClearAllPoints()
     frame:SetPoint(point, UIParent, relPoint, x, y)
   end
@@ -215,9 +248,11 @@ function BUII_ApplySavedPosition()
 end
 
 local function updatePending()
-  if not frame then return end
+  if not frame then
+    return
+  end
   local point, _, relativePoint, offsetX, offsetY = frame:GetPoint()
-  
+
   pendingSettings = {
     point = point,
     relativePoint = relativePoint,
@@ -314,11 +349,11 @@ local function groupTools_OnSettingValueChanged(self, setting, value)
       UpdateBattleRez()
       MarkLayoutDirty()
     end
-    
+
     if EditModeSystemSettingsDialog then
       EditModeSystemSettingsDialog:UpdateButtons(currentFrame)
     end
-    
+
     if currentFrame.isSelected then
       currentFrame.Selection:ShowSelected()
     end
@@ -326,7 +361,9 @@ local function groupTools_OnSettingValueChanged(self, setting, value)
 end
 
 local function BUII_GroupTools_Initialize()
-  if frame then return end
+  if frame then
+    return
+  end
 
   frame = CreateFrame("Frame", "BUII_GroupToolsFrame", UIParent, "BUII_GroupToolsEditModeTemplate")
   frame:SetSize(140, 80)
@@ -341,17 +378,17 @@ local function BUII_GroupTools_Initialize()
   frame.isSelected = false
   frame.isManagedFrame = false
   frame.currentFontSize = 12
-  
+
   -- Mandatory fields
   frame.systemInfo = {
     system = Enum.EditModeSystem.BUII_GroupTools,
     systemIndex = 0,
     anchorInfo = { point = "CENTER", relativeTo = "UIParent", relativePoint = "CENTER", offsetX = 0, offsetY = 0 },
-    settings = { 
+    settings = {
       { setting = enum_GroupToolsSetting_Scale, value = 1.0 },
-      { setting = enum_GroupToolsSetting_FontSize, value = 12 }
+      { setting = enum_GroupToolsSetting_FontSize, value = 12 },
     },
-    isInDefaultPosition = true
+    isInDefaultPosition = true,
   }
   frame.savedSystemInfo = CopyTable(frame.systemInfo)
 
@@ -367,18 +404,21 @@ local function BUII_GroupTools_Initialize()
     if EditModeSystemSettingsDialog then
       EditModeSystemSettingsDialog:UpdateButtons(self)
     end
-    if self.isSelected then self.Selection:ShowSelected() end
+    if self.isSelected then
+      self.Selection:ShowSelected()
+    end
   end
 
   frame.UpdateSystem = function(self, systemInfo)
-    if not self.hasActiveChanges then
-      pendingSettings = nil
-      BUII_ApplySavedPosition()
-    end
+    pendingSettings = nil
+    self.hasActiveChanges = false
+    BUII_ApplySavedPosition()
     if EditModeSystemSettingsDialog and EditModeSystemSettingsDialog.attachedToSystem == self then
       EditModeSystemSettingsDialog:UpdateSettings(self)
     end
-    if self.isSelected then self.Selection:ShowSelected() end
+    if self.isSelected then
+      self.Selection:ShowSelected()
+    end
   end
 
   frame.HasActiveChanges = function(self)
@@ -390,8 +430,6 @@ local function BUII_GroupTools_Initialize()
   end
 
   frame.RevertChanges = function(self)
-    self.hasActiveChanges = false
-    pendingSettings = nil
     self:UpdateSystem()
     if EditModeManagerFrame then
       EditModeManagerFrame:CheckForSystemActiveChanges()
@@ -414,7 +452,7 @@ local function BUII_GroupTools_Initialize()
       minValue = 8,
       maxValue = 24,
       stepSize = 1,
-    }
+    },
   }
 
   local bRezFrame = CreateFrame("Frame", nil, frame)
@@ -439,11 +477,15 @@ local function BUII_GroupTools_Initialize()
   pullBtn:GetFontString():SetFont(BUII_GetFontPath(), 10, "OUTLINE")
   pullBtn:RegisterForClicks("LeftButtonUp", "RightButtonUp")
   pullBtn:SetScript("OnClick", function(self, button)
-    local timer = UnitInRaid("player") and 10 or 5
+    local timer = IsInRaid() and 10 or 5
     if button == "LeftButton" then
-      if C_PartyInfo and C_PartyInfo.DoCountdown then C_PartyInfo.DoCountdown(timer) end
+      if C_PartyInfo and C_PartyInfo.DoCountdown then
+        C_PartyInfo.DoCountdown(timer)
+      end
     elseif button == "RightButton" then
-      if C_PartyInfo and C_PartyInfo.DoCountdown then C_PartyInfo.DoCountdown(0) end
+      if C_PartyInfo and C_PartyInfo.DoCountdown then
+        C_PartyInfo.DoCountdown(0)
+      end
     end
   end)
 
@@ -452,11 +494,13 @@ local function BUII_GroupTools_Initialize()
   rcBtn:SetPoint("TOP", pullBtn, "BOTTOM", 0, -5)
   rcBtn:SetText("Ready Check")
   rcBtn:GetFontString():SetFont(BUII_GetFontPath(), 10, "OUTLINE")
-  rcBtn:SetScript("OnClick", function() DoReadyCheck() end)
+  rcBtn:SetScript("OnClick", function()
+    DoReadyCheck()
+  end)
 
   -- Selection Scripts
   frame.Selection.Label:SetText("Group Tools")
-  
+
   frame.Selection:SetScript("OnMouseDown", function(self, button)
     if button == "LeftButton" then
       EditModeManagerFrame:SelectSystem(frame)
@@ -505,10 +549,8 @@ local function BUII_GroupTools_Initialize()
 
   -- Hook Edit Mode Save/Revert/LayoutSwitch
   if EditModeManagerFrame then
-    hooksecurefunc(EditModeManagerFrame, "SaveLayouts", BUII_CommitPendingChanges)
-
     hooksecurefunc(EditModeManagerFrame, "RevertAllChanges", function()
-      if frame then 
+      if frame then
         frame:UpdateSystem()
       end
     end)
@@ -520,7 +562,9 @@ local function BUII_GroupTools_Initialize()
     end)
 
     hooksecurefunc(EditModeManagerFrame, "ClearSelectedSystem", function()
-      if frame then frame.isSelected = false end
+      if frame then
+        frame.isSelected = false
+      end
     end)
 
     hooksecurefunc(EditModeManagerFrame, "SelectLayout", function()
@@ -532,6 +576,9 @@ local function BUII_GroupTools_Initialize()
       end
     end)
   end
+
+  -- Standard Blizzard Save Event - covers Save button and Save & Exit path
+  EventRegistry:RegisterCallback("EditMode.SavedLayouts", BUII_CommitPendingChanges, "BUII_GroupTools_OnSave")
 
   timerFrame = CreateFrame("Frame")
   timerFrame:Hide()
@@ -546,7 +593,9 @@ local function BUII_GroupTools_Initialize()
 end
 
 local function editMode_OnEnter()
-  if not frame then return end
+  if not frame then
+    return
+  end
   pendingSettings = nil
   frame.hasActiveChanges = false
   frame.isSelected = false
@@ -556,8 +605,11 @@ local function editMode_OnEnter()
 end
 
 local function editMode_OnExit()
-  if not frame then return end
+  if not frame then
+    return
+  end
   if frame.hasActiveChanges then
+    -- Discard visual changes if we exited without saving
     BUII_ApplySavedPosition()
     frame.hasActiveChanges = false
     pendingSettings = nil
@@ -589,7 +641,9 @@ function BUII_GroupTools_Enable()
 end
 
 function BUII_GroupTools_Disable()
-  if not frame then return end
+  if not frame then
+    return
+  end
   frame:UnregisterAllEvents()
   frame:SetScript("OnEvent", nil)
   timerFrame:Hide()
