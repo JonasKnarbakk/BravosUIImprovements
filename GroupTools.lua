@@ -274,7 +274,7 @@ local function MarkLayoutDirty()
 end
 
 local function BUII_FormatScale(value)
-  return string.format("%.2f", value)
+  return math.floor(value * 100 + 0.5) .. "%"
 end
 
 -- Hook for Edit Mode Settings Dialog
