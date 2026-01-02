@@ -285,6 +285,7 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       BUIIDatabase["ion_mode"] = false
       BUIIDatabase["gear_talent_loadout"] = false
       BUIIDatabase["combat_state"] = false
+      BUIIDatabase["ready_check"] = false
       BUIIDatabase["queue_status_button_position"] = {
         point = "BOTTOMRIGHT",
         relativeTo = nil,
@@ -315,6 +316,9 @@ function BUII_OnEventHandler(self, event, arg1, ...)
     end
     if BUIIDatabase["combat_state"] == nil then
       BUIIDatabase["combat_state"] = false
+    end
+    if BUIIDatabase["ready_check"] == nil then
+      BUIIDatabase["ready_check"] = false
     end
 
     if BUIICharacterDatabase == nil then
@@ -409,6 +413,11 @@ function BUII_OnEventHandler(self, event, arg1, ...)
     if BUIIDatabase["combat_state"] then
       BUII_CombatState_Enable()
       _G["BUIIOptionsPanelCombatState"]:SetChecked(true)
+    end
+
+    if BUIIDatabase["ready_check"] then
+      BUII_ReadyCheck_Enable()
+      _G["BUIIOptionsPanelReadyCheck"]:SetChecked(true)
     end
   end
 end
@@ -553,5 +562,15 @@ function BUII_CombatState_OnClick(self)
   else
     BUII_CombatState_Disable()
     BUIIDatabase["combat_state"] = false
+  end
+end
+
+function BUII_ReadyCheck_OnClick(self)
+  if self:GetChecked() then
+    BUII_ReadyCheck_Enable()
+    BUIIDatabase["ready_check"] = true
+  else
+    BUII_ReadyCheck_Disable()
+    BUIIDatabase["ready_check"] = false
   end
 end

@@ -1,11 +1,13 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/..\FrameXML\UI.xsd">
 
+  <Script file="Utils.lua"/>
   <Script file="CastBarTimers.lua"/>
   <Script file="QuickKeybindModeShortcut.lua"/>
   <Script file="CallToArms.lua"/>
   <Script file="Ion.lua"/>
   <Script file="GearAndTalentLoadout.lua"/>
   <Script file="CombatState.lua"/>
+  <Script file="ReadyCheck.lua"/>
   <Script file="BravosUIImprovements.lua"/>
 
   <Frame name="BUIIOptionsPanel" hidden="false">
@@ -272,6 +274,24 @@
         </Layers>
         <Scripts>
           <OnClick function="BUII_CombatState_OnClick"/>
+        </Scripts>
+      </CheckButton>
+
+      <CheckButton name="$parentReadyCheck" parentKey="ReadyCheck" inherits="InterfaceOptionsCheckButtonTemplate">
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeKey="$parent.CombatState" relativePoint="BOTTOMLEFT" x="0" y="0"/>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString name="$parentLabel" text="Ready Check Notification" inherits="GameFontNormalSmall">
+              <Anchors>
+                <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnClick function="BUII_ReadyCheck_OnClick"/>
         </Scripts>
       </CheckButton>
 

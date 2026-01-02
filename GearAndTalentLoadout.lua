@@ -7,37 +7,23 @@ local talentText = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0) -- Default position
 frame:SetMovable(true)
 frame:EnableMouse(false) -- Disable mouse by default, enable in Edit Mode
+frame:Hide()
 
 -- Icon Setup
 icon:SetSize(40, 40)
 icon:SetPoint("CENTER", frame, "CENTER")
 icon:SetTexCoord(0, 1, 0, 1) -- No zoom
 
-local function GetFontPath()
-  local fontName = "Expressway"
-  local LSM = LibStub and LibStub("LibSharedMedia-3.0", true)
-  if LSM then
-    local font = LSM:Fetch("font", fontName)
-    if font then
-      return font
-    end
-  end
-  -- Fallback
-  local filename = GameFontHighlight:GetFont()
-  return filename
-end
-
 -- Text Setup
 gearText:SetFontObject("GameFontHighlight")
-gearText:SetFont(GetFontPath(), 22, "OUTLINE")
+gearText:SetFont(BUII_GetFontPath(), 22, "OUTLINE")
 gearText:SetPoint("CENTER", icon, "TOP", 0, 0)
 gearText:SetJustifyH("CENTER")
 
 talentText:SetFontObject("GameFontHighlight")
-talentText:SetFont(GetFontPath(), 22, "OUTLINE")
+talentText:SetFont(BUII_GetFontPath(), 22, "OUTLINE")
 talentText:SetPoint("CENTER", icon, "BOTTOM", 0, 0)
 talentText:SetJustifyH("CENTER")
-
 -- Edit Mode Selection Frame
 local selection = CreateFrame("Frame", nil, frame, "EditModeSystemSelectionTemplate")
 selection:SetAllPoints(frame)

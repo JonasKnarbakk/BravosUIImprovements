@@ -1,11 +1,13 @@
 local frame = CreateFrame("Frame", "BUII_CombatStateFrame", UIParent)
 local text = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
+text:SetFont(BUII_GetFontPath(), 32, "OUTLINE")
 
 -- Configuration
 frame:SetSize(200, 50)
 frame:SetPoint("CENTER", UIParent, "CENTER", 0, 100) -- Default position slightly above center
 frame:SetMovable(true)
 frame:EnableMouse(false)
+frame:Hide()
 
 text:SetPoint("CENTER", frame, "CENTER")
 text:SetAlpha(0) -- Start invisible
