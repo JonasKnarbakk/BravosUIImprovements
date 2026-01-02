@@ -119,6 +119,7 @@ local microMenu = MicroMenu
 local enum_EditModeActionBarSetting_HideMacroText = 10
 local enum_EditModeActionBarSetting_AbbreviateKeybindings = 11
 local enum_EditModeActionBarSetting_BarVisibility = 12
+local enum_GroupToolsSetting_Scale = 20
 local enum_ActionBarVisibleSetting_OnHover = 4
 local enum_BagsBarSetting_BarVisibility = 3
 local enum_MicroMenuSetting_BarVisibility = 3

@@ -279,78 +279,91 @@ function BUII_CallToArmsSound_Initialize(self, level, menuList)
   UIDropDownMenu_AddButton(info)
 end
 
+local function BUII_RegisterEditModeSystem()
+  -- Define the minimum necessary for the settings dialog to work without crashing Blizzard's ipairs
+  if EditModeSettingDisplayInfoManager and not EditModeSettingDisplayInfoManager.systemSettingDisplayInfo[Enum.EditModeSystem.BUII_GroupTools] then
+    EditModeSettingDisplayInfoManager.systemSettingDisplayInfo[Enum.EditModeSystem.BUII_GroupTools] = {}
+  end
+end
+
 function BUII_OnEventHandler(self, event, arg1, ...)
-  if event == "ADDON_LOADED" and arg1 == "BravosUIImprovements" then
-    if BUIIDatabase == nil then
-      BUIIDatabase = {}
-      BUIIDatabase["class_color"] = false
-      BUIIDatabase["castbar_timers"] = false
-      BUIIDatabase["castbar_icon"] = false
-      BUIIDatabase["castbar_on_top"] = false
-      BUIIDatabase["sane_bag_sort"] = false
-      BUIIDatabase["quick_keybind_shortcut"] = false
-      BUIIDatabase["improved_edit_mode"] = false
-      BUIIDatabase["tooltip_expansion"] = false
-      BUIIDatabase["call_to_arms"] = false
-      BUIIDatabase["call_to_arms_ineligible"] = false
-      BUIIDatabase["call_to_arms_roles"] = { tank = true, healer = true, damage = true }
-      BUIIDatabase["ion_mode"] = false
-      BUIIDatabase["gear_talent_loadout"] = false
-      BUIIDatabase["combat_state"] = false
-      BUIIDatabase["ready_check"] = false
-      BUIIDatabase["group_tools"] = false
-      BUIIDatabase["queue_status_button_position"] = {
-        point = "BOTTOMRIGHT",
-        relativeTo = nil,
-        relativePoint = "BOTTOMRIGHT",
-        xOffset = 0,
-        yOffset = 0,
-      }
-    end
+  if event == "ADDON_LOADED" then
+    if arg1 == "BravosUIImprovements" then
+      BUII_RegisterEditModeSystem()
 
-    -- Ensure new keys are initialized for existing users
-    if BUIIDatabase["call_to_arms"] == nil then
-      BUIIDatabase["call_to_arms"] = false
-    end
-    if BUIIDatabase["call_to_arms_ineligible"] == nil then
-      BUIIDatabase["call_to_arms_ineligible"] = false
-    end
-    if BUIIDatabase["call_to_arms_roles"] == nil then
-      BUIIDatabase["call_to_arms_roles"] = { tank = true, healer = true, damage = true }
-    end
-    if BUIIDatabase["call_to_arms_sound_id"] == nil then
-      BUIIDatabase["call_to_arms_sound_id"] = 17316
-    end
-    if BUIIDatabase["ion_mode"] == nil then
-      BUIIDatabase["ion_mode"] = false
-    end
-    if BUIIDatabase["gear_talent_loadout"] == nil then
-      BUIIDatabase["gear_talent_loadout"] = false
-    end
-    if BUIIDatabase["combat_state"] == nil then
-      BUIIDatabase["combat_state"] = false
-    end
-    if BUIIDatabase["ready_check"] == nil then
-      BUIIDatabase["ready_check"] = false
-    end
-    if BUIIDatabase["group_tools"] == nil then
-      BUIIDatabase["group_tools"] = false
-    end
+      if BUIIDatabase == nil then
+        BUIIDatabase = {}
+        BUIIDatabase["class_color"] = false
+        BUIIDatabase["castbar_timers"] = false
+        BUIIDatabase["castbar_icon"] = false
+        BUIIDatabase["castbar_on_top"] = false
+        BUIIDatabase["sane_bag_sort"] = false
+        BUIIDatabase["quick_keybind_shortcut"] = false
+        BUIIDatabase["improved_edit_mode"] = false
+        BUIIDatabase["tooltip_expansion"] = false
+        BUIIDatabase["call_to_arms"] = false
+        BUIIDatabase["call_to_arms_ineligible"] = false
+        BUIIDatabase["call_to_arms_roles"] = { tank = true, healer = true, damage = true }
+        BUIIDatabase["ion_mode"] = false
+        BUIIDatabase["gear_talent_loadout"] = false
+        BUIIDatabase["combat_state"] = false
+        BUIIDatabase["ready_check"] = false
+        BUIIDatabase["group_tools"] = false
+        BUIIDatabase["queue_status_button_position"] = {
+          point = "BOTTOMRIGHT",
+          relativeTo = nil,
+          relativePoint = "BOTTOMRIGHT",
+          xOffset = 0,
+          yOffset = 0,
+        }
+      end
 
-    if BUIICharacterDatabase == nil then
-      BUIICharacterDatabase = {}
-      BUIICharacterDatabase["hide_stance_bar"] = false
-      local point, _, relativePoint, xOffset, yOffset = StanceBar:GetPoint()
-      BUIICharacterDatabase["stance_bar_position"] = {
-        point = point,
-        relativeTo = nil,
-        relativePoint = relativePoint,
-        xOffset = xOffset,
-        yOffset = yOffset,
-      }
-    end
+      -- Ensure new keys are initialized for existing users
+      if BUIIDatabase["call_to_arms"] == nil then
+        BUIIDatabase["call_to_arms"] = false
+      end
+      if BUIIDatabase["call_to_arms_ineligible"] == nil then
+        BUIIDatabase["call_to_arms_ineligible"] = false
+      end
+      if BUIIDatabase["call_to_arms_roles"] == nil then
+        BUIIDatabase["call_to_arms_roles"] = { tank = true, healer = true, damage = true }
+      end
+      if BUIIDatabase["call_to_arms_sound_id"] == nil then
+        BUIIDatabase["call_to_arms_sound_id"] = 17316
+      end
+      if BUIIDatabase["ion_mode"] == nil then
+        BUIIDatabase["ion_mode"] = false
+      end
+      if BUIIDatabase["gear_talent_loadout"] == nil then
+        BUIIDatabase["gear_talent_loadout"] = false
+      end
+      if BUIIDatabase["combat_state"] == nil then
+        BUIIDatabase["combat_state"] = false
+      end
+      if BUIIDatabase["ready_check"] == nil then
+        BUIIDatabase["ready_check"] = false
+      end
+      if BUIIDatabase["group_tools"] == nil then
+        BUIIDatabase["group_tools"] = false
+      end
 
-    self:UnregisterEvent("ADDON_LOADED")
+      if BUIICharacterDatabase == nil then
+        BUIICharacterDatabase = {}
+        BUIICharacterDatabase["hide_stance_bar"] = false
+        local point, _, relativePoint, xOffset, yOffset = StanceBar:GetPoint()
+        BUIICharacterDatabase["stance_bar_position"] = {
+          point = point,
+          relativeTo = nil,
+          relativePoint = relativePoint,
+          xOffset = xOffset,
+          yOffset = yOffset,
+        }
+      end
+
+      self:UnregisterEvent("ADDON_LOADED")
+    elseif arg1 == "Blizzard_EditMode" then
+      BUII_RegisterEditModeSystem()
+    end
   elseif event == "PLAYER_ENTERING_WORLD" then
     if BUIIDatabase["class_color"] then
       _G["BUIIOptionsPanelHealthClassColor"]:SetChecked(true)

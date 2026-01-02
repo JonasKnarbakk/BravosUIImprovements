@@ -11,6 +11,16 @@
   <Script file="GroupTools.lua"/>
   <Script file="BravosUIImprovements.lua"/>
 
+  <Frame name="BUII_GroupToolsEditModeTemplate" inherits="EditModeSystemTemplate" virtual="true">
+    <KeyValues>
+      <KeyValue key="system" value="Enum.EditModeSystem.BUII_GroupTools" type="global"/>
+      <KeyValue key="systemNameString" value="BUII_HUD_EDIT_MODE_GROUP_TOOLS_LABEL" type="global"/>
+    </KeyValues>
+    <Frames>
+      <Frame inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
+    </Frames>
+  </Frame>
+
   <Frame name="BUIIOptionsPanel" hidden="false">
 
     <Layers>
