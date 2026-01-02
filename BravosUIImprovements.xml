@@ -3,6 +3,9 @@
   <Script file="CastBarTimers.lua"/>
   <Script file="QuickKeybindModeShortcut.lua"/>
   <Script file="CallToArms.lua"/>
+  <Script file="Ion.lua"/>
+  <Script file="GearAndTalentLoadout.lua"/>
+  <Script file="CombatState.lua"/>
   <Script file="BravosUIImprovements.lua"/>
 
   <Frame name="BUIIOptionsPanel" hidden="false">
@@ -217,6 +220,60 @@
           </Layer>
         </Layers>
       </Frame>
+
+      <CheckButton name="$parentIon" parentKey="Ion" inherits="InterfaceOptionsCheckButtonTemplate">
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeKey="$parent.CallToArmsSound" relativePoint="BOTTOMLEFT" x="-20" y="-10"/>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString name="$parentLabel" text="Ion Mode" inherits="GameFontNormalSmall">
+              <Anchors>
+                <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnClick function="BUII_Ion_OnClick"/>
+        </Scripts>
+      </CheckButton>
+
+      <CheckButton name="$parentGearAndTalentLoadout" parentKey="GearAndTalentLoadout" inherits="InterfaceOptionsCheckButtonTemplate">
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeKey="$parent.Ion" relativePoint="BOTTOMLEFT" x="0" y="0"/>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString name="$parentLabel" text="Show Gear &amp; Talent Loadout" inherits="GameFontNormalSmall">
+              <Anchors>
+                <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnClick function="BUII_GearAndTalentLoadout_OnClick"/>
+        </Scripts>
+      </CheckButton>
+
+      <CheckButton name="$parentCombatState" parentKey="CombatState" inherits="InterfaceOptionsCheckButtonTemplate">
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeKey="$parent.GearAndTalentLoadout" relativePoint="BOTTOMLEFT" x="0" y="0"/>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString name="$parentLabel" text="Combat State Notification" inherits="GameFontNormalSmall">
+              <Anchors>
+                <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnClick function="BUII_CombatState_OnClick"/>
+        </Scripts>
+      </CheckButton>
 
     </Frames>
 

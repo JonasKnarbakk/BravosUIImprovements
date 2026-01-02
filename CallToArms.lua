@@ -279,7 +279,7 @@ function frame:OnDragStop()
   frame:SetClampedToScreen(false)
 
   local point, _, relativePoint, x, y = frame:GetPoint()
-  BUIICharacterDatabase["call_to_arms_pos"] = { point = point, relativePoint = relativePoint, x = x, y = y }
+  BUIIDatabase["call_to_arms_pos"] = { point = point, relativePoint = relativePoint, x = x, y = y }
 end
 
 -- We don't need manual SetScripts on Selection because the template handles calling OnDragStart/Stop on parent
@@ -495,8 +495,8 @@ function BUII_CallToArms_Enable()
   EventRegistry:RegisterCallback("EditMode.Exit", editMode_OnExit, "BUII_CallToArms_OnExit")
 
   -- Restore position
-  if BUIICharacterDatabase["call_to_arms_pos"] then
-    local pos = BUIICharacterDatabase["call_to_arms_pos"]
+  if BUIIDatabase["call_to_arms_pos"] then
+    local pos = BUIIDatabase["call_to_arms_pos"]
     frame:ClearAllPoints()
     frame:SetPoint(pos.point, UIParent, pos.relativePoint, pos.x, pos.y)
   end
