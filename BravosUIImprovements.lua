@@ -1,6 +1,7 @@
 local addonName, addon = ...
 local spellBarHookSet = false
 local stanceBarHookSet = false
+local castingBarHookSet = false
 
 -- Sound Options
 local soundOptions = {
@@ -141,6 +142,17 @@ local function showPlayerCastBarIcon(shouldShow)
     PlayerCastingBarFrame.Icon:SetPoint(point, relativeTo, relativePoint, -2, -6)
     PlayerCastingBarFrame.Icon:Show()
     BUIIDatabase["castbar_icon"] = true
+
+    if not castingBarHookSet then
+      PlayerCastingBarFrame:HookScript("OnEvent", function()
+        if BUIIDatabase["castbar_icon"] then
+          PlayerCastingBarFrame.Icon:Show()
+        else
+          PlayerCastingBarFrame.Icon:Hide()
+        end
+      end)
+      castingBarHookSet = true
+    end
   else
     PlayerCastingBarFrame.Icon:Hide()
     BUIIDatabase["castbar_icon"] = false
