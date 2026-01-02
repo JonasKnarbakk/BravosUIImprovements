@@ -8,6 +8,7 @@
   <Script file="GearAndTalentLoadout.lua"/>
   <Script file="CombatState.lua"/>
   <Script file="ReadyCheck.lua"/>
+  <Script file="EditModeUtils.lua"/>
   <Script file="GroupTools.lua"/>
   <Script file="BravosUIImprovements.lua"/>
 
