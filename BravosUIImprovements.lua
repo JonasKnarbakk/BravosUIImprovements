@@ -286,6 +286,7 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       BUIIDatabase["gear_talent_loadout"] = false
       BUIIDatabase["combat_state"] = false
       BUIIDatabase["ready_check"] = false
+      BUIIDatabase["group_tools"] = false
       BUIIDatabase["queue_status_button_position"] = {
         point = "BOTTOMRIGHT",
         relativeTo = nil,
@@ -319,6 +320,9 @@ function BUII_OnEventHandler(self, event, arg1, ...)
     end
     if BUIIDatabase["ready_check"] == nil then
       BUIIDatabase["ready_check"] = false
+    end
+    if BUIIDatabase["group_tools"] == nil then
+      BUIIDatabase["group_tools"] = false
     end
 
     if BUIICharacterDatabase == nil then
@@ -418,6 +422,11 @@ function BUII_OnEventHandler(self, event, arg1, ...)
     if BUIIDatabase["ready_check"] then
       BUII_ReadyCheck_Enable()
       _G["BUIIOptionsPanelReadyCheck"]:SetChecked(true)
+    end
+
+    if BUIIDatabase["group_tools"] then
+      BUII_GroupTools_Enable()
+      _G["BUIIOptionsPanelGroupTools"]:SetChecked(true)
     end
   end
 end
@@ -572,5 +581,15 @@ function BUII_ReadyCheck_OnClick(self)
   else
     BUII_ReadyCheck_Disable()
     BUIIDatabase["ready_check"] = false
+  end
+end
+
+function BUII_GroupTools_OnClick(self)
+  if self:GetChecked() then
+    BUII_GroupTools_Enable()
+    BUIIDatabase["group_tools"] = true
+  else
+    BUII_GroupTools_Disable()
+    BUIIDatabase["group_tools"] = false
   end
 end
