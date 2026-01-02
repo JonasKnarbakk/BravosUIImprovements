@@ -283,6 +283,7 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       BUIIDatabase["call_to_arms_ineligible"] = false
       BUIIDatabase["call_to_arms_roles"] = { tank = true, healer = true, damage = true }
       BUIIDatabase["ion_mode"] = false
+      BUIIDatabase["gear_talent_loadout"] = false
       BUIIDatabase["queue_status_button_position"] = {
         point = "BOTTOMRIGHT",
         relativeTo = nil,
@@ -307,6 +308,9 @@ function BUII_OnEventHandler(self, event, arg1, ...)
     end
     if BUIIDatabase["ion_mode"] == nil then
       BUIIDatabase["ion_mode"] = false
+    end
+    if BUIIDatabase["gear_talent_loadout"] == nil then
+      BUIIDatabase["gear_talent_loadout"] = false
     end
 
     if BUIICharacterDatabase == nil then
@@ -391,6 +395,11 @@ function BUII_OnEventHandler(self, event, arg1, ...)
     if BUIIDatabase["ion_mode"] then
       BUII_Ion_Enable()
       _G["BUIIOptionsPanelIon"]:SetChecked(true)
+    end
+
+    if BUIIDatabase["gear_talent_loadout"] then
+      BUII_GearAndTalentLoadout_Enable()
+      _G["BUIIOptionsPanelGearAndTalentLoadout"]:SetChecked(true)
     end
   end
 end
@@ -515,5 +524,15 @@ function BUII_Ion_OnClick(self)
   else
     BUII_Ion_Disable()
     BUIIDatabase["ion_mode"] = false
+  end
+end
+
+function BUII_GearAndTalentLoadout_OnClick(self)
+  if self:GetChecked() then
+    BUII_GearAndTalentLoadout_Enable()
+    BUIIDatabase["gear_talent_loadout"] = true
+  else
+    BUII_GearAndTalentLoadout_Disable()
+    BUIIDatabase["gear_talent_loadout"] = false
   end
 end
