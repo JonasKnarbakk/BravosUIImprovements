@@ -4,6 +4,7 @@ local timerFrame = nil
 
 -- Settings Constants
 local enum_GroupToolsSetting_Scale = 20
+local enum_GroupToolsSetting_FontSize = 21
 
 -- Pending changes tracking
 local pendingSettings = nil
@@ -15,6 +16,12 @@ local function UpdateBattleRez()
   local redCol = "|cFFB40000"
   local greenCol = "|cFF00FF00"
   local whiteCol = "|cFFFFFFFF"
+
+  -- Apply font size from the single source of truth
+  local fontSize = frame.currentFontSize or 12
+  if bRezText then
+    bRezText:SetFont(BUII_GetFontPath(), fontSize, "OUTLINE")
+  end
 
   if spellChargeInfo == nil then
     local crs = { 20484, 391054, 20707, 61999 }
@@ -109,7 +116,9 @@ end
 
 local function onEvent(self, event)
   if event == "EDIT_MODE_LAYOUTS_UPDATED" then
-    BUII_ApplySavedPosition()
+    if frame and not frame.isSelected and not frame.hasActiveChanges then
+      BUII_ApplySavedPosition()
+    end
     return
   end
 
@@ -122,49 +131,100 @@ local function onEvent(self, event)
   end
 end
 
-local function BUII_GetActiveLayoutKey()
+function BUII_GetActiveLayoutKey()
   if not EditModeManagerFrame then return "Default" end
   local layoutInfo = EditModeManagerFrame:GetActiveLayoutInfo()
-  if not layoutInfo then return "Default" end
-  return layoutInfo.layoutName or "Unknown"
+  if not layoutInfo or not layoutInfo.layoutName then return "Default" end
+  return layoutInfo.layoutName
+end
+
+local function BUII_CommitPendingChanges()
+  if pendingSettings then
+    local layoutKey = BUII_GetActiveLayoutKey()
+    BUIIDatabase["group_tools_layouts"] = BUIIDatabase["group_tools_layouts"] or {}
+    BUIIDatabase["group_tools_layouts"][layoutKey] = {
+      point = pendingSettings.point,
+      relativePoint = pendingSettings.relativePoint,
+      offsetX = pendingSettings.offsetX,
+      offsetY = pendingSettings.offsetY,
+      scale = pendingSettings.scale,
+      fontSize = pendingSettings.fontSize,
+    }
+    pendingSettings = nil
+    if frame then 
+      frame.hasActiveChanges = false 
+      frame.currentFontSize = BUIIDatabase["group_tools_layouts"][layoutKey].fontSize
+    end
+    UpdateBattleRez()
+  end
 end
 
 function BUII_ApplySavedPosition()
   if not frame then return end
   
   local layoutKey = BUII_GetActiveLayoutKey()
-  BUIIDatabase["group_tools_layouts"] = BUIIDatabase["group_tools_layouts"] or {}
-  
-  local pos = BUIIDatabase["group_tools_layouts"][layoutKey]
+  local layouts = BUIIDatabase["group_tools_layouts"] or {}
+  local pos = layouts[layoutKey]
   
   -- Fallback to old global setting ONLY if we have NEVER saved any layout-specific settings
-  if not pos and not next(BUIIDatabase["group_tools_layouts"]) and BUIIDatabase["group_tools_pos"] then
+  if not pos and not next(layouts) and BUIIDatabase["group_tools_pos"] then
     pos = BUIIDatabase["group_tools_pos"]
   end
 
+  local point, relPoint, x, y, scale, fontSize
   if pos then
-    frame:SetScale(pos.scale or 1.0)
-    frame:ClearAllPoints()
-    local x = pos.offsetX or pos.x or 0
-    local y = pos.offsetY or pos.y or 0
-    frame:SetPoint(pos.point or "CENTER", UIParent, pos.relativePoint or "CENTER", x, y)
+    point = pos.point or "CENTER"
+    relPoint = pos.relativePoint or "CENTER"
+    x = pos.offsetX or pos.x or 0
+    y = pos.offsetY or pos.y or 0
+    scale = pos.scale or 1.0
+    fontSize = pos.fontSize or 12
   else
-    -- Reset to Default (Center, 1.0 scale)
-    frame:SetScale(1.0)
-    frame:ClearAllPoints()
-    frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
+    point = "CENTER"
+    relPoint = "CENTER"
+    x = 0
+    y = 0
+    scale = 1.0
+    fontSize = 12
   end
+
+  frame.currentFontSize = fontSize
+  if frame:GetScale() ~= scale then frame:SetScale(scale) end
+  
+  local currentPoint, _, currentRel, currentX, currentY = frame:GetPoint()
+  if currentPoint ~= point or currentRel ~= relPoint or math.abs(currentX - x) > 0.1 or math.abs(currentY - y) > 0.1 then
+    frame:ClearAllPoints()
+    frame:SetPoint(point, UIParent, relPoint, x, y)
+  end
+
+  -- Sync Blizzard systemInfo structure
+  frame.systemInfo.anchorInfo = {
+    point = point,
+    relativeTo = "UIParent",
+    relativePoint = relPoint,
+    offsetX = x,
+    offsetY = y,
+  }
+  frame.systemInfo.settings = {
+    { setting = enum_GroupToolsSetting_Scale, value = scale },
+    { setting = enum_GroupToolsSetting_FontSize, value = fontSize },
+  }
+  frame.savedSystemInfo = CopyTable(frame.systemInfo)
+
+  UpdateBattleRez()
 end
 
 local function updatePending()
   if not frame then return end
   local point, _, relativePoint, offsetX, offsetY = frame:GetPoint()
+  
   pendingSettings = {
     point = point,
     relativePoint = relativePoint,
     offsetX = offsetX,
     offsetY = offsetY,
     scale = frame:GetScale(),
+    fontSize = frame.currentFontSize or 12,
   }
 end
 
@@ -185,6 +245,7 @@ end
 -- Hook for Edit Mode Settings Dialog
 local function groupTools_OnUpdateSettings(self, systemFrame)
   if systemFrame == self.attachedToSystem and systemFrame.system == Enum.EditModeSystem.BUII_GroupTools then
+    -- 1. Scale Slider
     local scaleSetting = {
       setting = enum_GroupToolsSetting_Scale,
       name = "Scale",
@@ -201,15 +262,38 @@ local function groupTools_OnUpdateSettings(self, systemFrame)
       settingName = "Scale",
     }
 
-    local settingPool = self:GetSettingPool(Enum.ChrCustomizationOptionType.Slider)
-    if settingPool then
-      local settingFrame = settingPool:Acquire()
-      settingFrame:SetPoint("TOPLEFT")
-      settingFrame.layoutIndex = enum_GroupToolsSetting_Scale
-      settingFrame:Show()
+    -- 2. Font Size Slider
+    local fontSetting = {
+      setting = enum_GroupToolsSetting_FontSize,
+      name = "BR Font Size",
+      type = Enum.EditModeSettingDisplayType.Slider,
+      minValue = 8,
+      maxValue = 24,
+      stepSize = 1,
+    }
+
+    local fontSettingData = {
+      displayInfo = fontSetting,
+      currentValue = frame.currentFontSize or 12,
+      settingName = "BR Font Size",
+    }
+
+    local sliderPool = self:GetSettingPool(Enum.ChrCustomizationOptionType.Slider)
+    if sliderPool then
       self.Settings:Show()
+      local scaleFrame = sliderPool:Acquire()
+      scaleFrame:SetPoint("TOPLEFT")
+      scaleFrame.layoutIndex = enum_GroupToolsSetting_Scale
+      scaleFrame:Show()
+      scaleFrame:SetupSetting(scaleSettingData)
+
+      local fontFrame = sliderPool:Acquire()
+      fontFrame:SetPoint("TOPLEFT")
+      fontFrame.layoutIndex = enum_GroupToolsSetting_FontSize
+      fontFrame:Show()
+      fontFrame:SetupSetting(fontSettingData)
+
       self.Settings:Layout()
-      settingFrame:SetupSetting(scaleSettingData)
       self.Buttons:SetPoint("TOPLEFT", self.Settings, "BOTTOMLEFT", 0, -12)
       self:UpdateButtons(systemFrame)
     end
@@ -218,14 +302,25 @@ end
 
 local function groupTools_OnSettingValueChanged(self, setting, value)
   local currentFrame = self.attachedToSystem
-  if setting == enum_GroupToolsSetting_Scale and currentFrame and currentFrame.system == Enum.EditModeSystem.BUII_GroupTools then
-    -- Round to two decimal places
-    value = math.floor(value * 100 + 0.5) / 100
-    currentFrame:SetScale(value)
-    updatePending()
-    MarkLayoutDirty()
+  if currentFrame and currentFrame.system == Enum.EditModeSystem.BUII_GroupTools then
+    if setting == enum_GroupToolsSetting_Scale then
+      value = math.floor(value * 100 + 0.5) / 100
+      currentFrame:SetScale(value)
+      updatePending()
+      MarkLayoutDirty()
+    elseif setting == enum_GroupToolsSetting_FontSize then
+      currentFrame.currentFontSize = value
+      updatePending()
+      UpdateBattleRez()
+      MarkLayoutDirty()
+    end
+    
     if EditModeSystemSettingsDialog then
       EditModeSystemSettingsDialog:UpdateButtons(currentFrame)
+    end
+    
+    if currentFrame.isSelected then
+      currentFrame.Selection:ShowSelected()
     end
   end
 end
@@ -238,51 +333,71 @@ local function BUII_GroupTools_Initialize()
   frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
   frame:SetMovable(true)
   frame:SetClampedToScreen(true)
+  frame:SetDontSavePosition(true)
   frame:Hide()
 
+  frame.system = Enum.EditModeSystem.BUII_GroupTools
   frame.systemIndex = 0
+  frame.isSelected = false
+  frame.isManagedFrame = false
+  frame.currentFontSize = 12
   
   -- Mandatory fields
   frame.systemInfo = {
     system = Enum.EditModeSystem.BUII_GroupTools,
     systemIndex = 0,
     anchorInfo = { point = "CENTER", relativeTo = "UIParent", relativePoint = "CENTER", offsetX = 0, offsetY = 0 },
-    settings = { { setting = enum_GroupToolsSetting_Scale, value = 1.0 } },
+    settings = { 
+      { setting = enum_GroupToolsSetting_Scale, value = 1.0 },
+      { setting = enum_GroupToolsSetting_FontSize, value = 12 }
+    },
     isInDefaultPosition = true
   }
+  frame.savedSystemInfo = CopyTable(frame.systemInfo)
 
   -- Override Mixin methods
   frame.ResetToDefaultPosition = function(self)
+    self:SetScale(1.0)
     self:ClearAllPoints()
     self:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
+    self.currentFontSize = 12
     updatePending()
+    UpdateBattleRez()
     MarkLayoutDirty()
     if EditModeSystemSettingsDialog then
       EditModeSystemSettingsDialog:UpdateButtons(self)
     end
+    if self.isSelected then self.Selection:ShowSelected() end
   end
 
   frame.UpdateSystem = function(self, systemInfo)
-    pendingSettings = nil
-    self.hasActiveChanges = false
-    BUII_ApplySavedPosition()
+    if not self.hasActiveChanges then
+      pendingSettings = nil
+      BUII_ApplySavedPosition()
+    end
     if EditModeSystemSettingsDialog and EditModeSystemSettingsDialog.attachedToSystem == self then
       EditModeSystemSettingsDialog:UpdateSettings(self)
     end
+    if self.isSelected then self.Selection:ShowSelected() end
   end
 
   frame.HasActiveChanges = function(self)
     return self.hasActiveChanges or false
   end
 
+  frame.IsSelected = function(self)
+    return self.isSelected or false
+  end
+
   frame.RevertChanges = function(self)
+    self.hasActiveChanges = false
+    pendingSettings = nil
     self:UpdateSystem()
     if EditModeManagerFrame then
       EditModeManagerFrame:CheckForSystemActiveChanges()
     end
   end
 
-  -- Blizzard expects this map to exist for interaction events
   frame.settingDisplayInfoMap = {
     [enum_GroupToolsSetting_Scale] = {
       setting = enum_GroupToolsSetting_Scale,
@@ -291,6 +406,14 @@ local function BUII_GroupTools_Initialize()
       minValue = 0.5,
       maxValue = 2.0,
       stepSize = 0.05,
+    },
+    [enum_GroupToolsSetting_FontSize] = {
+      setting = enum_GroupToolsSetting_FontSize,
+      name = "BR Font Size",
+      type = Enum.EditModeSettingDisplayType.Slider,
+      minValue = 8,
+      maxValue = 24,
+      stepSize = 1,
     }
   }
 
@@ -337,14 +460,19 @@ local function BUII_GroupTools_Initialize()
   frame.Selection:SetScript("OnMouseDown", function(self, button)
     if button == "LeftButton" then
       EditModeManagerFrame:SelectSystem(frame)
-      frame.Selection:ShowSelected()
+      frame.isSelected = true
+      self:ShowSelected()
       frame:StartMoving()
     end
   end)
 
   local function onDragStop()
     frame:StopMovingOrSizing()
-    frame.Selection:ShowHighlighted()
+    if frame.isSelected then
+      frame.Selection:ShowSelected()
+    else
+      frame.Selection:ShowHighlighted()
+    end
     updatePending()
     MarkLayoutDirty()
     if EditModeSystemSettingsDialog then
@@ -360,6 +488,15 @@ local function BUII_GroupTools_Initialize()
 
   frame.Selection:SetScript("OnDragStop", onDragStop)
 
+  -- Position Enforcement
+  frame:SetScript("OnUpdate", function(self)
+    if EditModeManagerFrame and EditModeManagerFrame:IsShown() then
+      if not self.isSelected and not self.hasActiveChanges then
+        BUII_ApplySavedPosition()
+      end
+    end
+  end)
+
   -- Register Settings Hooks
   if EditModeSystemSettingsDialog then
     hooksecurefunc(EditModeSystemSettingsDialog, "UpdateSettings", groupTools_OnUpdateSettings)
@@ -367,37 +504,32 @@ local function BUII_GroupTools_Initialize()
   end
 
   -- Hook Edit Mode Save/Revert/LayoutSwitch
-  EventRegistry:RegisterCallback("EditMode.SavedLayouts", function()
-    if pendingSettings then
-      local layoutKey = BUII_GetActiveLayoutKey()
-      BUIIDatabase["group_tools_layouts"] = BUIIDatabase["group_tools_layouts"] or {}
-      BUIIDatabase["group_tools_layouts"][layoutKey] = {}
-      for k, v in pairs(pendingSettings) do
-        BUIIDatabase["group_tools_layouts"][layoutKey][k] = v
-      end
-      pendingSettings = nil
-      frame.hasActiveChanges = false
-    end
-  end, "BUII_GroupTools_OnSave")
-
   if EditModeManagerFrame then
+    hooksecurefunc(EditModeManagerFrame, "SaveLayouts", BUII_CommitPendingChanges)
+
     hooksecurefunc(EditModeManagerFrame, "RevertAllChanges", function()
-      frame:UpdateSystem()
-      if EditModeManagerFrame then
-        EditModeManagerFrame:CheckForSystemActiveChanges()
+      if frame then 
+        frame:UpdateSystem()
       end
     end)
 
     hooksecurefunc(EditModeManagerFrame, "RevertSystemChanges", function(self, systemFrame)
       if systemFrame == frame then
-        frame:UpdateSystem()
+        frame:RevertChanges()
       end
     end)
 
+    hooksecurefunc(EditModeManagerFrame, "ClearSelectedSystem", function()
+      if frame then frame.isSelected = false end
+    end)
+
     hooksecurefunc(EditModeManagerFrame, "SelectLayout", function()
-      pendingSettings = nil
-      frame.hasActiveChanges = false
-      BUII_ApplySavedPosition()
+      if frame then
+        pendingSettings = nil
+        frame.hasActiveChanges = false
+        frame.isSelected = false
+        BUII_ApplySavedPosition()
+      end
     end)
   end
 
@@ -417,6 +549,7 @@ local function editMode_OnEnter()
   if not frame then return end
   pendingSettings = nil
   frame.hasActiveChanges = false
+  frame.isSelected = false
   frame:Show()
   frame.Selection:Show()
   frame.Selection:ShowHighlighted()
@@ -429,6 +562,7 @@ local function editMode_OnExit()
     frame.hasActiveChanges = false
     pendingSettings = nil
   end
+  frame.isSelected = false
   frame.Selection:Hide()
   UpdateVisibility()
 end
