@@ -341,20 +341,24 @@ local function checkStatus()
     end
   end
   -- Loop through Random Dungeons
-  for i = 1, GetNumRandomDungeons() do
-    local dID, dName, typeID, subtypeID, minLevel, maxLevel, recLevel, minRecLevel, maxRecLevel, expansionLevel, groupID, textureFilename, difficulty, maxPlayers, description, isHoliday, bonusRepAmount, minPlayers, isTimeWalker, name2, minGear =
-      GetLFGRandomDungeonInfo(i)
-    if dID then
-      updateShortageInfo(dID, dName, isHoliday, minGear)
+  if BUIIDatabase["call_to_arms_dungeon"] then
+    for i = 1, GetNumRandomDungeons() do
+      local dID, dName, typeID, subtypeID, minLevel, maxLevel, recLevel, minRecLevel, maxRecLevel, expansionLevel, groupID, textureFilename, difficulty, maxPlayers, description, isHoliday, bonusRepAmount, minPlayers, isTimeWalker, name2, minGear =
+        GetLFGRandomDungeonInfo(i)
+      if dID then
+        updateShortageInfo(dID, dName, isHoliday, minGear)
+      end
     end
   end
 
   -- Loop through RFs
-  for i = 1, GetNumRFDungeons() do
-    local dID, dName, typeID, subtypeID, minLevel, maxLevel, recLevel, minRecLevel, maxRecLevel, expansionLevel, groupID, textureFilename, difficulty, maxPlayers, description, isHoliday, bonusRepAmount, minPlayers, isTimeWalker, name2, minGear =
-      GetRFDungeonInfo(i)
-    if dID then
-      updateShortageInfo(dID, dName, isHoliday, minGear)
+  if BUIIDatabase["call_to_arms_lfr"] then
+    for i = 1, GetNumRFDungeons() do
+      local dID, dName, typeID, subtypeID, minLevel, maxLevel, recLevel, minRecLevel, maxRecLevel, expansionLevel, groupID, textureFilename, difficulty, maxPlayers, description, isHoliday, bonusRepAmount, minPlayers, isTimeWalker, name2, minGear =
+        GetRFDungeonInfo(i)
+      if dID then
+        updateShortageInfo(dID, dName, isHoliday, minGear)
+      end
     end
   end
 
