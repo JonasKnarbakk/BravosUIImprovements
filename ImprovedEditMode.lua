@@ -338,15 +338,61 @@ local function queueStatusButtonOverlayFrame_OnMouseUp()
   onMouseUp(queueStatusButtonOverlayFrame, "queue_status_button_position", "BOTTOMRIGHT", nil, "BOTTOMRIGHT")
 end
 
-local function queueStatusButtonOverlayFrame_OnUpdate()
-  if queueStatusButtonOverlayFrameHookEnabled and not queueStatusButtonOverlayFrame.Selection.isSelected then
-    restorePosition(queueStatusButtonOverlayFrame:GetParent(), "queue_status_button_position")
+local queueStatusButtonHooksInstalled = false
+local originalQueueStatusButtonUpdatePosition = nil
+local originalMicroMenuContainerLayout = nil
+
+local function installQueueStatusButtonHooks()
+  if queueStatusButtonHooksInstalled then
+    return
   end
+  if not QueueStatusButton or not MicroMenuContainer then
+    return
+  end
+
+  originalQueueStatusButtonUpdatePosition = QueueStatusButton.UpdatePosition
+  QueueStatusButton.UpdatePosition = function(self, ...)
+    if queueStatusButtonOverlayFrameHookEnabled and queueStatusButtonOverlayFrame then
+      return
+    end
+    return originalQueueStatusButtonUpdatePosition(self, ...)
+  end
+
+  originalMicroMenuContainerLayout = MicroMenuContainer.Layout
+  MicroMenuContainer.Layout = function(self)
+    if queueStatusButtonOverlayFrameHookEnabled and queueStatusButtonOverlayFrame then
+      local originalGetPoint = QueueStatusButton.GetPoint
+      local originalGetWidth = QueueStatusButton.GetWidth
+      local originalGetHeight = QueueStatusButton.GetHeight
+
+      QueueStatusButton.GetPoint = function()
+        return "TOPLEFT", MicroMenuContainer, "TOPLEFT", 0, 0
+      end
+      QueueStatusButton.GetWidth = function()
+        return 0
+      end
+      QueueStatusButton.GetHeight = function()
+        return 0
+      end
+
+      originalMicroMenuContainerLayout(self)
+
+      QueueStatusButton.GetPoint = originalGetPoint
+      QueueStatusButton.GetWidth = originalGetWidth
+      QueueStatusButton.GetHeight = originalGetHeight
+    else
+      originalMicroMenuContainerLayout(self)
+    end
+  end
+
+  queueStatusButtonHooksInstalled = true
 end
 
 local function setupQueueStatusButton()
+  installQueueStatusButtonHooks()
+
   queueStatusButtonOverlayFrame = setupFrame(
-    statusTrackingBarOverlayFrame,
+    queueStatusButtonOverlayFrame,
     "BUIIQueueStatusButtonOverlay",
     "BUIIQueueStatusButtonEditModeSystemTemplate",
     QueueStatusButton,
@@ -358,10 +404,11 @@ local function setupQueueStatusButton()
     "Queue Status Button",
     "queue_status_button_position"
   )
+
   if not queueStatusButtonOverlayFrameHook then
-    QueueStatusButton:HookScript("OnUpdate", queueStatusButtonOverlayFrame_OnUpdate)
     queueStatusButtonOverlayFrameHook = true
     queueStatusButtonOverlayFrameHookEnabled = true
+    restorePosition(QueueStatusButton, "queue_status_button_position")
   end
 end
 
