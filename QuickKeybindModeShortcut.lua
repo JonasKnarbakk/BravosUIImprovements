@@ -18,7 +18,7 @@ local function quickKeybindModeShortcutFrame_OnClick()
 end
 
 local function quickKeybinddModeAddButton()
-  if enabled then
+  if enabled and not InCombatLockdown() then
     if isFunction(GameMenuFrame.AddSection) and isFunction(GameMenuFrame.AddButton) then
       GameMenuFrame:AddSection()
       GameMenuFrame:AddButton("Quick Keybind Mode", quickKeybindModeShortcutFrame_OnClick, false, "testdisabled")
