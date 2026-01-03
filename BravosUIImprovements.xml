@@ -8,9 +8,20 @@
   <Script file="GearAndTalentLoadout.lua"/>
   <Script file="CombatState.lua"/>
   <Script file="ReadyCheck.lua"/>
+  <Script file="StanceTracker.lua"/>
   <Script file="EditModeUtils.lua"/>
   <Script file="GroupTools.lua"/>
   <Script file="BravosUIImprovements.lua"/>
+
+  <Frame name="BUII_StanceTrackerEditModeTemplate" inherits="EditModeSystemTemplate" virtual="true">
+    <KeyValues>
+      <KeyValue key="system" value="Enum.EditModeSystem.BUII_StanceTracker" type="global"/>
+      <KeyValue key="systemNameString" value="BUII_HUD_EDIT_MODE_STANCE_TRACKER_LABEL" type="global"/>
+    </KeyValues>
+    <Frames>
+      <Frame inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
+    </Frames>
+  </Frame>
 
   <Frame name="BUII_GroupToolsEditModeTemplate" inherits="EditModeSystemTemplate" virtual="true">
     <KeyValues>
@@ -347,6 +358,96 @@
         </Layers>
         <Scripts>
           <OnClick function="BUII_GroupTools_OnClick"/>
+        </Scripts>
+      </CheckButton>
+
+      <CheckButton name="$parentStanceTracker" parentKey="StanceTracker" inherits="InterfaceOptionsCheckButtonTemplate">
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeKey="$parent.GroupTools" relativePoint="BOTTOMLEFT" x="0" y="0"/>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString name="$parentLabel" text="Stance Tracker" inherits="GameFontNormalSmall">
+              <Anchors>
+                <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnClick function="BUII_StanceTracker_OnClick"/>
+        </Scripts>
+      </CheckButton>
+
+      <CheckButton name="$parentStanceTrackerDruid" parentKey="StanceTrackerDruid" inherits="InterfaceOptionsCheckButtonTemplate">
+        <Anchors>
+          <Anchor point="LEFT" relativeTo="$parentStanceTrackerLabel" relativePoint="RIGHT" x="10" y="0"/>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString name="$parentLabel" text="Druid" inherits="GameFontNormalSmall">
+              <Anchors>
+                <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnClick function="BUII_StanceTrackerDruid_OnClick"/>
+        </Scripts>
+      </CheckButton>
+
+      <CheckButton name="$parentStanceTrackerPaladin" parentKey="StanceTrackerPaladin" inherits="InterfaceOptionsCheckButtonTemplate">
+        <Anchors>
+          <Anchor point="LEFT" relativeTo="$parentStanceTrackerDruidLabel" relativePoint="RIGHT" x="10" y="0"/>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString name="$parentLabel" text="Paladin" inherits="GameFontNormalSmall">
+              <Anchors>
+                <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnClick function="BUII_StanceTrackerPaladin_OnClick"/>
+        </Scripts>
+      </CheckButton>
+
+      <CheckButton name="$parentStanceTrackerRogue" parentKey="StanceTrackerRogue" inherits="InterfaceOptionsCheckButtonTemplate">
+        <Anchors>
+          <Anchor point="LEFT" relativeTo="$parentStanceTrackerPaladinLabel" relativePoint="RIGHT" x="10" y="0"/>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString name="$parentLabel" text="Rogue" inherits="GameFontNormalSmall">
+              <Anchors>
+                <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnClick function="BUII_StanceTrackerRogue_OnClick"/>
+        </Scripts>
+      </CheckButton>
+
+      <CheckButton name="$parentStanceTrackerWarrior" parentKey="StanceTrackerWarrior" inherits="InterfaceOptionsCheckButtonTemplate">
+        <Anchors>
+          <Anchor point="LEFT" relativeTo="$parentStanceTrackerRogueLabel" relativePoint="RIGHT" x="10" y="0"/>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString name="$parentLabel" text="Warrior" inherits="GameFontNormalSmall">
+              <Anchors>
+                <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnClick function="BUII_StanceTrackerWarrior_OnClick"/>
         </Scripts>
       </CheckButton>
 

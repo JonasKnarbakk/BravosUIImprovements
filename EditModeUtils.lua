@@ -27,18 +27,29 @@ function BUII_EditModeUtils:GetActiveLayoutKey()
 end
 
 -- Helper to apply position
-function BUII_EditModeUtils:ApplySavedPosition(frame, dbKey)
+function BUII_EditModeUtils:ApplySavedPosition(frame, dbKey, force)
   if not frame then
     return
   end
 
+  -- Don't overwrite if we have unsaved changes or are currently moving the frame
+  -- unless we are explicitly forcing it (e.g. during a layout switch or save)
+  if not force and (frame.hasActiveChanges or frame.isSelected) then
+    return
+  end
+
+  local db = BUIIDatabase
+  if frame.GetSettingsDB then
+    db = frame:GetSettingsDB()
+  end
+
   local layoutKey = self:GetActiveLayoutKey()
-  local layouts = BUIIDatabase[dbKey .. "_layouts"] or {}
+  local layouts = db[dbKey .. "_layouts"] or {}
   local pos = layouts[layoutKey]
 
   -- Fallback to old global setting if no layout-specific settings exist
-  if not pos and not next(layouts) and BUIIDatabase[dbKey .. "_pos"] then
-    pos = BUIIDatabase[dbKey .. "_pos"]
+  if not pos and not next(layouts) and db[dbKey .. "_pos"] then
+    pos = db[dbKey .. "_pos"]
   end
 
   local point, relPoint, x, y, scale
@@ -116,8 +127,13 @@ end
 -- Helper to save pending changes
 function BUII_EditModeUtils:CommitPendingChanges(frame, dbKey)
   if frame.pendingSettings then
+    local db = BUIIDatabase
+    if frame.GetSettingsDB then
+      db = frame:GetSettingsDB()
+    end
+
     local layoutKey = self:GetActiveLayoutKey()
-    BUIIDatabase[dbKey .. "_layouts"] = BUIIDatabase[dbKey .. "_layouts"] or {}
+    db[dbKey .. "_layouts"] = db[dbKey .. "_layouts"] or {}
 
     local data = {
       point = frame.pendingSettings.point,
@@ -132,13 +148,13 @@ function BUII_EditModeUtils:CommitPendingChanges(frame, dbKey)
       data[key] = value
     end
 
-    BUIIDatabase[dbKey .. "_layouts"][layoutKey] = data
+    db[dbKey .. "_layouts"][layoutKey] = data
 
     frame.pendingSettings = nil
     frame.hasActiveChanges = false
 
     -- Visual refresh
-    self:ApplySavedPosition(frame, dbKey)
+    self:ApplySavedPosition(frame, dbKey, true)
   end
 end
 
@@ -349,7 +365,7 @@ function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settin
   frame.UpdateSystem = function(self, systemInfo)
     self.pendingSettings = nil
     self.hasActiveChanges = false
-    BUII_EditModeUtils:ApplySavedPosition(self, self.buiiDbKey)
+    BUII_EditModeUtils:ApplySavedPosition(self, self.buiiDbKey, true)
     if EditModeSystemSettingsDialog and EditModeSystemSettingsDialog.attachedToSystem == self then
       EditModeSystemSettingsDialog:UpdateSettings(self)
     end
@@ -376,14 +392,16 @@ function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settin
   -- Setting Display Info Map (Standard Blizzard requirement)
   frame.settingDisplayInfoMap = {}
   for _, config in ipairs(settingsConfig or {}) do
-    frame.settingDisplayInfoMap[config.setting] = {
-      setting = config.setting,
-      name = config.name,
-      type = config.type,
-      minValue = config.minValue,
-      maxValue = config.maxValue,
-      stepSize = config.stepSize,
-    }
+    if config.setting then
+      frame.settingDisplayInfoMap[config.setting] = {
+        setting = config.setting,
+        name = config.name,
+        type = config.type,
+        minValue = config.minValue,
+        maxValue = config.maxValue,
+        stepSize = config.stepSize,
+      }
+    end
   end
 
   -- Selection Interaction
@@ -504,7 +522,7 @@ function BUII_EditModeUtils:InitHooks()
         frame.pendingSettings = nil
         frame.hasActiveChanges = false
         frame.isSelected = false
-        self:ApplySavedPosition(frame, frame.buiiDbKey)
+        self:ApplySavedPosition(frame, frame.buiiDbKey, true)
       end
     end)
   end

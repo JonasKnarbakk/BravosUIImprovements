@@ -12,6 +12,7 @@ Enum.EditModeSystem.BUII_GearAndTalentLoadout = 104
 BUII_HUD_EDIT_MODE_GEAR_AND_TALENT_LOADOUT_LABEL = "Gear & Talent Loadout"
 
 Enum.EditModeSystem.BUII_ReadyCheck = 105
+Enum.EditModeSystem.BUII_StanceTracker = 106
 BUII_HUD_EDIT_MODE_READY_CHECK_LABEL = "Ready Check Notification"
 
 function BUII_GetFontPath()

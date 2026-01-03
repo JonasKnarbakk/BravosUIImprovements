@@ -258,6 +258,18 @@ function BUII_OnEventHandler(self, event, arg1, ...)
         BUIIDatabase["combat_state"] = false
         BUIIDatabase["ready_check"] = false
         BUIIDatabase["group_tools"] = false
+        BUIIDatabase["stance_tracker"] = false
+        BUIIDatabase["stance_tracker_druid"] = true
+        BUIIDatabase["stance_tracker_paladin"] = true
+        BUIIDatabase["stance_tracker_rogue"] = true
+        BUIIDatabase["stance_tracker_warrior"] = true
+        BUIIDatabase["stance_tracker_icon_size"] = 20
+        BUIIDatabase["stance_tracker_font_size"] = 12
+        BUIIDatabase["stance_tracker_show_icon"] = true
+        BUIIDatabase["stance_tracker_show_text"] = true
+        BUIIDatabase["stance_tracker_emphasize"] = false
+        BUIIDatabase["stance_tracker_emp_scale"] = 1.0
+        BUIIDatabase["stance_tracker_emp_intensity"] = 20
         BUIIDatabase["queue_status_button_position"] = {
           point = "BOTTOMRIGHT",
           relativeTo = nil,
@@ -298,6 +310,33 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       if BUIIDatabase["group_tools"] == nil then
         BUIIDatabase["group_tools"] = false
       end
+      if BUIIDatabase["stance_tracker"] == nil then
+        BUIIDatabase["stance_tracker"] = false
+      end
+      if BUIIDatabase["stance_tracker_druid"] == nil then
+        BUIIDatabase["stance_tracker_druid"] = true
+      end
+      if BUIIDatabase["stance_tracker_paladin"] == nil then
+        BUIIDatabase["stance_tracker_paladin"] = true
+      end
+      if BUIIDatabase["stance_tracker_rogue"] == nil then
+        BUIIDatabase["stance_tracker_rogue"] = true
+      end
+      if BUIIDatabase["stance_tracker_warrior"] == nil then
+        BUIIDatabase["stance_tracker_warrior"] = true
+      end
+      if BUIIDatabase["stance_tracker_icon_size"] == nil then
+        BUIIDatabase["stance_tracker_icon_size"] = 20
+      end
+      if BUIIDatabase["stance_tracker_font_size"] == nil then
+        BUIIDatabase["stance_tracker_font_size"] = 12
+      end
+      if BUIIDatabase["stance_tracker_show_icon"] == nil then
+        BUIIDatabase["stance_tracker_show_icon"] = true
+      end
+      if BUIIDatabase["stance_tracker_show_text"] == nil then
+        BUIIDatabase["stance_tracker_show_text"] = true
+      end
 
       if BUIICharacterDatabase == nil then
         BUIICharacterDatabase = {}
@@ -310,6 +349,46 @@ function BUII_OnEventHandler(self, event, arg1, ...)
           xOffset = xOffset,
           yOffset = yOffset,
         }
+      end
+
+      -- Stance Tracker Character Settings Init
+      if BUIICharacterDatabase["stance_tracker_use_char_settings"] == nil then
+        BUIICharacterDatabase["stance_tracker_use_char_settings"] = false
+      end
+      -- Mirror defaults in char DB just in case
+      if BUIICharacterDatabase["stance_tracker"] == nil then
+        BUIICharacterDatabase["stance_tracker"] = false
+      end
+      if BUIICharacterDatabase["stance_tracker_icon_size"] == nil then
+        BUIICharacterDatabase["stance_tracker_icon_size"] = 20
+      end
+      if BUIICharacterDatabase["stance_tracker_font_size"] == nil then
+        BUIICharacterDatabase["stance_tracker_font_size"] = 12
+      end
+      if BUIICharacterDatabase["stance_tracker_show_icon"] == nil then
+        BUIICharacterDatabase["stance_tracker_show_icon"] = true
+      end
+      if BUIICharacterDatabase["stance_tracker_show_text"] == nil then
+        BUIICharacterDatabase["stance_tracker_show_text"] = true
+      end
+      if BUIICharacterDatabase["stance_tracker_emphasize"] == nil then
+        BUIICharacterDatabase["stance_tracker_emphasize"] = false
+      end
+      if BUIICharacterDatabase["stance_tracker_emp_scale"] == nil then
+        BUIICharacterDatabase["stance_tracker_emp_scale"] = 1.0
+      end
+      if BUIICharacterDatabase["stance_tracker_emp_intensity"] == nil then
+        BUIICharacterDatabase["stance_tracker_emp_intensity"] = 20
+      end
+
+      if BUIIDatabase["stance_tracker_emphasize"] == nil then
+        BUIIDatabase["stance_tracker_emphasize"] = false
+      end
+      if BUIIDatabase["stance_tracker_emp_scale"] == nil then
+        BUIIDatabase["stance_tracker_emp_scale"] = 1.0
+      end
+      if BUIIDatabase["stance_tracker_emp_intensity"] == nil then
+        BUIIDatabase["stance_tracker_emp_intensity"] = 20
       end
 
       self:UnregisterEvent("ADDON_LOADED")
@@ -390,6 +469,37 @@ function BUII_OnEventHandler(self, event, arg1, ...)
     if BUIIDatabase["group_tools"] then
       BUII_GroupTools_Enable()
       _G["BUIIOptionsPanelGroupTools"]:SetChecked(true)
+    end
+
+    if BUIIDatabase["stance_tracker"] then
+      BUII_StanceTracker_Enable()
+      _G["BUIIOptionsPanelStanceTracker"]:SetChecked(true)
+    else
+      _G["BUIIOptionsPanelStanceTracker"]:SetChecked(false)
+    end
+
+    if BUIIDatabase["stance_tracker_druid"] then
+      _G["BUIIOptionsPanelStanceTrackerDruid"]:SetChecked(true)
+    else
+      _G["BUIIOptionsPanelStanceTrackerDruid"]:SetChecked(false)
+    end
+
+    if BUIIDatabase["stance_tracker_paladin"] then
+      _G["BUIIOptionsPanelStanceTrackerPaladin"]:SetChecked(true)
+    else
+      _G["BUIIOptionsPanelStanceTrackerPaladin"]:SetChecked(false)
+    end
+
+    if BUIIDatabase["stance_tracker_rogue"] then
+      _G["BUIIOptionsPanelStanceTrackerRogue"]:SetChecked(true)
+    else
+      _G["BUIIOptionsPanelStanceTrackerRogue"]:SetChecked(false)
+    end
+
+    if BUIIDatabase["stance_tracker_warrior"] then
+      _G["BUIIOptionsPanelStanceTrackerWarrior"]:SetChecked(true)
+    else
+      _G["BUIIOptionsPanelStanceTrackerWarrior"]:SetChecked(false)
     end
   end
 end
@@ -519,5 +629,43 @@ function BUII_GroupTools_OnClick(self)
   else
     BUII_GroupTools_Disable()
     BUIIDatabase["group_tools"] = false
+  end
+end
+
+function BUII_StanceTracker_OnClick(self)
+  if self:GetChecked() then
+    BUII_StanceTracker_Enable()
+    BUIIDatabase["stance_tracker"] = true
+  else
+    BUII_StanceTracker_Disable()
+    BUIIDatabase["stance_tracker"] = false
+  end
+end
+
+function BUII_StanceTrackerDruid_OnClick(self)
+  BUIIDatabase["stance_tracker_druid"] = self:GetChecked()
+  if BUIIDatabase["stance_tracker"] then
+    BUII_StanceTracker_Enable()
+  end
+end
+
+function BUII_StanceTrackerPaladin_OnClick(self)
+  BUIIDatabase["stance_tracker_paladin"] = self:GetChecked()
+  if BUIIDatabase["stance_tracker"] then
+    BUII_StanceTracker_Enable()
+  end
+end
+
+function BUII_StanceTrackerRogue_OnClick(self)
+  BUIIDatabase["stance_tracker_rogue"] = self:GetChecked()
+  if BUIIDatabase["stance_tracker"] then
+    BUII_StanceTracker_Enable()
+  end
+end
+
+function BUII_StanceTrackerWarrior_OnClick(self)
+  BUIIDatabase["stance_tracker_warrior"] = self:GetChecked()
+  if BUIIDatabase["stance_tracker"] then
+    BUII_StanceTracker_Enable()
   end
 end

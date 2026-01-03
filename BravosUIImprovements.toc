@@ -11,4 +11,6 @@
 BravosUIImprovements.xml
 ImprovedEditMode.xml
 ActionBarsImproved.lua
+ReadyCheck.lua
+StanceTracker.lua
 TooltipImprovements.lua
