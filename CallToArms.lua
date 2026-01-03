@@ -474,60 +474,75 @@ local function BUII_CallToArms_Initialize()
       setting = enum_CallToArmsSetting_Dungeon,
       name = "Dungeon",
       type = Enum.EditModeSettingDisplayType.Checkbox,
+      key = "dungeon",
       getter = function(f)
         return BUIIDatabase["call_to_arms_dungeon"]
       end,
       setter = function(f, val)
-        BUIIDatabase["call_to_arms_dungeon"] = val
-        BUII_CallToArms_Update()
+        if BUIIDatabase["call_to_arms_dungeon"] ~= val then
+          BUIIDatabase["call_to_arms_dungeon"] = val
+          BUII_CallToArms_Update()
+        end
       end,
     },
     {
       setting = enum_CallToArmsSetting_LFR,
       name = "LFR",
       type = Enum.EditModeSettingDisplayType.Checkbox,
+      key = "lfr",
       getter = function(f)
         return BUIIDatabase["call_to_arms_lfr"]
       end,
       setter = function(f, val)
-        BUIIDatabase["call_to_arms_lfr"] = val
-        BUII_CallToArms_Update()
+        if BUIIDatabase["call_to_arms_lfr"] ~= val then
+          BUIIDatabase["call_to_arms_lfr"] = val
+          BUII_CallToArms_Update()
+        end
       end,
     },
     {
       setting = enum_CallToArmsSetting_Tank,
       name = "Tank",
       type = Enum.EditModeSettingDisplayType.Checkbox,
+      key = "tank",
       getter = function(f)
         return BUIIDatabase["call_to_arms_roles"]["tank"]
       end,
       setter = function(f, val)
-        BUIIDatabase["call_to_arms_roles"]["tank"] = val
-        BUII_CallToArms_Update()
+        if BUIIDatabase["call_to_arms_roles"]["tank"] ~= val then
+          BUIIDatabase["call_to_arms_roles"]["tank"] = val
+          BUII_CallToArms_Update()
+        end
       end,
     },
     {
       setting = enum_CallToArmsSetting_Healer,
       name = "Healer",
       type = Enum.EditModeSettingDisplayType.Checkbox,
+      key = "healer",
       getter = function(f)
         return BUIIDatabase["call_to_arms_roles"]["healer"]
       end,
       setter = function(f, val)
-        BUIIDatabase["call_to_arms_roles"]["healer"] = val
-        BUII_CallToArms_Update()
+        if BUIIDatabase["call_to_arms_roles"]["healer"] ~= val then
+          BUIIDatabase["call_to_arms_roles"]["healer"] = val
+          BUII_CallToArms_Update()
+        end
       end,
     },
     {
       setting = enum_CallToArmsSetting_Damage,
       name = "Damage",
       type = Enum.EditModeSettingDisplayType.Checkbox,
+      key = "damage",
       getter = function(f)
         return BUIIDatabase["call_to_arms_roles"]["damage"]
       end,
       setter = function(f, val)
-        BUIIDatabase["call_to_arms_roles"]["damage"] = val
-        BUII_CallToArms_Update()
+        if BUIIDatabase["call_to_arms_roles"]["damage"] ~= val then
+          BUIIDatabase["call_to_arms_roles"]["damage"] = val
+          BUII_CallToArms_Update()
+        end
       end,
     },
     {
@@ -535,17 +550,20 @@ local function BUII_CallToArms_Initialize()
       name = "Alert Sound",
       type = Enum.EditModeSettingDisplayType.Dropdown,
       options = soundOptions,
+      key = "sound",
       getter = function(f)
         return BUIIDatabase["call_to_arms_sound_id"]
       end,
       setter = function(f, val)
-        BUIIDatabase["call_to_arms_sound_id"] = val
-        if type(val) == "number" then
-          PlaySound(val, "Master")
-        else
-          PlaySoundFile(val, "Master")
+        if BUIIDatabase["call_to_arms_sound_id"] ~= val then
+          BUIIDatabase["call_to_arms_sound_id"] = val
+          if type(val) == "number" then
+            PlaySound(val, "Master")
+          else
+            PlaySoundFile(val, "Master")
+          end
+          BUII_CallToArms_Update()
         end
-        BUII_CallToArms_Update()
       end,
     },
   }
