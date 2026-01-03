@@ -150,4 +150,3 @@ function BUII_ReadyCheck_Disable()
     hideTimer = nil
   end
 end
-

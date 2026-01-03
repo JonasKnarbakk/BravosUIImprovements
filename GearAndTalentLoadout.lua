@@ -176,4 +176,3 @@ function BUII_GearAndTalentLoadout_Disable()
 
   frame:Hide()
 end
-

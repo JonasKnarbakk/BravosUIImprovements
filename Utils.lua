@@ -27,4 +27,3 @@ function BUII_GetFontPath()
   local filename = GameFontHighlight:GetFont()
   return filename
 end
-

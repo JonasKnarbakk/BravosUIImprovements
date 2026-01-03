@@ -226,7 +226,10 @@ end
 
 local function BUII_RegisterEditModeSystem()
   -- Define the minimum necessary for the settings dialog to work without crashing Blizzard's ipairs
-  if EditModeSettingDisplayInfoManager and not EditModeSettingDisplayInfoManager.systemSettingDisplayInfo[Enum.EditModeSystem.BUII_GroupTools] then
+  if
+    EditModeSettingDisplayInfoManager
+    and not EditModeSettingDisplayInfoManager.systemSettingDisplayInfo[Enum.EditModeSystem.BUII_GroupTools]
+  then
     EditModeSettingDisplayInfoManager.systemSettingDisplayInfo[Enum.EditModeSystem.BUII_GroupTools] = {}
   end
 end

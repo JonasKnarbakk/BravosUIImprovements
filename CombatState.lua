@@ -143,4 +143,3 @@ function BUII_CombatState_Disable()
 
   frame:Hide()
 end
-

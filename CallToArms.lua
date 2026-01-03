@@ -281,51 +281,57 @@ end
 local function GenerateTestOutput()
   local testOutput = ""
   local rewardIcon = "|T413587:0|t"
-  
+
   local showTank = BUIIDatabase["call_to_arms_roles"]["tank"]
   local showHealer = BUIIDatabase["call_to_arms_roles"]["healer"]
   local showDamage = BUIIDatabase["call_to_arms_roles"]["damage"]
 
   local function getRoleString(t, h, d)
     local s = ""
-    if t and showTank then s = s .. tankIcon end
-    if h and showHealer then s = s .. healerIcon end
-    if d and showDamage then s = s .. damageIcon end
+    if t and showTank then
+      s = s .. tankIcon
+    end
+    if h and showHealer then
+      s = s .. healerIcon
+    end
+    if d and showDamage then
+      s = s .. damageIcon
+    end
     return s
   end
 
   if BUIIDatabase["call_to_arms_dungeon"] then
-      local roles = getRoleString(true, true, true)
-      if roles ~= "" then
-          testOutput = testOutput .. string.format("%s %s %s|n", rewardIcon, roles, "Random Dungeon (Expansion)")
-      end
-      
-      roles = getRoleString(true, false, false)
-      if roles ~= "" then
-          testOutput = testOutput .. string.format("%s %s %s|n", rewardIcon, roles, "Random Heroic (Expansion: Season 1)")
-      end
-      
-      roles = getRoleString(false, true, false)
-      if roles ~= "" then
-           testOutput = testOutput .. string.format("%s %s %s|n", rewardIcon, roles, "Random Heroic (Expansion: Season 2)")
-      end
+    local roles = getRoleString(true, true, true)
+    if roles ~= "" then
+      testOutput = testOutput .. string.format("%s %s %s|n", rewardIcon, roles, "Random Dungeon (Expansion)")
+    end
+
+    roles = getRoleString(true, false, false)
+    if roles ~= "" then
+      testOutput = testOutput .. string.format("%s %s %s|n", rewardIcon, roles, "Random Heroic (Expansion: Season 1)")
+    end
+
+    roles = getRoleString(false, true, false)
+    if roles ~= "" then
+      testOutput = testOutput .. string.format("%s %s %s|n", rewardIcon, roles, "Random Heroic (Expansion: Season 2)")
+    end
   end
 
   if BUIIDatabase["call_to_arms_lfr"] then
-      local roles = getRoleString(false, false, true)
-      if roles ~= "" then
-          testOutput = testOutput .. string.format("%s %s %s|n", rewardIcon, roles, "LFR Wing 1: The Beginning")
-      end
-      
-      roles = getRoleString(true, false, true)
-      if roles ~= "" then
-           testOutput = testOutput .. string.format("%s %s %s|n", rewardIcon, roles, "LFR Wing 2: The Middle")
-      end
+    local roles = getRoleString(false, false, true)
+    if roles ~= "" then
+      testOutput = testOutput .. string.format("%s %s %s|n", rewardIcon, roles, "LFR Wing 1: The Beginning")
+    end
+
+    roles = getRoleString(true, false, true)
+    if roles ~= "" then
+      testOutput = testOutput .. string.format("%s %s %s|n", rewardIcon, roles, "LFR Wing 2: The Middle")
+    end
   end
-  
+
   -- Fallback if everything is disabled, so the user can still see *something* to move
   if testOutput == "" then
-     testOutput = string.format("%s %s %s", rewardIcon, tankIcon, "No Active Filters")
+    testOutput = string.format("%s %s %s", rewardIcon, tankIcon, "No Active Filters")
   end
 
   return testOutput

@@ -12,10 +12,10 @@ function BUII_EditModeUtils:GetActiveLayoutKey()
   local layoutName = "Default"
   pcall(function()
     if C_EditMode and C_EditMode.GetActiveLayoutInfo then
-       local layoutInfo = C_EditMode.GetActiveLayoutInfo()
-       if layoutInfo and layoutInfo.layoutName then
-          layoutName = layoutInfo.layoutName
-       end
+      local layoutInfo = C_EditMode.GetActiveLayoutInfo()
+      if layoutInfo and layoutInfo.layoutName then
+        layoutName = layoutInfo.layoutName
+      end
     elseif EditModeManagerFrame then
       local layoutInfo = EditModeManagerFrame:GetActiveLayoutInfo()
       if layoutInfo and layoutInfo.layoutName then
@@ -288,8 +288,10 @@ function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settin
 
   -- Ensure EditModeSettingDisplayInfoManager has an entry for this system
   -- This prevents a crash in EditModeSystemSettingsDialogMixin:UpdateSettings where it iterates over this table.
-  if EditModeSettingDisplayInfoManager and not EditModeSettingDisplayInfoManager.systemSettingDisplayInfo[systemEnum] then
-      EditModeSettingDisplayInfoManager.systemSettingDisplayInfo[systemEnum] = {}
+  if
+    EditModeSettingDisplayInfoManager and not EditModeSettingDisplayInfoManager.systemSettingDisplayInfo[systemEnum]
+  then
+    EditModeSettingDisplayInfoManager.systemSettingDisplayInfo[systemEnum] = {}
   end
 
   frame.system = systemEnum
