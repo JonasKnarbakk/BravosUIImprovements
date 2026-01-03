@@ -440,6 +440,7 @@ local function BUII_CallToArms_Initialize()
 
   text = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
   text:SetFont(BUII_GetFontPath(), 12, "OUTLINE")
+  text:SetTextColor(1, 1, 1)
   text:SetPoint("CENTER", frame, "CENTER")
   text:SetJustifyH("LEFT")
 
