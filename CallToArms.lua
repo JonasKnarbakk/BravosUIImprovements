@@ -10,6 +10,20 @@ local animGroup = nil
 -- Settings Constants
 local enum_CallToArmsSetting_Scale = 10
 local enum_CallToArmsSetting_FontSize = 11
+local enum_CallToArmsSetting_Tank = 12
+local enum_CallToArmsSetting_Healer = 13
+local enum_CallToArmsSetting_Damage = 14
+local enum_CallToArmsSetting_Sound = 15
+
+-- Sound Options
+local soundOptions = {
+  { text = "LFG Reward", value = 17316 },
+  { text = "Raid Warning", value = 8959 },
+  { text = "Ready Check", value = 8960 },
+  { text = "Quest", value = 618 },
+  { text = "Coins", value = 120 },
+  { text = "Kaching", value = "Interface\\AddOns\\BravosUIImprovements\\Media\\Sound\\kaching.ogg" },
+}
 
 -- Configuration for Dungeon/Raid IDs (Keeping existing config)
 local types_config = {
@@ -452,6 +466,56 @@ local function BUII_CallToArms_Initialize()
       end,
       setter = function(f, val)
         f:SetScale(val)
+      end,
+    },
+    {
+      setting = enum_CallToArmsSetting_Tank,
+      name = "Tank",
+      type = Enum.EditModeSettingDisplayType.Checkbox,
+      getter = function(f)
+        return BUIIDatabase["call_to_arms_roles"]["tank"]
+      end,
+      setter = function(f, val)
+        BUIIDatabase["call_to_arms_roles"]["tank"] = val
+      end,
+    },
+    {
+      setting = enum_CallToArmsSetting_Healer,
+      name = "Healer",
+      type = Enum.EditModeSettingDisplayType.Checkbox,
+      getter = function(f)
+        return BUIIDatabase["call_to_arms_roles"]["healer"]
+      end,
+      setter = function(f, val)
+        BUIIDatabase["call_to_arms_roles"]["healer"] = val
+      end,
+    },
+    {
+      setting = enum_CallToArmsSetting_Damage,
+      name = "Damage",
+      type = Enum.EditModeSettingDisplayType.Checkbox,
+      getter = function(f)
+        return BUIIDatabase["call_to_arms_roles"]["damage"]
+      end,
+      setter = function(f, val)
+        BUIIDatabase["call_to_arms_roles"]["damage"] = val
+      end,
+    },
+    {
+      setting = enum_CallToArmsSetting_Sound,
+      name = "Alert Sound",
+      type = Enum.EditModeSettingDisplayType.Dropdown,
+      options = soundOptions,
+      getter = function(f)
+        return BUIIDatabase["call_to_arms_sound_id"]
+      end,
+      setter = function(f, val)
+        BUIIDatabase["call_to_arms_sound_id"] = val
+        if type(val) == "number" then
+          PlaySound(val, "Master")
+        else
+          PlaySoundFile(val, "Master")
+        end
       end,
     },
   }

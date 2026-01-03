@@ -3,16 +3,6 @@ local spellBarHookSet = false
 local stanceBarHookSet = false
 local castingBarHookSet = false
 
--- Sound Options
-local soundOptions = {
-  { text = "LFG Reward", value = 17316 },
-  { text = "Raid Warning", value = 8959 },
-  { text = "Ready Check", value = 8960 },
-  { text = "Quest", value = 618 },
-  { text = "Coins", value = 120 },
-  { text = "Kaching", value = "Interface\\AddOns\\BravosUIImprovements\\Media\\Sound\\kaching.ogg" },
-}
-
 local function handleTargetFrameSpellBar_OnUpdate(self, arg1, ...)
   if BUIIDatabase["castbar_on_top"] then
     self:SetPoint("TOPLEFT", TargetFrame, "TOPLEFT", 45, 20)
@@ -232,51 +222,6 @@ function BUII_OnLoadHandler(self)
     Settings.RegisterAddOnCategory(category)
     addon.settingsCategory = category
   end
-
-  UIDropDownMenu_Initialize(_G["BUIIOptionsPanelCallToArmsSound"], BUII_CallToArmsSound_Initialize)
-end
-
-function BUII_CallToArmsSound_OnClick(self, arg1, arg2, checked)
-  BUIIDatabase["call_to_arms_sound_id"] = arg1
-  UIDropDownMenu_SetSelectedValue(_G["BUIIOptionsPanelCallToArmsSound"], arg1)
-end
-
-function BUII_CallToArmsSound_Initialize(self, level, menuList)
-  local info = UIDropDownMenu_CreateInfo()
-
-  if not BUIIDatabase then
-    return
-  end
-
-  info.text = "LFG Reward"
-  info.value = 17316
-  info.func = BUII_CallToArmsSound_OnClick
-  info.checked = (BUIIDatabase["call_to_arms_sound_id"] == 17316)
-  UIDropDownMenu_AddButton(info)
-
-  info.text = "Raid Warning"
-  info.value = 8959
-  info.func = BUII_CallToArmsSound_OnClick
-  info.checked = (BUIIDatabase["call_to_arms_sound_id"] == 8959)
-  UIDropDownMenu_AddButton(info)
-
-  info.text = "Ready Check"
-  info.value = 8960
-  info.func = BUII_CallToArmsSound_OnClick
-  info.checked = (BUIIDatabase["call_to_arms_sound_id"] == 8960)
-  UIDropDownMenu_AddButton(info)
-
-  info.text = "Quest"
-  info.value = 618
-  info.func = BUII_CallToArmsSound_OnClick
-  info.checked = (BUIIDatabase["call_to_arms_sound_id"] == 618)
-  UIDropDownMenu_AddButton(info)
-
-  info.text = "Coins"
-  info.value = 120
-  info.func = BUII_CallToArmsSound_OnClick
-  info.checked = (BUIIDatabase["call_to_arms_sound_id"] == 120)
-  UIDropDownMenu_AddButton(info)
 end
 
 local function BUII_RegisterEditModeSystem()
@@ -415,20 +360,6 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       _G["BUIIOptionsPanelCallToArms"]:SetChecked(true)
     end
 
-    if BUIIDatabase["call_to_arms_sound_id"] then
-      UIDropDownMenu_SetSelectedValue(_G["BUIIOptionsPanelCallToArmsSound"], BUIIDatabase["call_to_arms_sound_id"])
-
-      -- Find text for stored value
-      local text = "Alert Sound"
-      for _, option in ipairs(soundOptions) do
-        if option.value == BUIIDatabase["call_to_arms_sound_id"] then
-          text = option.text
-          break
-        end
-      end
-      UIDropDownMenu_SetText(_G["BUIIOptionsPanelCallToArmsSound"], text)
-    end
-
     if BUIIDatabase["ion_mode"] then
       BUII_Ion_Enable()
       _G["BUIIOptionsPanelIon"]:SetChecked(true)
@@ -531,41 +462,6 @@ function BUII_CallToArms_OnClick(self)
   else
     BUII_CallToArms_Disable()
     BUIIDatabase["call_to_arms"] = false
-  end
-end
-
-function BUII_CallToArmsSound_OnClick(self, arg1, arg2, checked)
-  BUIIDatabase["call_to_arms_sound_id"] = arg1
-  UIDropDownMenu_SetSelectedValue(_G["BUIIOptionsPanelCallToArmsSound"], arg1)
-
-  -- Debugging
-  -- print("Selected Value:", arg1, type(arg1))
-
-  -- Find text for selected value
-  local text = "Alert Sound"
-  for _, option in ipairs(soundOptions) do
-    -- print("Checking option:", option.value, type(option.value))
-    if option.value == arg1 then
-      text = option.text
-      break
-    end
-  end
-  UIDropDownMenu_SetText(_G["BUIIOptionsPanelCallToArmsSound"], text)
-end
-
-function BUII_CallToArmsSound_Initialize(self, level, menuList)
-  if not BUIIDatabase then
-    return
-  end
-
-  for _, option in ipairs(soundOptions) do
-    local info = UIDropDownMenu_CreateInfo()
-    info.text = option.text
-    info.value = option.value
-    info.arg1 = option.value -- Pass value as arg1 to OnClick
-    info.func = BUII_CallToArmsSound_OnClick
-    info.checked = (BUIIDatabase["call_to_arms_sound_id"] == option.value)
-    UIDropDownMenu_AddButton(info)
   end
 end
 
