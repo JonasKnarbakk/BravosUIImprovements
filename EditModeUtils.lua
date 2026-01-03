@@ -240,7 +240,29 @@ local function OnSettingValueChanged(self, setting, value)
           -- Trigger UI Refresh for non-sliders (e.g. Dropdowns need to update selected text)
           -- Sliders handle their own visual state during drag, and refreshing would interrupt them.
           if config.type ~= Enum.EditModeSettingDisplayType.Slider then
-            self:UpdateSettings(frame)
+            if self.Settings and self.Settings.GetChildren then
+              local children = { self.Settings:GetChildren() }
+              for _, child in ipairs(children) do
+                if child.layoutIndex == setting and child.SetupSetting then
+                  local settingData = {
+                    displayInfo = {
+                      setting = config.setting,
+                      name = config.name,
+                      type = config.type,
+                      minValue = config.minValue,
+                      maxValue = config.maxValue,
+                      stepSize = config.stepSize,
+                      formatter = config.formatter,
+                      options = config.options,
+                    },
+                    currentValue = value,
+                    settingName = config.name,
+                  }
+                  child:SetupSetting(settingData)
+                  break
+                end
+              end
+            end
           end
           break
         end
