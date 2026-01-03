@@ -9,11 +9,12 @@ local animGroup = nil
 
 -- Settings Constants
 local enum_CallToArmsSetting_Scale = 10
-local enum_CallToArmsSetting_FontSize = 11
 local enum_CallToArmsSetting_Tank = 12
 local enum_CallToArmsSetting_Healer = 13
 local enum_CallToArmsSetting_Damage = 14
-local enum_CallToArmsSetting_Sound = 15
+local enum_CallToArmsSetting_Dungeon = 15
+local enum_CallToArmsSetting_LFR = 16
+local enum_CallToArmsSetting_Sound = 17
 
 -- Sound Options
 local soundOptions = {
@@ -470,6 +471,30 @@ local function BUII_CallToArms_Initialize()
       end,
     },
     {
+      setting = enum_CallToArmsSetting_Dungeon,
+      name = "Dungeon",
+      type = Enum.EditModeSettingDisplayType.Checkbox,
+      getter = function(f)
+        return BUIIDatabase["call_to_arms_dungeon"]
+      end,
+      setter = function(f, val)
+        BUIIDatabase["call_to_arms_dungeon"] = val
+        BUII_CallToArms_Update()
+      end,
+    },
+    {
+      setting = enum_CallToArmsSetting_LFR,
+      name = "LFR",
+      type = Enum.EditModeSettingDisplayType.Checkbox,
+      getter = function(f)
+        return BUIIDatabase["call_to_arms_lfr"]
+      end,
+      setter = function(f, val)
+        BUIIDatabase["call_to_arms_lfr"] = val
+        BUII_CallToArms_Update()
+      end,
+    },
+    {
       setting = enum_CallToArmsSetting_Tank,
       name = "Tank",
       type = Enum.EditModeSettingDisplayType.Checkbox,
@@ -636,4 +661,3 @@ function BUII_CallToArms_DumpIDs()
     end
   end
 end
-
