@@ -249,7 +249,6 @@ function BUII_OnEventHandler(self, event, arg1, ...)
         BUIIDatabase["call_to_arms"] = false
         BUIIDatabase["call_to_arms_dungeon"] = true
         BUIIDatabase["call_to_arms_lfr"] = true
-        BUIIDatabase["call_to_arms_ineligible"] = false
         BUIIDatabase["call_to_arms_roles"] = { tank = true, healer = true, damage = true }
         BUIIDatabase["ion_mode"] = false
         BUIIDatabase["gear_talent_loadout"] = false
@@ -274,9 +273,6 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       end
       if BUIIDatabase["call_to_arms_lfr"] == nil then
         BUIIDatabase["call_to_arms_lfr"] = true
-      end
-      if BUIIDatabase["call_to_arms_ineligible"] == nil then
-        BUIIDatabase["call_to_arms_ineligible"] = false
       end
       if BUIIDatabase["call_to_arms_roles"] == nil then
         BUIIDatabase["call_to_arms_roles"] = { tank = true, healer = true, damage = true }

@@ -296,10 +296,6 @@ local function checkStatus()
   local canTank, canHealer, canDamage = C_LFGList.GetAvailableRoles()
   local ilvl, _ = GetAverageItemLevel()
 
-  if BUIIDatabase["call_to_arms_ineligible"] then
-    canTank, canHealer, canDamage = true, true, true
-  end
-
   local function updateShortageInfo(dID, dName, isHoliday, ilReq)
     for j = 1, LFG_ROLE_NUM_SHORTAGE_TYPES do
       local eligible, tank, healer, damage, itemCount, money, xp = GetLFGRoleShortageRewards(dID, j)
@@ -307,7 +303,7 @@ local function checkStatus()
       if itemCount > 0 then
         local tankLocked, healerLocked, damageLocked = GetLFDRoleRestrictions(dID)
         local isDesiredType = checkInstanceType(dID, isHoliday, dName, ilReq)
-        local isEligible = ilvl > ilReq or BUIIDatabase["call_to_arms_ineligible"]
+        local isEligible = ilvl > ilReq
 
         -- Determine which roles are actually being alerted for
         local tank_alert = tank and canTank and not tankLocked and BUIIDatabase["call_to_arms_roles"]["tank"]
