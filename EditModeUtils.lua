@@ -32,9 +32,16 @@ function BUII_EditModeUtils:ApplySavedPosition(frame, dbKey, force)
     return
   end
 
+  -- Prevent infinite recursion if a setter triggers an update
+  if frame.isApplyingSettings then
+    return
+  end
+  frame.isApplyingSettings = true
+
   -- Don't overwrite if we have unsaved changes or are currently moving the frame
   -- unless we are explicitly forcing it (e.g. during a layout switch or save)
   if not force and (frame.hasActiveChanges or frame.isSelected) then
+    frame.isApplyingSettings = false
     return
   end
 
@@ -47,9 +54,21 @@ function BUII_EditModeUtils:ApplySavedPosition(frame, dbKey, force)
   local layouts = db[dbKey .. "_layouts"] or {}
   local pos = layouts[layoutKey]
 
-  -- Fallback to old global setting if no layout-specific settings exist
-  if not pos and not next(layouts) and db[dbKey .. "_pos"] then
-    pos = db[dbKey .. "_pos"]
+  -- Fallback logic if current layout has no settings
+  if not pos then
+    -- 1. Try to find a "Default" layout setting
+    if layouts["Default"] then
+      pos = layouts["Default"]
+    -- 2. Fallback to *any* existing layout to ensure we have a valid position
+    elseif next(layouts) then
+      for _, p in pairs(layouts) do
+        pos = p
+        break
+      end
+    -- 3. Legacy fallback if no layouts exist at all
+    elseif db[dbKey .. "_pos"] then
+      pos = db[dbKey .. "_pos"]
+    end
   end
 
   local point, relPoint, x, y, scale
@@ -60,11 +79,19 @@ function BUII_EditModeUtils:ApplySavedPosition(frame, dbKey, force)
     y = pos.offsetY or pos.y or 0
     scale = pos.scale or 1.0
   else
-    point = frame.defaultPoint or "CENTER"
-    relPoint = frame.defaultRelativePoint or "CENTER"
-    x = frame.defaultX or 0
-    y = frame.defaultY or 0
-    scale = 1.0
+    -- No settings found anywhere.
+    -- If frame is already positioned, keep current position (inherit from previous spec/layout)
+    if frame:GetPoint() then
+      point, _, relPoint, x, y = frame:GetPoint()
+      scale = frame:GetScale()
+    else
+      -- Only use defaults if frame has never been positioned
+      point = frame.defaultPoint or "CENTER"
+      relPoint = frame.defaultRelativePoint or "CENTER"
+      x = frame.defaultX or 0
+      y = frame.defaultY or 0
+      scale = 1.0
+    end
   end
 
   if frame:GetScale() ~= scale then
@@ -117,6 +144,7 @@ function BUII_EditModeUtils:ApplySavedPosition(frame, dbKey, force)
   end
 
   frame.savedSystemInfo = CopyTable(frame.systemInfo)
+  frame.isApplyingSettings = false
 
   -- Notify system
   if frame.OnApplySettings then
@@ -407,38 +435,16 @@ function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settin
   -- Selection Interaction
   if frame.Selection then
     frame.Selection.Label:SetText(systemName)
-
-    frame.Selection:SetScript("OnMouseDown", function(s, button)
-      if button == "LeftButton" then
-        EditModeManagerFrame:SelectSystem(frame)
-        frame.isSelected = true
-        s:ShowSelected()
-        frame:StartMoving()
-      end
-    end)
-
-    local function onDragStop()
-      frame:StopMovingOrSizing()
-      if frame.isSelected then
-        frame.Selection:ShowSelected()
-      else
-        frame.Selection:ShowHighlighted()
-      end
-      UpdatePending(frame)
-      MarkLayoutDirty(frame)
-      if EditModeSystemSettingsDialog then
-        EditModeSystemSettingsDialog:UpdateButtons(frame)
-      end
-    end
-
-    frame.Selection:SetScript("OnMouseUp", function(s, button)
-      if button == "LeftButton" then
-        onDragStop()
-      end
-    end)
-
-    frame.Selection:SetScript("OnDragStop", onDragStop)
   end
+
+  -- Hook Drag Stop to capture position changes
+  hooksecurefunc(frame, "OnDragStop", function(self)
+    UpdatePending(self)
+    MarkLayoutDirty(self)
+    if EditModeSystemSettingsDialog then
+      EditModeSystemSettingsDialog:UpdateButtons(self)
+    end
+  end)
 
   -- Position Enforcement Loop
   frame:HookScript("OnUpdate", function(self)

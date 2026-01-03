@@ -1,0 +1,38 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\FrameXML\UI.xsd">
+    <Frame name="BUII_ResourcePointTemplate" virtual="true">
+        <Size x="15" y="15"/>
+        <Layers>
+            <Layer level="BACKGROUND">
+                <Texture parentKey="Background" setAllPoints="true">
+                    <Color r="0.1" g="0.1" b="0.1" a="0.8"/>
+                </Texture>
+            </Layer>
+            <Layer level="ARTWORK">
+                <Texture parentKey="Fill" setAllPoints="true">
+                    <Anchors>
+                        <Anchor point="TOPLEFT" x="1" y="-1"/>
+                        <Anchor point="BOTTOMRIGHT" x="-1" y="1"/>
+                    </Anchors>
+                    <Color r="1" g="1" b="1" a="1"/>
+                </Texture>
+            </Layer>
+        </Layers>
+        <Animations>
+             <AnimationGroup parentKey="ActivateAnim" setToFinalAlpha="true">
+                <Alpha childKey="Fill" fromAlpha="0.5" toAlpha="1" duration="0.2" order="1"/>
+                <Scale childKey="Fill" fromScaleX="0.8" fromScaleY="0.8" toScaleX="1.2" toScaleY="1.2" duration="0.1" order="1"/>
+                <Scale childKey="Fill" fromScaleX="1.2" fromScaleY="1.2" toScaleX="1" toScaleY="1" duration="0.1" order="2"/>
+            </AnimationGroup>
+        </Animations>
+    </Frame>
+
+    <Frame name="BUII_ResourceTrackerEditModeTemplate" inherits="EditModeSystemTemplate" virtual="true">
+        <KeyValues>
+            <KeyValue key="system" value="Enum.EditModeSystem.BUII_ResourceTracker" type="global"/>
+            <KeyValue key="systemNameString" value="BUII_HUD_EDIT_MODE_RESOURCE_TRACKER_LABEL" type="global"/>
+        </KeyValues>
+        <Frames>
+            <Frame inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
+        </Frames>
+    </Frame>
+</Ui>

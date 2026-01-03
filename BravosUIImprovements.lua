@@ -245,6 +245,14 @@ function BUII_OnEventHandler(self, event, arg1, ...)
         end
       end
     end
+    -- Also update Stance Tracker explicitly as its content changes with spec
+    if BUII_StanceTracker_GetDB and BUII_StanceTracker_GetDB()["stance_tracker"] then
+      BUII_StanceTracker_Enable()
+    end
+
+    if BUIIDatabase["resource_tracker"] then
+      BUII_ResourceTracker_Enable()
+    end
   elseif event == "ADDON_LOADED" then
     if arg1 == "BravosUIImprovements" then
       BUII_RegisterEditModeSystem()
@@ -269,6 +277,9 @@ function BUII_OnEventHandler(self, event, arg1, ...)
         BUIIDatabase["ready_check"] = false
         BUIIDatabase["group_tools"] = false
         BUIIDatabase["stance_tracker"] = false
+        BUIIDatabase["resource_tracker"] = false
+        BUIIDatabase["resource_tracker_shaman"] = true
+        BUIIDatabase["resource_tracker_demonhunter"] = true
         BUIIDatabase["stance_tracker_druid"] = true
         BUIIDatabase["stance_tracker_paladin"] = true
         BUIIDatabase["stance_tracker_rogue"] = true
@@ -323,6 +334,15 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       if BUIIDatabase["stance_tracker"] == nil then
         BUIIDatabase["stance_tracker"] = false
       end
+      if BUIIDatabase["resource_tracker"] == nil then
+        BUIIDatabase["resource_tracker"] = false
+      end
+      if BUIIDatabase["resource_tracker_shaman"] == nil then
+        BUIIDatabase["resource_tracker_shaman"] = true
+      end
+      if BUIIDatabase["resource_tracker_demonhunter"] == nil then
+        BUIIDatabase["resource_tracker_demonhunter"] = true
+      end
       if BUIIDatabase["stance_tracker_druid"] == nil then
         BUIIDatabase["stance_tracker_druid"] = true
       end
@@ -365,6 +385,11 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       if BUIICharacterDatabase["stance_tracker_use_char_settings"] == nil then
         BUIICharacterDatabase["stance_tracker_use_char_settings"] = false
       end
+      -- Resource Tracker Character Settings Init
+      if BUIICharacterDatabase["resource_tracker_use_char_settings"] == nil then
+        BUIICharacterDatabase["resource_tracker_use_char_settings"] = false
+      end
+
       -- Mirror defaults in char DB just in case
       if BUIICharacterDatabase["stance_tracker"] == nil then
         BUIICharacterDatabase["stance_tracker"] = false
@@ -486,6 +511,25 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       _G["BUIIOptionsPanelStanceTracker"]:SetChecked(true)
     else
       _G["BUIIOptionsPanelStanceTracker"]:SetChecked(false)
+    end
+
+    if BUIIDatabase["resource_tracker"] then
+      BUII_ResourceTracker_Enable()
+      _G["BUIIOptionsPanelResourceTracker"]:SetChecked(true)
+    else
+      _G["BUIIOptionsPanelResourceTracker"]:SetChecked(false)
+    end
+
+    if BUIIDatabase["resource_tracker_shaman"] then
+      _G["BUIIOptionsPanelResourceTrackerShaman"]:SetChecked(true)
+    else
+      _G["BUIIOptionsPanelResourceTrackerShaman"]:SetChecked(false)
+    end
+
+    if BUIIDatabase["resource_tracker_demonhunter"] then
+      _G["BUIIOptionsPanelResourceTrackerDemonHunter"]:SetChecked(true)
+    else
+      _G["BUIIOptionsPanelResourceTrackerDemonHunter"]:SetChecked(false)
     end
 
     if BUIIDatabase["stance_tracker_druid"] then
@@ -677,5 +721,29 @@ function BUII_StanceTrackerWarrior_OnClick(self)
   BUIIDatabase["stance_tracker_warrior"] = self:GetChecked()
   if BUIIDatabase["stance_tracker"] then
     BUII_StanceTracker_Enable()
+  end
+end
+
+function BUII_ResourceTracker_OnClick(self)
+  if self:GetChecked() then
+    BUII_ResourceTracker_Enable()
+    BUIIDatabase["resource_tracker"] = true
+  else
+    BUII_ResourceTracker_Disable()
+    BUIIDatabase["resource_tracker"] = false
+  end
+end
+
+function BUII_ResourceTrackerShaman_OnClick(self)
+  BUIIDatabase["resource_tracker_shaman"] = self:GetChecked()
+  if BUIIDatabase["resource_tracker"] then
+    BUII_ResourceTracker_Enable()
+  end
+end
+
+function BUII_ResourceTrackerDemonHunter_OnClick(self)
+  BUIIDatabase["resource_tracker_demonhunter"] = self:GetChecked()
+  if BUIIDatabase["resource_tracker"] then
+    BUII_ResourceTracker_Enable()
   end
 end

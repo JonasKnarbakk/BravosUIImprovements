@@ -8,9 +8,8 @@
 ## IconTexture: Interface\AddOns\BravosUIImprovements\Media\Textures\icon
 ## X-Curse-Project-ID: 701258
 
+ResourceTracker.xml
 BravosUIImprovements.xml
 ImprovedEditMode.xml
 ActionBarsImproved.lua
-ReadyCheck.lua
-StanceTracker.lua
 TooltipImprovements.lua
