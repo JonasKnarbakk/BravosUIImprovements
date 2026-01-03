@@ -22,6 +22,46 @@
     </Frames>
   </Frame>
 
+  <Frame name="BUII_CallToArmsEditModeTemplate" inherits="EditModeSystemTemplate" virtual="true">
+    <KeyValues>
+      <KeyValue key="system" value="Enum.EditModeSystem.BUII_CallToArms" type="global"/>
+      <KeyValue key="systemNameString" value="BUII_HUD_EDIT_MODE_CALL_TO_ARMS_LABEL" type="global"/>
+    </KeyValues>
+    <Frames>
+      <Frame inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
+    </Frames>
+  </Frame>
+
+  <Frame name="BUII_CombatStateEditModeTemplate" inherits="EditModeSystemTemplate" virtual="true">
+    <KeyValues>
+      <KeyValue key="system" value="Enum.EditModeSystem.BUII_CombatState" type="global"/>
+      <KeyValue key="systemNameString" value="BUII_HUD_EDIT_MODE_COMBAT_STATE_LABEL" type="global"/>
+    </KeyValues>
+    <Frames>
+      <Frame inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
+    </Frames>
+  </Frame>
+
+  <Frame name="BUII_GearAndTalentLoadoutEditModeTemplate" inherits="EditModeSystemTemplate" virtual="true">
+    <KeyValues>
+      <KeyValue key="system" value="Enum.EditModeSystem.BUII_GearAndTalentLoadout" type="global"/>
+      <KeyValue key="systemNameString" value="BUII_HUD_EDIT_MODE_GEAR_AND_TALENT_LOADOUT_LABEL" type="global"/>
+    </KeyValues>
+    <Frames>
+      <Frame inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
+    </Frames>
+  </Frame>
+
+  <Frame name="BUII_ReadyCheckEditModeTemplate" inherits="EditModeSystemTemplate" virtual="true">
+    <KeyValues>
+      <KeyValue key="system" value="Enum.EditModeSystem.BUII_ReadyCheck" type="global"/>
+      <KeyValue key="systemNameString" value="BUII_HUD_EDIT_MODE_READY_CHECK_LABEL" type="global"/>
+    </KeyValues>
+    <Frames>
+      <Frame inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
+    </Frames>
+  </Frame>
+
   <Frame name="BUIIOptionsPanel" hidden="false">
 
     <Layers>

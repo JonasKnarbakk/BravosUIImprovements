@@ -118,7 +118,7 @@ local function UpdateVisibility()
     return
   end
   -- If Edit Mode is open, show the frame
-  if EditModeManagerFrame and EditModeManagerFrame:IsShown() and frame.isSelected then
+  if EditModeManagerFrame and EditModeManagerFrame:IsShown() then
     frame:Show()
     return
   end
@@ -133,9 +133,7 @@ end
 
 local function onEvent(self, event)
   if event == "EDIT_MODE_LAYOUTS_UPDATED" then
-    -- Utils handles layout switching via hooks, but if the layout system updates externally
-    -- we might want to ensure we are in sync.
-    -- However, usually this is handled by ApplySavedPosition calls in Utils.
+    BUII_EditModeUtils:ApplySavedPosition(frame, "group_tools")
     return
   end
 
@@ -287,6 +285,7 @@ function BUII_GroupTools_Enable()
   frame:SetScript("OnEvent", onEvent)
 
   -- Initial Update
+  BUII_EditModeUtils:ApplySavedPosition(frame, "group_tools")
   UpdateVisibility()
   timerFrame:Show()
   UpdateBattleRez()

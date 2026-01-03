@@ -1,12 +1,17 @@
 local addonName, addon = ...
-local frame = CreateFrame("Frame", "BUII_CallToArmsFrame", UIParent)
-local text = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+local frame = nil
+local text = nil
 local timer = nil
 local locked = false
 local last_status = nil
 local isTestMode = false
+local animGroup = nil
 
--- Configuration for Dungeon/Raid IDs
+-- Settings Constants
+local enum_CallToArmsSetting_Scale = 10
+local enum_CallToArmsSetting_FontSize = 11
+
+-- Configuration for Dungeon/Raid IDs (Keeping existing config)
 local types_config = {
   ["dg_types"] = {
     -- Midnight
@@ -233,62 +238,6 @@ local tankIcon = "|TInterface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES:16:16:0:0:64:
 local healerIcon = "|TInterface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES:16:16:0:0:64:64:20:39:1:20|t"
 local damageIcon = "|TInterface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES:16:16:0:0:64:64:20:39:22:41|t"
 
-frame:SetSize(200, 20)
-frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
-frame:SetMovable(true)
-frame:EnableMouse(false) -- Disable mouse by default, enable only in Edit Mode
-
--- Animation Setup
-local animGroup = frame:CreateAnimationGroup()
-local fade = animGroup:CreateAnimation("Alpha")
-fade:SetFromAlpha(0)
-fade:SetToAlpha(1)
-fade:SetDuration(0.5)
-fade:SetSmoothing("IN_OUT")
-
--- Edit Mode Selection Frame
--- Mimicking structure from EditModeSystemTemplate / ImprovedEditMode.lua
-local selection = CreateFrame("Frame", nil, frame, "EditModeSystemSelectionTemplate")
-selection:SetAllPoints(frame)
-selection:Hide()
-frame.Selection = selection
--- Override GetLabelText to avoid nil system error
-frame.Selection.GetLabelText = function()
-  return "Call to Arms"
-end
-frame.Selection.CheckShowInstructionalTooltip = function()
-  return false
-end
-
--- Edit Mode Interaction Handlers
-function frame:OnDragStart()
-  if EditModeManagerFrame then
-    EditModeManagerFrame:SelectSystem(frame)
-  end
-
-  frame.Selection:ShowSelected()
-  frame:SetMovable(true)
-  frame:SetClampedToScreen(true)
-  frame:StartMoving()
-end
-
-function frame:OnDragStop()
-  frame.Selection:ShowHighlighted()
-  frame:StopMovingOrSizing()
-  frame:SetMovable(false)
-  frame:SetClampedToScreen(false)
-
-  local point, _, relativePoint, x, y = frame:GetPoint()
-  BUIIDatabase["call_to_arms_pos"] = { point = point, relativePoint = relativePoint, x = x, y = y }
-end
-
--- We don't need manual SetScripts on Selection because the template handles calling OnDragStart/Stop on parent
--- providing we defined them (which we just did above).
-
-text:SetPoint("CENTER", frame, "CENTER")
-text:SetJustifyH("LEFT")
-frame:Hide()
-
 local function checkTypes(instanceTypes, optionsKey, ilReq, isRaidCheck)
   if instanceTypes[optionsKey] then
     return true
@@ -431,13 +380,18 @@ local function updateDisplay()
     frame:Hide()
 
     -- Show only if in edit mode
-
-    if frame.Selection:IsShown() then
+    if EditModeManagerFrame and EditModeManagerFrame:IsShown() then
       frame:Show()
     end
   end
 end
+
 local function onEvent(self, event, ...)
+  if event == "EDIT_MODE_LAYOUTS_UPDATED" then
+    BUII_EditModeUtils:ApplySavedPosition(frame, "call_to_arms")
+    return
+  end
+
   if not BUIIDatabase["call_to_arms"] then
     return
   end
@@ -457,13 +411,71 @@ local function onEvent(self, event, ...)
   end
 end
 
+local function BUII_CallToArms_Initialize()
+  if frame then
+    return
+  end
+
+  frame = CreateFrame("Frame", "BUII_CallToArmsFrame", UIParent, "BUII_CallToArmsEditModeTemplate")
+  frame:SetSize(200, 20)
+  frame:SetMovable(true)
+  frame:SetClampedToScreen(true)
+  frame:SetDontSavePosition(true)
+  frame:EnableMouse(false)
+  frame:Hide()
+
+  text = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  text:SetFont(BUII_GetFontPath(), 12, "OUTLINE")
+  text:SetPoint("CENTER", frame, "CENTER")
+  text:SetJustifyH("LEFT")
+
+  -- Animation Setup
+  animGroup = frame:CreateAnimationGroup()
+  local fade = animGroup:CreateAnimation("Alpha")
+  fade:SetFromAlpha(0)
+  fade:SetToAlpha(1)
+  fade:SetDuration(0.5)
+  fade:SetSmoothing("IN_OUT")
+
+  -- Register System
+  local settingsConfig = {
+    {
+      setting = enum_CallToArmsSetting_Scale,
+      name = "Scale",
+      type = Enum.EditModeSettingDisplayType.Slider,
+      minValue = 0.5,
+      maxValue = 2.0,
+      stepSize = 0.05,
+      formatter = BUII_EditModeUtils.FormatPercentage,
+      getter = function(f)
+        return f:GetScale()
+      end,
+      setter = function(f, val)
+        f:SetScale(val)
+      end,
+    },
+  }
+
+  BUII_EditModeUtils:RegisterSystem(
+    frame,
+    Enum.EditModeSystem.BUII_CallToArms,
+    "Call to Arms",
+    settingsConfig,
+    "call_to_arms",
+    {
+      OnReset = function(f)
+        updateDisplay()
+      end,
+      OnApplySettings = function(f)
+        updateDisplay()
+      end,
+    }
+  )
+end
+
 -- Edit Mode Integration
 local function editMode_OnEnter()
   frame:EnableMouse(true)
-  frame:Show()
-  frame.Selection:Show()
-  frame.Selection:ShowHighlighted() -- Start highlighted
-
   -- Show test text for positioning context
   local rewardIcon = "|T413587:0|t"
   local testOutput =
@@ -481,35 +493,35 @@ end
 
 local function editMode_OnExit()
   frame:EnableMouse(false)
-  frame.Selection:Hide()
   text:Show()
   updateDisplay()
 end
 
 function BUII_CallToArms_Enable()
+  BUII_CallToArms_Initialize()
+
   frame:RegisterEvent("LFG_UPDATE_RANDOM_INFO")
   frame:SetScript("OnEvent", onEvent)
 
   -- Register Edit Mode Callbacks
-  EventRegistry:RegisterCallback("EditMode.Enter", editMode_OnEnter, "BUII_CallToArms_OnEnter")
-  EventRegistry:RegisterCallback("EditMode.Exit", editMode_OnExit, "BUII_CallToArms_OnExit")
+  -- Note: We register these in addition to the generic ones registered by EditModeUtils
+  -- to handle the specific test text logic.
+  EventRegistry:RegisterCallback("EditMode.Enter", editMode_OnEnter, "BUII_CallToArms_Custom_OnEnter")
+  EventRegistry:RegisterCallback("EditMode.Exit", editMode_OnExit, "BUII_CallToArms_Custom_OnExit")
 
-  -- Restore position
-  if BUIIDatabase["call_to_arms_pos"] then
-    local pos = BUIIDatabase["call_to_arms_pos"]
-    frame:ClearAllPoints()
-    frame:SetPoint(pos.point, UIParent, pos.relativePoint, pos.x, pos.y)
-  end
-
+  BUII_EditModeUtils:ApplySavedPosition(frame, "call_to_arms")
   RequestLFDPlayerLockInfo()
   updateDisplay()
 end
 
 function BUII_CallToArms_Disable()
+  if not frame then
+    return
+  end
   frame:UnregisterEvent("LFG_UPDATE_RANDOM_INFO")
   frame:SetScript("OnEvent", nil)
-  EventRegistry:UnregisterCallback("EditMode.Enter", "BUII_CallToArms_OnEnter")
-  EventRegistry:UnregisterCallback("EditMode.Exit", "BUII_CallToArms_OnExit")
+  EventRegistry:UnregisterCallback("EditMode.Enter", "BUII_CallToArms_Custom_OnEnter")
+  EventRegistry:UnregisterCallback("EditMode.Exit", "BUII_CallToArms_Custom_OnExit")
   frame:Hide()
   if timer then
     timer:Cancel()
@@ -555,3 +567,4 @@ function BUII_CallToArms_DumpIDs()
     end
   end
 end
+
