@@ -278,18 +278,62 @@ local function checkInstanceType(dID, isHoliday, dName, ilReq)
   return dungeon_check or raid_check or holiday_check
 end
 
+local function GenerateTestOutput()
+  local testOutput = ""
+  local rewardIcon = "|T413587:0|t"
+  
+  local showTank = BUIIDatabase["call_to_arms_roles"]["tank"]
+  local showHealer = BUIIDatabase["call_to_arms_roles"]["healer"]
+  local showDamage = BUIIDatabase["call_to_arms_roles"]["damage"]
+
+  local function getRoleString(t, h, d)
+    local s = ""
+    if t and showTank then s = s .. tankIcon end
+    if h and showHealer then s = s .. healerIcon end
+    if d and showDamage then s = s .. damageIcon end
+    return s
+  end
+
+  if BUIIDatabase["call_to_arms_dungeon"] then
+      local roles = getRoleString(true, true, true)
+      if roles ~= "" then
+          testOutput = testOutput .. string.format("%s %s %s|n", rewardIcon, roles, "Random Dungeon (Expansion)")
+      end
+      
+      roles = getRoleString(true, false, false)
+      if roles ~= "" then
+          testOutput = testOutput .. string.format("%s %s %s|n", rewardIcon, roles, "Random Heroic (Expansion: Season 1)")
+      end
+      
+      roles = getRoleString(false, true, false)
+      if roles ~= "" then
+           testOutput = testOutput .. string.format("%s %s %s|n", rewardIcon, roles, "Random Heroic (Expansion: Season 2)")
+      end
+  end
+
+  if BUIIDatabase["call_to_arms_lfr"] then
+      local roles = getRoleString(false, false, true)
+      if roles ~= "" then
+          testOutput = testOutput .. string.format("%s %s %s|n", rewardIcon, roles, "LFR Wing 1: The Beginning")
+      end
+      
+      roles = getRoleString(true, false, true)
+      if roles ~= "" then
+           testOutput = testOutput .. string.format("%s %s %s|n", rewardIcon, roles, "LFR Wing 2: The Middle")
+      end
+  end
+  
+  -- Fallback if everything is disabled, so the user can still see *something* to move
+  if testOutput == "" then
+     testOutput = string.format("%s %s %s", rewardIcon, tankIcon, "No Active Filters")
+  end
+
+  return testOutput
+end
+
 local function checkStatus()
-  if isTestMode then
-    local testOutput = ""
-    local rewardIcon = "|T413587:0|t"
-    testOutput = testOutput
-      .. string.format("%s %s %s|n", rewardIcon, tankIcon .. healerIcon .. damageIcon, "Random Dungeon (Expansion)")
-    testOutput = testOutput .. string.format("%s %s %s|n", rewardIcon, tankIcon, "Random Heroic (Expansion: Season 1)")
-    testOutput = testOutput
-      .. string.format("%s %s %s|n", rewardIcon, healerIcon, "Random Heroic (Expansion: Season 2)")
-    testOutput = testOutput .. string.format("%s %s %s|n", rewardIcon, damageIcon, "LFR Wing 1: The Beginning")
-    testOutput = testOutput .. string.format("%s %s %s|n", rewardIcon, tankIcon .. damageIcon, "LFR Wing 2: The Middle")
-    return testOutput
+  if isTestMode or (EditModeManagerFrame and EditModeManagerFrame:IsShown()) then
+    return GenerateTestOutput()
   end
 
   local textOutput = ""
@@ -476,11 +520,12 @@ local function BUII_CallToArms_Initialize()
       type = Enum.EditModeSettingDisplayType.Checkbox,
       key = "dungeon",
       getter = function(f)
-        return BUIIDatabase["call_to_arms_dungeon"]
+        return BUIIDatabase["call_to_arms_dungeon"] and 1 or 0
       end,
       setter = function(f, val)
-        if BUIIDatabase["call_to_arms_dungeon"] ~= val then
-          BUIIDatabase["call_to_arms_dungeon"] = val
+        local bVal = (val == 1)
+        if BUIIDatabase["call_to_arms_dungeon"] ~= bVal then
+          BUIIDatabase["call_to_arms_dungeon"] = bVal
           BUII_CallToArms_Update()
         end
       end,
@@ -491,11 +536,12 @@ local function BUII_CallToArms_Initialize()
       type = Enum.EditModeSettingDisplayType.Checkbox,
       key = "lfr",
       getter = function(f)
-        return BUIIDatabase["call_to_arms_lfr"]
+        return BUIIDatabase["call_to_arms_lfr"] and 1 or 0
       end,
       setter = function(f, val)
-        if BUIIDatabase["call_to_arms_lfr"] ~= val then
-          BUIIDatabase["call_to_arms_lfr"] = val
+        local bVal = (val == 1)
+        if BUIIDatabase["call_to_arms_lfr"] ~= bVal then
+          BUIIDatabase["call_to_arms_lfr"] = bVal
           BUII_CallToArms_Update()
         end
       end,
@@ -506,11 +552,12 @@ local function BUII_CallToArms_Initialize()
       type = Enum.EditModeSettingDisplayType.Checkbox,
       key = "tank",
       getter = function(f)
-        return BUIIDatabase["call_to_arms_roles"]["tank"]
+        return BUIIDatabase["call_to_arms_roles"]["tank"] and 1 or 0
       end,
       setter = function(f, val)
-        if BUIIDatabase["call_to_arms_roles"]["tank"] ~= val then
-          BUIIDatabase["call_to_arms_roles"]["tank"] = val
+        local bVal = (val == 1)
+        if BUIIDatabase["call_to_arms_roles"]["tank"] ~= bVal then
+          BUIIDatabase["call_to_arms_roles"]["tank"] = bVal
           BUII_CallToArms_Update()
         end
       end,
@@ -521,11 +568,12 @@ local function BUII_CallToArms_Initialize()
       type = Enum.EditModeSettingDisplayType.Checkbox,
       key = "healer",
       getter = function(f)
-        return BUIIDatabase["call_to_arms_roles"]["healer"]
+        return BUIIDatabase["call_to_arms_roles"]["healer"] and 1 or 0
       end,
       setter = function(f, val)
-        if BUIIDatabase["call_to_arms_roles"]["healer"] ~= val then
-          BUIIDatabase["call_to_arms_roles"]["healer"] = val
+        local bVal = (val == 1)
+        if BUIIDatabase["call_to_arms_roles"]["healer"] ~= bVal then
+          BUIIDatabase["call_to_arms_roles"]["healer"] = bVal
           BUII_CallToArms_Update()
         end
       end,
@@ -536,11 +584,12 @@ local function BUII_CallToArms_Initialize()
       type = Enum.EditModeSettingDisplayType.Checkbox,
       key = "damage",
       getter = function(f)
-        return BUIIDatabase["call_to_arms_roles"]["damage"]
+        return BUIIDatabase["call_to_arms_roles"]["damage"] and 1 or 0
       end,
       setter = function(f, val)
-        if BUIIDatabase["call_to_arms_roles"]["damage"] ~= val then
-          BUIIDatabase["call_to_arms_roles"]["damage"] = val
+        local bVal = (val == 1)
+        if BUIIDatabase["call_to_arms_roles"]["damage"] ~= bVal then
+          BUIIDatabase["call_to_arms_roles"]["damage"] = bVal
           BUII_CallToArms_Update()
         end
       end,
@@ -589,13 +638,7 @@ end
 local function editMode_OnEnter()
   frame:EnableMouse(true)
   -- Show test text for positioning context
-  local rewardIcon = "|T413587:0|t"
-  local testOutput =
-    string.format("%s %s %s|n", rewardIcon, tankIcon .. healerIcon .. damageIcon, "Random Dungeon (Expansion)")
-  testOutput = testOutput .. string.format("%s %s %s|n", rewardIcon, tankIcon, "Random Heroic (Expansion: Season 1)")
-  testOutput = testOutput .. string.format("%s %s %s|n", rewardIcon, healerIcon, "Random Heroic (Expansion: Season 2)")
-  testOutput = testOutput .. string.format("%s %s %s|n", rewardIcon, damageIcon, "LFR Wing 1: The Beginning")
-  testOutput = testOutput .. string.format("%s %s %s|n", rewardIcon, tankIcon .. damageIcon, "LFR Wing 2: The Middle")
+  local testOutput = GenerateTestOutput()
 
   text:SetText(testOutput)
   frame:SetWidth(text:GetStringWidth() + 10)
