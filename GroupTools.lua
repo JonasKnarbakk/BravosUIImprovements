@@ -173,7 +173,7 @@ local function BUII_GroupTools_Initialize()
   bRezIcon:SetSize(30, 30)
   bRezIcon:SetPoint("LEFT", bRezFrame, "LEFT", 5, 0)
   bRezIcon:SetTexture(136080)
-  bRezIcon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+  bRezIcon:SetTexCoord(0, 1, 0, 1)
 
   bRezText = bRezFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
   bRezText:SetFont(BUII_GetFontPath(), 12, "OUTLINE")
