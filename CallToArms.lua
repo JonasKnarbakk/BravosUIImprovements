@@ -391,11 +391,11 @@ local function updateDisplay()
   else
     lastText = ""
 
-    frame:Hide()
-
     -- Show only if in edit mode
     if EditModeManagerFrame and EditModeManagerFrame:IsShown() then
       frame:Show()
+    else
+      frame:Hide()
     end
   end
 end
@@ -477,6 +477,7 @@ local function BUII_CallToArms_Initialize()
       end,
       setter = function(f, val)
         BUIIDatabase["call_to_arms_roles"]["tank"] = val
+        BUII_CallToArms_Update()
       end,
     },
     {
@@ -488,6 +489,7 @@ local function BUII_CallToArms_Initialize()
       end,
       setter = function(f, val)
         BUIIDatabase["call_to_arms_roles"]["healer"] = val
+        BUII_CallToArms_Update()
       end,
     },
     {
@@ -499,6 +501,7 @@ local function BUII_CallToArms_Initialize()
       end,
       setter = function(f, val)
         BUIIDatabase["call_to_arms_roles"]["damage"] = val
+        BUII_CallToArms_Update()
       end,
     },
     {
@@ -516,6 +519,7 @@ local function BUII_CallToArms_Initialize()
         else
           PlaySoundFile(val, "Master")
         end
+        BUII_CallToArms_Update()
       end,
     },
   }
