@@ -65,7 +65,17 @@ local function onEvent(self, event, ...)
     BUII_EditModeUtils:ApplySavedPosition(frame, "gear_talent_loadout")
     return
   end
-  UpdateDisplay()
+
+  if event == "EQUIPMENT_SETS_CHANGED" or event == "TRAIT_CONFIG_UPDATED" then
+    UpdateDisplay()
+  end
+
+  -- Need a delay otherwise we get the old set info
+  if event == "EQUIPMENT_SWAP_FINISHED" then
+    C_Timer.NewTimer(1, function()
+      UpdateDisplay()
+    end)
+  end
 end
 
 local function BUII_GearAndTalentLoadout_Initialize()
@@ -149,6 +159,7 @@ function BUII_GearAndTalentLoadout_Enable()
   BUII_GearAndTalentLoadout_Initialize()
 
   frame:RegisterEvent("EQUIPMENT_SWAP_FINISHED")
+  frame:RegisterEvent("EQUIPMENT_SETS_CHANGED")
   frame:RegisterEvent("TRAIT_CONFIG_UPDATED")
   frame:RegisterEvent("PLAYER_ENTERING_WORLD")
   frame:SetScript("OnEvent", onEvent)
@@ -167,6 +178,7 @@ function BUII_GearAndTalentLoadout_Disable()
     return
   end
   frame:UnregisterEvent("EQUIPMENT_SWAP_FINISHED")
+  frame:UnregisterEvent("EQUIPMENT_SETS_CHANGED")
   frame:UnregisterEvent("TRAIT_CONFIG_UPDATED")
   frame:UnregisterEvent("PLAYER_ENTERING_WORLD")
   frame:SetScript("OnEvent", nil)
