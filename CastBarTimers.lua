@@ -38,16 +38,32 @@ local function restoreSpellNameText()
   FocusFrameSpellBar.Text:SetPoint("TOPRIGHT", FocusFrameSpellBar, "TOPRIGHT", 0, -8)
 end
 
+local function calculateTimeLeft(endTime, currentTime)
+  return (endTime / 1000) - currentTime
+end
+
 local function setTimerText(castBarFrame, timerTextFrame)
   local timeLeft = nil
-  if castBarFrame.casting then
-    timeLeft = castBarFrame.maxValue - castBarFrame:GetValue()
-  elseif castBarFrame.channeling then
-    timeLeft = castBarFrame:GetValue()
+  local unit = castBarFrame.unit
+  if unit then
+    local currentTime = GetTime()
+    local _, _, _, _, endTime = UnitCastingInfo(unit)
+    if not endTime then
+      _, _, _, _, endTime = UnitChannelInfo(unit)
+    end
+    if endTime then
+      local success, result = pcall(calculateTimeLeft, endTime, currentTime)
+      if success then
+        timeLeft = result
+      end
+    end
   end
+
   if timeLeft then
     timeLeft = (timeLeft < 0.1) and 0.01 or timeLeft
     timerTextFrame.text:SetText(string.format("%.1f", timeLeft))
+  else
+    timerTextFrame.text:SetText("")
   end
 end
 
