@@ -211,6 +211,7 @@ end
 function BUII_OnLoadHandler(self)
   self:RegisterEvent("ADDON_LOADED")
   self:RegisterEvent("PLAYER_ENTERING_WORLD")
+  self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
   EventRegistry:RegisterCallback("EditMode.Exit", editMode_OnExit, "BUII_Improvements_OnExit")
   hooksecurefunc("UnitFramePortrait_Update", handleUnitFramePortraitUpdate)
 
@@ -235,7 +236,16 @@ local function BUII_RegisterEditModeSystem()
 end
 
 function BUII_OnEventHandler(self, event, arg1, ...)
-  if event == "ADDON_LOADED" then
+  if event == "PLAYER_SPECIALIZATION_CHANGED" then
+    -- Force restore positions for all our custom frames
+    if BUII_EditModeUtils and BUII_EditModeUtils.RegisteredSystems then
+      for _, frame in pairs(BUII_EditModeUtils.RegisteredSystems) do
+        if frame and frame.buiiDbKey then
+          BUII_EditModeUtils:ApplySavedPosition(frame, frame.buiiDbKey, true)
+        end
+      end
+    end
+  elseif event == "ADDON_LOADED" then
     if arg1 == "BravosUIImprovements" then
       BUII_RegisterEditModeSystem()
 
