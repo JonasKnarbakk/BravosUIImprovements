@@ -39,6 +39,26 @@ local enum_ResourceTrackerSetting_TotalWidth = 64
 local enum_ResourceTrackerSetting_Height = 65
 local enum_ResourceTrackerSetting_ShowText = 66
 local enum_ResourceTrackerSetting_FontSize = 67
+local enum_ResourceTrackerSetting_ShowBorder = 68
+local enum_ResourceTrackerSetting_UseClassColor = 69
+local enum_ResourceTrackerSetting_FrameStrata = 70
+
+-- Frame Strata Options
+local FRAME_STRATA_OPTIONS = {
+  { text = "Background", value = 1 },
+  { text = "Low", value = 2 },
+  { text = "Medium", value = 3 },
+  { text = "High", value = 4 },
+  { text = "Dialog", value = 5 },
+}
+
+local FRAME_STRATA_VALUES = {
+  [1] = "BACKGROUND",
+  [2] = "LOW",
+  [3] = "MEDIUM",
+  [4] = "HIGH",
+  [5] = "DIALOG",
+}
 
 local function GetResourceTrackerDB()
   if BUIICharacterDatabase and BUIICharacterDatabase["resource_tracker_use_char_settings"] then
@@ -72,6 +92,11 @@ local function UpdatePoints()
   local db = GetResourceTrackerDB()
   local config = GetActiveConfig()
   local isEditMode = EditModeManagerFrame and EditModeManagerFrame:IsShown()
+
+  -- Apply frame strata
+  local strataIndex = db.resource_tracker_frame_strata or 2 -- Default to LOW
+  local strataValue = FRAME_STRATA_VALUES[strataIndex] or "LOW"
+  frame:SetFrameStrata(strataValue)
 
   if not config and not isEditMode then
     frame:Hide()
@@ -129,6 +154,18 @@ local function UpdatePoints()
   local spacing = db.currentSpacing or 2
   local totalWidth = db.currentTotalWidth or 170
   local height = db.currentHeight or 12
+  local showBorder = db.resource_tracker_show_border or false
+  local useClassColor = db.resource_tracker_use_class_color or false
+
+  -- Get class color if needed
+  local classColor = nil
+  if useClassColor then
+    local _, classFilename = UnitClass("player")
+    local classColorTable = C_ClassColor.GetClassColor(classFilename)
+    if classColorTable then
+      classColor = { r = classColorTable.r, g = classColorTable.g, b = classColorTable.b }
+    end
+  end
 
   -- Calculate dynamic width for each point
   local pointWidth = (totalWidth - (spacing * (maxPoints - 1))) / maxPoints
@@ -150,10 +187,22 @@ local function UpdatePoints()
         point:SetPoint("LEFT", points[i - 1], "RIGHT", spacing, 0)
       end
 
+      -- Update Border visibility
+      if showBorder then
+        point.Border:Show()
+      else
+        point.Border:Hide()
+      end
+
       -- Update State
       local drawColor = color
       if layered and currentStacks > maxPoints and i <= (currentStacks - maxPoints) then
         drawColor = color2
+      end
+
+      -- Use class color if enabled
+      if classColor then
+        drawColor = classColor
       end
 
       if i <= currentStacks then
@@ -361,6 +410,55 @@ local function BUII_ResourceTracker_Initialize()
         UpdatePoints()
       end,
     },
+    {
+      setting = enum_ResourceTrackerSetting_ShowBorder,
+      name = "Show Border",
+      key = "resource_tracker_show_border",
+      type = Enum.EditModeSettingDisplayType.Checkbox,
+      defaultValue = false,
+      getter = function(f)
+        local db = GetResourceTrackerDB()
+        return db.resource_tracker_show_border and 1 or 0
+      end,
+      setter = function(f, val)
+        local db = GetResourceTrackerDB()
+        db.resource_tracker_show_border = (val == 1)
+        UpdatePoints()
+      end,
+    },
+    {
+      setting = enum_ResourceTrackerSetting_UseClassColor,
+      name = "Use Class Color",
+      key = "resource_tracker_use_class_color",
+      type = Enum.EditModeSettingDisplayType.Checkbox,
+      defaultValue = false,
+      getter = function(f)
+        local db = GetResourceTrackerDB()
+        return db.resource_tracker_use_class_color and 1 or 0
+      end,
+      setter = function(f, val)
+        local db = GetResourceTrackerDB()
+        db.resource_tracker_use_class_color = (val == 1)
+        UpdatePoints()
+      end,
+    },
+    {
+      setting = enum_ResourceTrackerSetting_FrameStrata,
+      name = "Frame Strata",
+      key = "resource_tracker_frame_strata",
+      type = Enum.EditModeSettingDisplayType.Dropdown,
+      defaultValue = 2, -- LOW
+      options = FRAME_STRATA_OPTIONS,
+      getter = function(f)
+        local db = GetResourceTrackerDB()
+        return db.resource_tracker_frame_strata or 2
+      end,
+      setter = function(f, val)
+        local db = GetResourceTrackerDB()
+        db.resource_tracker_frame_strata = val
+        UpdatePoints()
+      end,
+    },
   }
 
   BUII_EditModeUtils:RegisterSystem(
@@ -378,6 +476,9 @@ local function BUII_ResourceTracker_Initialize()
         db.currentHeight = 12
         db.showText = false
         db.currentFontSize = 12
+        db.resource_tracker_show_border = false
+        db.resource_tracker_use_class_color = false
+        db.resource_tracker_frame_strata = 2 -- LOW
         UpdatePoints()
       end,
 

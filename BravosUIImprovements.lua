@@ -355,6 +355,24 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       if BUIIDatabase["resource_tracker_demonhunter"] == nil then
         BUIIDatabase["resource_tracker_demonhunter"] = true
       end
+      if BUIICharacterDatabase["resource_tracker_show_border"] == nil then
+        BUIICharacterDatabase["resource_tracker_show_border"] = false
+      end
+      if BUIICharacterDatabase["resource_tracker_use_class_color"] == nil then
+        BUIICharacterDatabase["resource_tracker_use_class_color"] = false
+      end
+      if BUIIDatabase["resource_tracker_show_border"] == nil then
+        BUIIDatabase["resource_tracker_show_border"] = false
+      end
+      if BUIIDatabase["resource_tracker_use_class_color"] == nil then
+        BUIIDatabase["resource_tracker_use_class_color"] = false
+      end
+      if BUIICharacterDatabase["resource_tracker_frame_strata"] == nil then
+        BUIICharacterDatabase["resource_tracker_frame_strata"] = 2 -- LOW
+      end
+      if BUIIDatabase["resource_tracker_frame_strata"] == nil then
+        BUIIDatabase["resource_tracker_frame_strata"] = 2 -- LOW
+      end
       if BUIIDatabase["stance_tracker_druid"] == nil then
         BUIIDatabase["stance_tracker_druid"] = true
       end

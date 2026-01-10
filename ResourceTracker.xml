@@ -7,6 +7,11 @@
                     <Color r="0.1" g="0.1" b="0.1" a="0.8"/>
                 </Texture>
             </Layer>
+            <Layer level="BORDER">
+                <Texture parentKey="Border" setAllPoints="true">
+                    <Color r="0" g="0" b="0" a="1"/>
+                </Texture>
+            </Layer>
             <Layer level="ARTWORK">
                 <Texture parentKey="Fill" setAllPoints="true">
                     <Anchors>
