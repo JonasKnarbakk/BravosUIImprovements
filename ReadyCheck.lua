@@ -150,3 +150,9 @@ function BUII_ReadyCheck_Disable()
     hideTimer = nil
   end
 end
+
+function BUII_ReadyCheck_InitDB()
+  if BUIIDatabase["ready_check"] == nil then
+    BUIIDatabase["ready_check"] = false
+  end
+end

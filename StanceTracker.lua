@@ -512,3 +512,73 @@ end
 function BUII_StanceTracker_GetDB()
   return GetStanceTrackerDB()
 end
+
+function BUII_StanceTracker_InitDB()
+  -- BUIIDatabase initialization
+  if BUIIDatabase["stance_tracker"] == nil then
+    BUIIDatabase["stance_tracker"] = false
+  end
+  if BUIIDatabase["stance_tracker_druid"] == nil then
+    BUIIDatabase["stance_tracker_druid"] = true
+  end
+  if BUIIDatabase["stance_tracker_paladin"] == nil then
+    BUIIDatabase["stance_tracker_paladin"] = true
+  end
+  if BUIIDatabase["stance_tracker_rogue"] == nil then
+    BUIIDatabase["stance_tracker_rogue"] = true
+  end
+  if BUIIDatabase["stance_tracker_warrior"] == nil then
+    BUIIDatabase["stance_tracker_warrior"] = true
+  end
+  if BUIIDatabase["stance_tracker_icon_size"] == nil then
+    BUIIDatabase["stance_tracker_icon_size"] = 20
+  end
+  if BUIIDatabase["stance_tracker_font_size"] == nil then
+    BUIIDatabase["stance_tracker_font_size"] = 12
+  end
+  if BUIIDatabase["stance_tracker_show_icon"] == nil then
+    BUIIDatabase["stance_tracker_show_icon"] = true
+  end
+  if BUIIDatabase["stance_tracker_show_text"] == nil then
+    BUIIDatabase["stance_tracker_show_text"] = true
+  end
+  if BUIIDatabase["stance_tracker_emphasize"] == nil then
+    BUIIDatabase["stance_tracker_emphasize"] = false
+  end
+  if BUIIDatabase["stance_tracker_emp_scale"] == nil then
+    BUIIDatabase["stance_tracker_emp_scale"] = 1.0
+  end
+  if BUIIDatabase["stance_tracker_emp_intensity"] == nil then
+    BUIIDatabase["stance_tracker_emp_intensity"] = 20
+  end
+
+  -- BUIICharacterDatabase initialization
+  if BUIICharacterDatabase["stance_tracker_use_char_settings"] == nil then
+    BUIICharacterDatabase["stance_tracker_use_char_settings"] = false
+  end
+  -- Mirror all global settings in character DB
+  if BUIICharacterDatabase["stance_tracker"] == nil then
+    BUIICharacterDatabase["stance_tracker"] = false
+  end
+  if BUIICharacterDatabase["stance_tracker_icon_size"] == nil then
+    BUIICharacterDatabase["stance_tracker_icon_size"] = 20
+  end
+  if BUIICharacterDatabase["stance_tracker_font_size"] == nil then
+    BUIICharacterDatabase["stance_tracker_font_size"] = 12
+  end
+  if BUIICharacterDatabase["stance_tracker_show_icon"] == nil then
+    BUIICharacterDatabase["stance_tracker_show_icon"] = true
+  end
+  if BUIICharacterDatabase["stance_tracker_show_text"] == nil then
+    BUIICharacterDatabase["stance_tracker_show_text"] = true
+  end
+  if BUIICharacterDatabase["stance_tracker_emphasize"] == nil then
+    BUIICharacterDatabase["stance_tracker_emphasize"] = false
+  end
+  if BUIICharacterDatabase["stance_tracker_emp_scale"] == nil then
+    BUIICharacterDatabase["stance_tracker_emp_scale"] = 1.0
+  end
+  if BUIICharacterDatabase["stance_tracker_emp_intensity"] == nil then
+    BUIICharacterDatabase["stance_tracker_emp_intensity"] = 20
+  end
+end

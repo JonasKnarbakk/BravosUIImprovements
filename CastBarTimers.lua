@@ -106,3 +106,9 @@ function BUII_CastBarTimersDisable()
     _G["BUIICastBarTimerFocusFrameSpellBar"]:Hide()
   end
 end
+
+function BUII_CastBarTimers_InitDB()
+  if BUIIDatabase["castbar_timers"] == nil then
+    BUIIDatabase["castbar_timers"] = false
+  end
+end

@@ -257,178 +257,35 @@ function BUII_OnEventHandler(self, event, arg1, ...)
     if arg1 == "BravosUIImprovements" then
       BUII_RegisterEditModeSystem()
 
+      -- Initialize BUIIDatabase if it doesn't exist
       if BUIIDatabase == nil then
         BUIIDatabase = {}
-        BUIIDatabase["class_color"] = false
-        BUIIDatabase["castbar_timers"] = false
-        BUIIDatabase["castbar_icon"] = false
-        BUIIDatabase["castbar_on_top"] = false
-        BUIIDatabase["sane_bag_sort"] = false
-        BUIIDatabase["quick_keybind_shortcut"] = false
-        BUIIDatabase["improved_edit_mode"] = false
-        BUIIDatabase["tooltip_expansion"] = false
-        BUIIDatabase["call_to_arms"] = false
-        BUIIDatabase["call_to_arms_dungeon"] = true
-        BUIIDatabase["call_to_arms_lfr"] = true
-        BUIIDatabase["call_to_arms_roles"] = { tank = true, healer = true, damage = true }
-        BUIIDatabase["ion_mode"] = false
-        BUIIDatabase["gear_talent_loadout"] = false
-        BUIIDatabase["gear_talent_icon_size"] = 40
-        BUIIDatabase["gear_talent_font_size"] = 22
-        BUIIDatabase["gear_talent_vertical_spacing"] = 2
-        BUIIDatabase["combat_state"] = false
-        BUIIDatabase["ready_check"] = false
-        BUIIDatabase["group_tools"] = false
-        BUIIDatabase["stance_tracker"] = false
-        BUIIDatabase["stat_panel"] = false
-        BUIIDatabase["stat_panel_width"] = 120
-        BUIIDatabase["stat_panel_font_size"] = 12
-        BUIIDatabase["stat_panel_row_spacing"] = 2
-        BUIIDatabase["stat_panel_background_opacity"] = 0.5
-        BUIIDatabase["stat_panel_show_title"] = true
-        BUIIDatabase["stat_panel_show_crit"] = true
-        BUIIDatabase["stat_panel_show_haste"] = true
-        BUIIDatabase["stat_panel_show_mastery"] = true
-        BUIIDatabase["stat_panel_show_vers"] = true
-        BUIIDatabase["stat_panel_show_leech"] = true
-        BUIIDatabase["stat_panel_show_speed"] = true
-        BUIIDatabase["stat_panel_show_avoidance"] = true
-        BUIIDatabase["stat_panel_show_dodge"] = true
-        BUIIDatabase["stat_panel_show_parry"] = true
-        BUIIDatabase["stat_panel_show_block"] = true
-        BUIIDatabase["resource_tracker"] = false
-        BUIIDatabase["resource_tracker_shaman"] = true
-        BUIIDatabase["resource_tracker_demonhunter"] = true
-        BUIIDatabase["stance_tracker_druid"] = true
-        BUIIDatabase["stance_tracker_paladin"] = true
-        BUIIDatabase["stance_tracker_rogue"] = true
-        BUIIDatabase["stance_tracker_warrior"] = true
-        BUIIDatabase["stance_tracker_icon_size"] = 20
-        BUIIDatabase["stance_tracker_font_size"] = 12
-        BUIIDatabase["stance_tracker_show_icon"] = true
-        BUIIDatabase["stance_tracker_show_text"] = true
-        BUIIDatabase["stance_tracker_emphasize"] = false
-        BUIIDatabase["stance_tracker_emp_scale"] = 1.0
-        BUIIDatabase["stance_tracker_emp_intensity"] = 20
-        BUIIDatabase["queue_status_button_position"] = {
-          point = "BOTTOMRIGHT",
-          relativeTo = nil,
-          relativePoint = "BOTTOMRIGHT",
-          xOffset = 0,
-          yOffset = 0,
-        }
       end
 
-      -- Ensure new keys are initialized for existing users
-      if BUIIDatabase["call_to_arms"] == nil then
-        BUIIDatabase["call_to_arms"] = false
-      end
-      if BUIIDatabase["call_to_arms_dungeon"] == nil then
-        BUIIDatabase["call_to_arms_dungeon"] = true
-      end
-      if BUIIDatabase["call_to_arms_lfr"] == nil then
-        BUIIDatabase["call_to_arms_lfr"] = true
-      end
-      if BUIIDatabase["call_to_arms_roles"] == nil then
-        BUIIDatabase["call_to_arms_roles"] = { tank = true, healer = true, damage = true }
-      end
-      if BUIIDatabase["call_to_arms_sound_id"] == nil then
-        BUIIDatabase["call_to_arms_sound_id"] = 17316
-      end
-      if BUIIDatabase["ion_mode"] == nil then
-        BUIIDatabase["ion_mode"] = false
-      end
-      if BUIIDatabase["gear_talent_loadout"] == nil then
-        BUIIDatabase["gear_talent_loadout"] = false
-      end
-      if BUIIDatabase["gear_talent_icon_size"] == nil then
-        BUIIDatabase["gear_talent_icon_size"] = 40
-      end
-      if BUIIDatabase["gear_talent_font_size"] == nil then
-        BUIIDatabase["gear_talent_font_size"] = 22
-      end
-      if BUIIDatabase["gear_talent_vertical_spacing"] == nil then
-        BUIIDatabase["gear_talent_vertical_spacing"] = 2
-      end
-      if BUIIDatabase["combat_state"] == nil then
-        BUIIDatabase["combat_state"] = false
-      end
-      if BUIIDatabase["ready_check"] == nil then
-        BUIIDatabase["ready_check"] = false
-      end
-      if BUIIDatabase["group_tools"] == nil then
-        BUIIDatabase["group_tools"] = false
-      end
-      if BUIIDatabase["stance_tracker"] == nil then
-        BUIIDatabase["stance_tracker"] = false
-      end
-      if BUIIDatabase["stat_panel"] == nil then
-        BUIIDatabase["stat_panel"] = false
-      end
-      if BUIIDatabase["resource_tracker"] == nil then
-        BUIIDatabase["resource_tracker"] = false
-      end
-      if BUIIDatabase["resource_tracker_shaman"] == nil then
-        BUIIDatabase["resource_tracker_shaman"] = true
-      end
-      if BUIIDatabase["resource_tracker_demonhunter"] == nil then
-        BUIIDatabase["resource_tracker_demonhunter"] = true
-      end
-      if BUIICharacterDatabase["resource_tracker_show_border"] == nil then
-        BUIICharacterDatabase["resource_tracker_show_border"] = false
-      end
-      if BUIICharacterDatabase["resource_tracker_use_class_color"] == nil then
-        BUIICharacterDatabase["resource_tracker_use_class_color"] = false
-      end
-      if BUIIDatabase["resource_tracker_show_border"] == nil then
-        BUIIDatabase["resource_tracker_show_border"] = false
-      end
-      if BUIIDatabase["resource_tracker_use_class_color"] == nil then
-        BUIIDatabase["resource_tracker_use_class_color"] = false
-      end
-      if BUIICharacterDatabase["resource_tracker_frame_strata"] == nil then
-        BUIICharacterDatabase["resource_tracker_frame_strata"] = 2 -- LOW
-      end
-      if BUIIDatabase["resource_tracker_frame_strata"] == nil then
-        BUIIDatabase["resource_tracker_frame_strata"] = 2 -- LOW
-      end
-      if BUIIDatabase["stance_tracker_druid"] == nil then
-        BUIIDatabase["stance_tracker_druid"] = true
-      end
-      if BUIIDatabase["stance_tracker_paladin"] == nil then
-        BUIIDatabase["stance_tracker_paladin"] = true
-      end
-      if BUIIDatabase["stance_tracker_rogue"] == nil then
-        BUIIDatabase["stance_tracker_rogue"] = true
-      end
-      if BUIIDatabase["stance_tracker_warrior"] == nil then
-        BUIIDatabase["stance_tracker_warrior"] = true
-      end
-      if BUIIDatabase["stance_tracker_icon_size"] == nil then
-        BUIIDatabase["stance_tracker_icon_size"] = 20
-      end
-      if BUIIDatabase["stance_tracker_font_size"] == nil then
-        BUIIDatabase["stance_tracker_font_size"] = 12
-      end
-      if BUIIDatabase["stance_tracker_show_icon"] == nil then
-        BUIIDatabase["stance_tracker_show_icon"] = true
-      end
-      if BUIIDatabase["stance_tracker_show_text"] == nil then
-        BUIIDatabase["stance_tracker_show_text"] = true
-      end
-      if BUIIDatabase["stance_tracker_emphasize"] == nil then
-        BUIIDatabase["stance_tracker_emphasize"] = false
-      end
-      if BUIIDatabase["stance_tracker_emp_scale"] == nil then
-        BUIIDatabase["stance_tracker_emp_scale"] = 1.0
-      end
-      if BUIIDatabase["stance_tracker_emp_intensity"] == nil then
-        BUIIDatabase["stance_tracker_emp_intensity"] = 20
-      end
-
+      -- Initialize BUIICharacterDatabase if it doesn't exist
       if BUIICharacterDatabase == nil then
         BUIICharacterDatabase = {}
+      end
+
+      -- Initialize main file settings (class_color, castbar_icon, castbar_on_top, sane_bag_sort, hide_stance_bar)
+      if BUIIDatabase["class_color"] == nil then
+        BUIIDatabase["class_color"] = false
+      end
+      if BUIIDatabase["castbar_icon"] == nil then
+        BUIIDatabase["castbar_icon"] = false
+      end
+      if BUIIDatabase["castbar_on_top"] == nil then
+        BUIIDatabase["castbar_on_top"] = false
+      end
+      if BUIIDatabase["sane_bag_sort"] == nil then
+        BUIIDatabase["sane_bag_sort"] = false
+      end
+
+      -- Initialize character-specific main file settings
+      if BUIICharacterDatabase["hide_stance_bar"] == nil then
         BUIICharacterDatabase["hide_stance_bar"] = false
+      end
+      if BUIICharacterDatabase["stance_bar_position"] == nil then
         local point, _, relativePoint, xOffset, yOffset = StanceBar:GetPoint()
         BUIICharacterDatabase["stance_bar_position"] = {
           point = point,
@@ -439,44 +296,20 @@ function BUII_OnEventHandler(self, event, arg1, ...)
         }
       end
 
-      -- Stance Tracker Character Settings Init
-      if BUIICharacterDatabase["stance_tracker_use_char_settings"] == nil then
-        BUIICharacterDatabase["stance_tracker_use_char_settings"] = false
-      end
-      -- Resource Tracker Character Settings Init
-      if BUIICharacterDatabase["resource_tracker_use_char_settings"] == nil then
-        BUIICharacterDatabase["resource_tracker_use_char_settings"] = false
-      end
-      -- Stat Panel Character Settings Init
-      if BUIICharacterDatabase["stat_panel_use_char_settings"] == nil then
-        BUIICharacterDatabase["stat_panel_use_char_settings"] = false
-      end
-
-      -- Mirror defaults in char DB just in case
-      if BUIICharacterDatabase["stance_tracker"] == nil then
-        BUIICharacterDatabase["stance_tracker"] = false
-      end
-      if BUIICharacterDatabase["stance_tracker_icon_size"] == nil then
-        BUIICharacterDatabase["stance_tracker_icon_size"] = 20
-      end
-      if BUIICharacterDatabase["stance_tracker_font_size"] == nil then
-        BUIICharacterDatabase["stance_tracker_font_size"] = 12
-      end
-      if BUIICharacterDatabase["stance_tracker_show_icon"] == nil then
-        BUIICharacterDatabase["stance_tracker_show_icon"] = true
-      end
-      if BUIICharacterDatabase["stance_tracker_show_text"] == nil then
-        BUIICharacterDatabase["stance_tracker_show_text"] = true
-      end
-      if BUIICharacterDatabase["stance_tracker_emphasize"] == nil then
-        BUIICharacterDatabase["stance_tracker_emphasize"] = false
-      end
-      if BUIICharacterDatabase["stance_tracker_emp_scale"] == nil then
-        BUIICharacterDatabase["stance_tracker_emp_scale"] = 1.0
-      end
-      if BUIICharacterDatabase["stance_tracker_emp_intensity"] == nil then
-        BUIICharacterDatabase["stance_tracker_emp_intensity"] = 20
-      end
+      -- Call module initialization functions
+      BUII_CastBarTimers_InitDB()
+      BUII_QuickKeybindModeShortcut_InitDB()
+      BUII_ImprovedEditMode_InitDB()
+      BUII_TooltipImprovements_InitDB()
+      BUII_CallToArms_InitDB()
+      BUII_Ion_InitDB()
+      BUII_GearAndTalentLoadout_InitDB()
+      BUII_CombatState_InitDB()
+      BUII_ReadyCheck_InitDB()
+      BUII_GroupTools_InitDB()
+      BUII_StanceTracker_InitDB()
+      BUII_StatPanel_InitDB()
+      BUII_ResourceTracker_InitDB()
 
       self:UnregisterEvent("ADDON_LOADED")
     elseif arg1 == "Blizzard_EditMode" then

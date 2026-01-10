@@ -975,3 +975,18 @@ function BUII_ImprovedEditModeDisable()
 
   editModeImprovedEnabled = false
 end
+
+function BUII_ImprovedEditMode_InitDB()
+  if BUIIDatabase["improved_edit_mode"] == nil then
+    BUIIDatabase["improved_edit_mode"] = false
+  end
+  if BUIIDatabase["queue_status_button_position"] == nil then
+    BUIIDatabase["queue_status_button_position"] = {
+      point = "BOTTOMRIGHT",
+      relativeTo = nil,
+      relativePoint = "BOTTOMRIGHT",
+      xOffset = 0,
+      yOffset = 0,
+    }
+  end
+end

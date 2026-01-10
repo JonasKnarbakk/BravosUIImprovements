@@ -728,3 +728,21 @@ function BUII_CallToArms_DumpIDs()
     end
   end
 end
+
+function BUII_CallToArms_InitDB()
+  if BUIIDatabase["call_to_arms"] == nil then
+    BUIIDatabase["call_to_arms"] = false
+  end
+  if BUIIDatabase["call_to_arms_dungeon"] == nil then
+    BUIIDatabase["call_to_arms_dungeon"] = true
+  end
+  if BUIIDatabase["call_to_arms_lfr"] == nil then
+    BUIIDatabase["call_to_arms_lfr"] = true
+  end
+  if BUIIDatabase["call_to_arms_roles"] == nil then
+    BUIIDatabase["call_to_arms_roles"] = { tank = true, healer = true, damage = true }
+  end
+  if BUIIDatabase["call_to_arms_sound_id"] == nil then
+    BUIIDatabase["call_to_arms_sound_id"] = 17316
+  end
+end

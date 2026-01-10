@@ -155,3 +155,9 @@ end
 function BUII_TooltipImprovements_Disable()
   enabled = false
 end
+
+function BUII_TooltipImprovements_InitDB()
+  if BUIIDatabase["tooltip_expansion"] == nil then
+    BUIIDatabase["tooltip_expansion"] = false
+  end
+end

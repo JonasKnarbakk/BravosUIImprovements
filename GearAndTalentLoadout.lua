@@ -292,3 +292,18 @@ function BUII_GearAndTalentLoadout_Disable()
     contentFrame:Hide()
   end
 end
+
+function BUII_GearAndTalentLoadout_InitDB()
+  if BUIIDatabase["gear_talent_loadout"] == nil then
+    BUIIDatabase["gear_talent_loadout"] = false
+  end
+  if BUIIDatabase["gear_talent_icon_size"] == nil then
+    BUIIDatabase["gear_talent_icon_size"] = 40
+  end
+  if BUIIDatabase["gear_talent_font_size"] == nil then
+    BUIIDatabase["gear_talent_font_size"] = 22
+  end
+  if BUIIDatabase["gear_talent_vertical_spacing"] == nil then
+    BUIIDatabase["gear_talent_vertical_spacing"] = 2
+  end
+end

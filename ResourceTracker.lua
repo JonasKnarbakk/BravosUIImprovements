@@ -552,3 +552,39 @@ function BUII_ResourceTracker_Disable()
 
   frame:Hide()
 end
+
+function BUII_ResourceTracker_InitDB()
+  -- BUIIDatabase initialization
+  if BUIIDatabase["resource_tracker"] == nil then
+    BUIIDatabase["resource_tracker"] = false
+  end
+  if BUIIDatabase["resource_tracker_shaman"] == nil then
+    BUIIDatabase["resource_tracker_shaman"] = true
+  end
+  if BUIIDatabase["resource_tracker_demonhunter"] == nil then
+    BUIIDatabase["resource_tracker_demonhunter"] = true
+  end
+  if BUIIDatabase["resource_tracker_show_border"] == nil then
+    BUIIDatabase["resource_tracker_show_border"] = false
+  end
+  if BUIIDatabase["resource_tracker_use_class_color"] == nil then
+    BUIIDatabase["resource_tracker_use_class_color"] = false
+  end
+  if BUIIDatabase["resource_tracker_frame_strata"] == nil then
+    BUIIDatabase["resource_tracker_frame_strata"] = 2 -- LOW
+  end
+
+  -- BUIICharacterDatabase initialization
+  if BUIICharacterDatabase["resource_tracker_use_char_settings"] == nil then
+    BUIICharacterDatabase["resource_tracker_use_char_settings"] = false
+  end
+  if BUIICharacterDatabase["resource_tracker_show_border"] == nil then
+    BUIICharacterDatabase["resource_tracker_show_border"] = false
+  end
+  if BUIICharacterDatabase["resource_tracker_use_class_color"] == nil then
+    BUIICharacterDatabase["resource_tracker_use_class_color"] = false
+  end
+  if BUIICharacterDatabase["resource_tracker_frame_strata"] == nil then
+    BUIICharacterDatabase["resource_tracker_frame_strata"] = 2 -- LOW
+  end
+end

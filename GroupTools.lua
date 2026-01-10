@@ -300,3 +300,9 @@ function BUII_GroupTools_Disable()
   timerFrame:Hide()
   frame:Hide()
 end
+
+function BUII_GroupTools_InitDB()
+  if BUIIDatabase["group_tools"] == nil then
+    BUIIDatabase["group_tools"] = false
+  end
+end

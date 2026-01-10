@@ -143,3 +143,9 @@ function BUII_CombatState_Disable()
 
   frame:Hide()
 end
+
+function BUII_CombatState_InitDB()
+  if BUIIDatabase["combat_state"] == nil then
+    BUIIDatabase["combat_state"] = false
+  end
+end

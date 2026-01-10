@@ -72,3 +72,9 @@ end
 function BUII_QuickKeybindModeShortcutDisable()
   enabled = false
 end
+
+function BUII_QuickKeybindModeShortcut_InitDB()
+  if BUIIDatabase["quick_keybind_shortcut"] == nil then
+    BUIIDatabase["quick_keybind_shortcut"] = false
+  end
+end

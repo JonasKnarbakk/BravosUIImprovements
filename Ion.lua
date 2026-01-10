@@ -20,3 +20,9 @@ function BUII_Ion_Disable()
   frame:UnregisterEvent("PLAYER_DEAD")
   frame:SetScript("OnEvent", nil)
 end
+
+function BUII_Ion_InitDB()
+  if BUIIDatabase["ion_mode"] == nil then
+    BUIIDatabase["ion_mode"] = false
+  end
+end

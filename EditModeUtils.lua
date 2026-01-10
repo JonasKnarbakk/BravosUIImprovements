@@ -549,7 +549,7 @@ function BUII_EditModeUtils:InitHooks()
       if systemFrame and self.RegisteredSystems[systemFrame.system] then
         local frame = self.RegisteredSystems[systemFrame.system]
         frame.isSelected = true
-        
+
         local point, _, relativePoint, offsetX, offsetY = frame:GetPoint()
         frame.lastKnownPosition = {
           point = point,
