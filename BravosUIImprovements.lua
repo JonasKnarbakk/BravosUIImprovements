@@ -273,6 +273,9 @@ function BUII_OnEventHandler(self, event, arg1, ...)
         BUIIDatabase["call_to_arms_roles"] = { tank = true, healer = true, damage = true }
         BUIIDatabase["ion_mode"] = false
         BUIIDatabase["gear_talent_loadout"] = false
+        BUIIDatabase["gear_talent_icon_size"] = 40
+        BUIIDatabase["gear_talent_font_size"] = 22
+        BUIIDatabase["gear_talent_vertical_spacing"] = 2
         BUIIDatabase["combat_state"] = false
         BUIIDatabase["ready_check"] = false
         BUIIDatabase["group_tools"] = false
@@ -321,6 +324,15 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       end
       if BUIIDatabase["gear_talent_loadout"] == nil then
         BUIIDatabase["gear_talent_loadout"] = false
+      end
+      if BUIIDatabase["gear_talent_icon_size"] == nil then
+        BUIIDatabase["gear_talent_icon_size"] = 40
+      end
+      if BUIIDatabase["gear_talent_font_size"] == nil then
+        BUIIDatabase["gear_talent_font_size"] = 22
+      end
+      if BUIIDatabase["gear_talent_vertical_spacing"] == nil then
+        BUIIDatabase["gear_talent_vertical_spacing"] = 2
       end
       if BUIIDatabase["combat_state"] == nil then
         BUIIDatabase["combat_state"] = false

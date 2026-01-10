@@ -1,16 +1,28 @@
 local frame = nil
+local contentFrame = nil
 local icon = nil
 local gearText = nil
 local talentText = nil
 
 -- Settings Constants
 local enum_GearTalentSetting_Scale = 40
-local enum_GearTalentSetting_FontSize = 41
+local enum_GearTalentSetting_IconSize = 41
+local enum_GearTalentSetting_FontSize = 42
+local enum_GearTalentSetting_VerticalSpacing = 43
+
+-- Default values
+local DEFAULT_ICON_SIZE = 40
+local DEFAULT_TEXT_FONT_SIZE = 22
+local DEFAULT_VERTICAL_SPACING = 2
 
 local function UpdateDisplay()
-  if not frame then
+  if not frame or not contentFrame then
     return
   end
+
+  local iconSize = BUIIDatabase["gear_talent_icon_size"] or DEFAULT_ICON_SIZE
+  local fontSize = BUIIDatabase["gear_talent_font_size"] or DEFAULT_TEXT_FONT_SIZE
+  local verticalSpacing = BUIIDatabase["gear_talent_vertical_spacing"] or DEFAULT_VERTICAL_SPACING
 
   local loadoutName = "Default"
 
@@ -46,18 +58,30 @@ local function UpdateDisplay()
   gearText:SetText(setName)
   talentText:SetText(loadoutName)
 
-  -- Apply Font Size (Fixed)
-  gearText:SetFont(BUII_GetFontPath(), 22, "OUTLINE")
-  talentText:SetFont(BUII_GetFontPath(), 22, "OUTLINE")
+  icon:SetSize(iconSize, iconSize)
 
-  -- Dynamic Resizing for Selection Box
-  local textWidth = math.max(gearText:GetStringWidth(), talentText:GetStringWidth())
-  local totalWidth = math.max(icon:GetWidth(), textWidth) + 10 -- Padding
-  -- Height calculation: Since text is centered on the top/bottom edges,
-  -- only half of the text height extends beyond the icon.
-  local totalHeight = icon:GetHeight() + (gearText:GetStringHeight() / 2) + (talentText:GetStringHeight() / 2) + 10
+  gearText:SetFont(BUII_GetFontPath(), fontSize, "OUTLINE")
+  talentText:SetFont(BUII_GetFontPath(), fontSize, "OUTLINE")
 
-  frame:SetSize(totalWidth, totalHeight)
+  gearText:ClearAllPoints()
+  gearText:SetPoint("BOTTOM", contentFrame, "CENTER", 0, iconSize / 2 + verticalSpacing)
+
+  talentText:ClearAllPoints()
+  talentText:SetPoint("TOP", contentFrame, "CENTER", 0, -(iconSize / 2 + verticalSpacing))
+
+  -- Calculate total height based on icon + text heights
+  local gearHeight = gearText:GetStringHeight()
+  local talentHeight = talentText:GetStringHeight()
+  local totalHeight = gearHeight + iconSize + talentHeight + (verticalSpacing * 2) + 4 -- 4px padding
+
+  -- Calculate width based on the widest element
+  local maxTextWidth = math.max(gearText:GetStringWidth(), talentText:GetStringWidth())
+  local totalWidth = math.max(iconSize, maxTextWidth) + 10 -- 10px horizontal padding
+
+  -- Resize content frame - positioning frame stays fixed
+  contentFrame:SetSize(totalWidth, totalHeight)
+
+  frame:SetSize(iconSize, iconSize)
 end
 
 local function onEvent(self, event, ...)
@@ -83,29 +107,45 @@ local function BUII_GearAndTalentLoadout_Initialize()
     return
   end
 
+  -- Create positioning frame (small, stable anchor that Edit Mode controls)
   frame = CreateFrame("Frame", "BUII_GearAndTalentLoadoutFrame", UIParent, "BUII_GearAndTalentLoadoutEditModeTemplate")
-  frame:SetSize(100, 100) -- Initial size, updated by UpdateDisplay
+  frame:SetSize(DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE) -- Initial size, updated by UpdateDisplay
   frame:SetMovable(true)
   frame:SetClampedToScreen(true)
   frame:SetDontSavePosition(true)
   frame:EnableMouse(false)
   frame:Hide()
 
-  icon = frame:CreateTexture(nil, "ARTWORK")
-  icon:SetSize(40, 40)
-  icon:SetPoint("CENTER", frame, "CENTER")
+  frame.defaultPoint = "CENTER"
+  frame.defaultRelativePoint = "CENTER"
+  frame.defaultX = 0
+  frame.defaultY = -100
+
+  -- Create content frame - holds all visual elements, centered on positioning frame
+  -- Parent to positioning frame so it scales together
+  contentFrame = CreateFrame("Frame", nil, frame)
+  contentFrame:SetSize(100, 100) -- Initial size, updated by UpdateDisplay
+  contentFrame:SetPoint("CENTER", frame, "CENTER")
+  contentFrame:SetFrameStrata("LOW")
+
+  -- Create icon texture - anchored to content frame center
+  icon = contentFrame:CreateTexture(nil, "ARTWORK")
+  icon:SetSize(DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE)
+  icon:SetPoint("CENTER", contentFrame, "CENTER")
   icon:SetTexCoord(0, 1, 0, 1) -- No zoom
 
-  gearText = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+  -- Create gear text - anchored BOTTOM to CENTER of content frame
+  gearText = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
   gearText:SetFontObject("GameFontHighlight")
-  gearText:SetFont(BUII_GetFontPath(), 22, "OUTLINE")
-  gearText:SetPoint("CENTER", icon, "TOP", 0, 0)
+  gearText:SetFont(BUII_GetFontPath(), DEFAULT_TEXT_FONT_SIZE, "OUTLINE")
+  gearText:SetPoint("BOTTOM", contentFrame, "CENTER", 0, DEFAULT_ICON_SIZE / 2 + DEFAULT_VERTICAL_SPACING)
   gearText:SetJustifyH("CENTER")
 
-  talentText = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+  -- Create talent text - anchored TOP to CENTER of content frame
+  talentText = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
   talentText:SetFontObject("GameFontHighlight")
-  talentText:SetFont(BUII_GetFontPath(), 22, "OUTLINE")
-  talentText:SetPoint("CENTER", icon, "BOTTOM", 0, 0)
+  talentText:SetFont(BUII_GetFontPath(), DEFAULT_TEXT_FONT_SIZE, "OUTLINE")
+  talentText:SetPoint("TOP", contentFrame, "CENTER", 0, -(DEFAULT_ICON_SIZE / 2 + DEFAULT_VERTICAL_SPACING))
   talentText:SetJustifyH("CENTER")
 
   -- Register System
@@ -124,6 +164,66 @@ local function BUII_GearAndTalentLoadout_Initialize()
       setter = function(f, val)
         f:SetScale(val)
       end,
+    },
+    {
+      setting = enum_GearTalentSetting_IconSize,
+      name = "Icon Size",
+      type = Enum.EditModeSettingDisplayType.Slider,
+      minValue = 20,
+      maxValue = 80,
+      stepSize = 2,
+      formatter = function(val)
+        return math.floor(val + 0.5)
+      end,
+      getter = function(f)
+        return BUIIDatabase["gear_talent_icon_size"] or DEFAULT_ICON_SIZE
+      end,
+      setter = function(f, val)
+        BUIIDatabase["gear_talent_icon_size"] = val
+        UpdateDisplay()
+      end,
+      key = "gear_talent_icon_size",
+      defaultValue = DEFAULT_ICON_SIZE,
+    },
+    {
+      setting = enum_GearTalentSetting_FontSize,
+      name = "Font Size",
+      type = Enum.EditModeSettingDisplayType.Slider,
+      minValue = 10,
+      maxValue = 40,
+      stepSize = 1,
+      formatter = function(val)
+        return math.floor(val + 0.5)
+      end,
+      getter = function(f)
+        return BUIIDatabase["gear_talent_font_size"] or DEFAULT_TEXT_FONT_SIZE
+      end,
+      setter = function(f, val)
+        BUIIDatabase["gear_talent_font_size"] = val
+        UpdateDisplay()
+      end,
+      key = "gear_talent_font_size",
+      defaultValue = DEFAULT_TEXT_FONT_SIZE,
+    },
+    {
+      setting = enum_GearTalentSetting_VerticalSpacing,
+      name = "Vertical Spacing",
+      type = Enum.EditModeSettingDisplayType.Slider,
+      minValue = -10,
+      maxValue = 20,
+      stepSize = 1,
+      formatter = function(val)
+        return math.floor(val + 0.5)
+      end,
+      getter = function(f)
+        return BUIIDatabase["gear_talent_vertical_spacing"] or DEFAULT_VERTICAL_SPACING
+      end,
+      setter = function(f, val)
+        BUIIDatabase["gear_talent_vertical_spacing"] = val
+        UpdateDisplay()
+      end,
+      key = "gear_talent_vertical_spacing",
+      defaultValue = DEFAULT_VERTICAL_SPACING,
     },
   }
 
@@ -170,6 +270,7 @@ function BUII_GearAndTalentLoadout_Enable()
 
   BUII_EditModeUtils:ApplySavedPosition(frame, "gear_talent_loadout")
   frame:Show()
+  contentFrame:Show()
   UpdateDisplay()
 end
 
@@ -187,4 +288,7 @@ function BUII_GearAndTalentLoadout_Disable()
   EventRegistry:UnregisterCallback("EditMode.Exit", "BUII_GearAndTalentLoadout_Custom_OnExit")
 
   frame:Hide()
+  if contentFrame then
+    contentFrame:Hide()
+  end
 end
