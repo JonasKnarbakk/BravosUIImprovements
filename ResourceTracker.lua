@@ -198,12 +198,14 @@ local function UpdatePoints()
 
       -- Update State
       local drawColor = color
+      local isOvercharge = false
       if layered and currentStacks > maxPoints and i <= (currentStacks - maxPoints) then
         drawColor = color2
+        isOvercharge = true
       end
 
-      -- Use class color if enabled
-      if classColor then
+      -- Use class color if enabled (but not for overcharge layer)
+      if classColor and not isOvercharge then
         drawColor = classColor
       end
 
