@@ -33,15 +33,16 @@ local CONFIG = {
 -- Settings Constants
 local enum_ResourceTrackerSetting_UseCharSettings = 60
 local enum_ResourceTrackerSetting_Scale = 61
-local enum_ResourceTrackerSetting_Spacing = 62
-local enum_ResourceTrackerSetting_Opacity = 63
-local enum_ResourceTrackerSetting_TotalWidth = 64
-local enum_ResourceTrackerSetting_Height = 65
-local enum_ResourceTrackerSetting_ShowText = 66
-local enum_ResourceTrackerSetting_FontSize = 67
-local enum_ResourceTrackerSetting_ShowBorder = 68
-local enum_ResourceTrackerSetting_UseClassColor = 69
-local enum_ResourceTrackerSetting_FrameStrata = 70
+local enum_ResourceTrackerSetting_TotalWidth = 62
+local enum_ResourceTrackerSetting_Spacing = 63
+local enum_ResourceTrackerSetting_Height = 64
+local enum_ResourceTrackerSetting_ShowText = 65
+local enum_ResourceTrackerSetting_FontSize = 66
+local enum_ResourceTrackerSetting_ShowBorder = 67
+local enum_ResourceTrackerSetting_UseClassColor = 68
+local enum_ResourceTrackerSetting_ResourceOpacity = 69
+local enum_ResourceTrackerSetting_BackgroundOpacity = 70
+local enum_ResourceTrackerSetting_FrameStrata = 71
 
 -- Frame Strata Options
 local FRAME_STRATA_OPTIONS = {
@@ -156,6 +157,7 @@ local function UpdatePoints()
   local height = db.currentHeight or 12
   local showBorder = db.resource_tracker_show_border or false
   local useClassColor = db.resource_tracker_use_class_color or false
+  local bgOpacity = tonumber(db.resource_tracker_background_opacity) or 0.5
 
   -- Get class color if needed
   local classColor = nil
@@ -189,9 +191,9 @@ local function UpdatePoints()
 
       -- Update Border visibility
       if showBorder then
-        point.Border:Show()
+        point:SetBackdropBorderColor(0, 0, 0, 1)
       else
-        point.Border:Hide()
+        point:SetBackdropBorderColor(0, 0, 0, 0)
       end
 
       -- Update State
@@ -212,7 +214,8 @@ local function UpdatePoints()
         point.Fill:Hide()
       end
 
-      point.Background:SetColorTexture(0.1, 0.1, 0.1, (db.currentOpacity or 1) * 0.5)
+      point.Background:SetColorTexture(0.1, 0.1, 0.1)
+      point.Background:SetAlpha(bgOpacity)
     else
       point:Hide()
     end
@@ -356,8 +359,8 @@ local function BUII_ResourceTracker_Initialize()
       end,
     },
     {
-      setting = enum_ResourceTrackerSetting_Opacity,
-      name = "Opacity",
+      setting = enum_ResourceTrackerSetting_ResourceOpacity,
+      name = "Resource Opacity",
       key = "resource_tracker_opacity",
       type = Enum.EditModeSettingDisplayType.Slider,
       minValue = 0.1,
@@ -372,6 +375,26 @@ local function BUII_ResourceTracker_Initialize()
       setter = function(f, val)
         local db = GetResourceTrackerDB()
         db.currentOpacity = val
+        UpdatePoints()
+      end,
+    },
+    {
+      setting = enum_ResourceTrackerSetting_BackgroundOpacity,
+      name = "Background Opacity",
+      key = "resource_tracker_background_opacity",
+      type = Enum.EditModeSettingDisplayType.Slider,
+      minValue = 0.0,
+      maxValue = 1.0,
+      stepSize = 0.1,
+      formatter = BUII_EditModeUtils.FormatPercentage,
+      defaultValue = 0.5,
+      getter = function(f)
+        local db = GetResourceTrackerDB()
+        return db.resource_tracker_background_opacity or 0.5
+      end,
+      setter = function(f, val)
+        local db = GetResourceTrackerDB()
+        db.resource_tracker_background_opacity = val
         UpdatePoints()
       end,
     },
@@ -479,6 +502,7 @@ local function BUII_ResourceTracker_Initialize()
         db.resource_tracker_show_border = false
         db.resource_tracker_use_class_color = false
         db.resource_tracker_frame_strata = 2 -- LOW
+        db.resource_tracker_background_opacity = 0.5
         UpdatePoints()
       end,
 
