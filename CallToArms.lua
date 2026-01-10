@@ -9,12 +9,14 @@ local animGroup = nil
 
 -- Settings Constants
 local enum_CallToArmsSetting_Scale = 10
-local enum_CallToArmsSetting_Tank = 12
-local enum_CallToArmsSetting_Healer = 13
-local enum_CallToArmsSetting_Damage = 14
-local enum_CallToArmsSetting_Dungeon = 15
-local enum_CallToArmsSetting_LFR = 16
-local enum_CallToArmsSetting_Sound = 17
+local enum_CallToArmsSetting_Tank = 11
+local enum_CallToArmsSetting_Healer = 12
+local enum_CallToArmsSetting_Damage = 13
+local enum_CallToArmsSetting_DungeonNormal = 14
+local enum_CallToArmsSetting_DungeonHeroic = 15
+local enum_CallToArmsSetting_DungeonTimewalking = 16
+local enum_CallToArmsSetting_LFR = 17
+local enum_CallToArmsSetting_Sound = 18
 
 -- Sound Options
 local soundOptions = {
@@ -270,11 +272,33 @@ local function checkTypes(instanceTypes, optionsKey, ilReq, isRaidCheck)
   return false
 end
 
-local function checkInstanceType(dID, isHoliday, dName, ilReq)
+local function getDungeonType(dName, isTimeWalker)
+  if isTimeWalker then
+    return "timewalking"
+  elseif dName and dName:find("Heroic") then
+    return "heroic"
+  else
+    return "normal"
+  end
+end
+
+local function checkInstanceType(dID, isHoliday, dName, ilReq, dungeonType)
   local options_key = tostring(dID)
   local dungeon_check = checkTypes(types_config["dg_types"], options_key, ilReq, false)
   local raid_check = checkTypes(types_config["raid_types"], options_key, ilReq, true)
   local holiday_check = types_config["dg_types"]["holiday"] and isHoliday
+
+  -- If it's a dungeon, check if the type matches what the user wants
+  if dungeon_check then
+    if dungeonType == "normal" and not BUIIDatabase["call_to_arms_dungeon_normal"] then
+      return false
+    elseif dungeonType == "heroic" and not BUIIDatabase["call_to_arms_dungeon_heroic"] then
+      return false
+    elseif dungeonType == "timewalking" and not BUIIDatabase["call_to_arms_dungeon_timewalking"] then
+      return false
+    end
+  end
+
   return dungeon_check or raid_check or holiday_check
 end
 
@@ -300,13 +324,15 @@ local function GenerateTestOutput()
     return s
   end
 
-  if BUIIDatabase["call_to_arms_dungeon"] then
+  if BUIIDatabase["call_to_arms_dungeon_normal"] then
     local roles = getRoleString(true, true, true)
     if roles ~= "" then
       testOutput = testOutput .. string.format("%s %s %s|n", rewardIcon, roles, "Random Dungeon (Expansion)")
     end
+  end
 
-    roles = getRoleString(true, false, false)
+  if BUIIDatabase["call_to_arms_dungeon_heroic"] then
+    local roles = getRoleString(true, false, false)
     if roles ~= "" then
       testOutput = testOutput .. string.format("%s %s %s|n", rewardIcon, roles, "Random Heroic (Expansion: Season 1)")
     end
@@ -314,6 +340,13 @@ local function GenerateTestOutput()
     roles = getRoleString(false, true, false)
     if roles ~= "" then
       testOutput = testOutput .. string.format("%s %s %s|n", rewardIcon, roles, "Random Heroic (Expansion: Season 2)")
+    end
+  end
+
+  if BUIIDatabase["call_to_arms_dungeon_timewalking"] then
+    local roles = getRoleString(true, true, true)
+    if roles ~= "" then
+      testOutput = testOutput .. string.format("%s %s %s|n", rewardIcon, roles, "Random Timewalking (Past Expansion)")
     end
   end
 
@@ -346,13 +379,14 @@ local function checkStatus()
   local canTank, canHealer, canDamage = C_LFGList.GetAvailableRoles()
   local ilvl, _ = GetAverageItemLevel()
 
-  local function updateShortageInfo(dID, dName, isHoliday, ilReq)
+  local function updateShortageInfo(dID, dName, isHoliday, ilReq, isTimeWalker)
     for j = 1, LFG_ROLE_NUM_SHORTAGE_TYPES do
       local eligible, tank, healer, damage, itemCount, money, xp = GetLFGRoleShortageRewards(dID, j)
 
       if itemCount > 0 then
         local tankLocked, healerLocked, damageLocked = GetLFDRoleRestrictions(dID)
-        local isDesiredType = checkInstanceType(dID, isHoliday, dName, ilReq)
+        local dungeonType = getDungeonType(dName, isTimeWalker)
+        local isDesiredType = checkInstanceType(dID, isHoliday, dName, ilReq, dungeonType)
         local isEligible = ilvl > ilReq
 
         -- Determine which roles are actually being alerted for
@@ -387,12 +421,16 @@ local function checkStatus()
     end
   end
   -- Loop through Random Dungeons
-  if BUIIDatabase["call_to_arms_dungeon"] then
+  local anyDungeonTypeEnabled = BUIIDatabase["call_to_arms_dungeon_normal"]
+    or BUIIDatabase["call_to_arms_dungeon_heroic"]
+    or BUIIDatabase["call_to_arms_dungeon_timewalking"]
+
+  if anyDungeonTypeEnabled then
     for i = 1, GetNumRandomDungeons() do
       local dID, dName, typeID, subtypeID, minLevel, maxLevel, recLevel, minRecLevel, maxRecLevel, expansionLevel, groupID, textureFilename, difficulty, maxPlayers, description, isHoliday, bonusRepAmount, minPlayers, isTimeWalker, name2, minGear =
         GetLFGRandomDungeonInfo(i)
       if dID then
-        updateShortageInfo(dID, dName, isHoliday, minGear)
+        updateShortageInfo(dID, dName, isHoliday, minGear, isTimeWalker)
       end
     end
   end
@@ -403,7 +441,7 @@ local function checkStatus()
       local dID, dName, typeID, subtypeID, minLevel, maxLevel, recLevel, minRecLevel, maxRecLevel, expansionLevel, groupID, textureFilename, difficulty, maxPlayers, description, isHoliday, bonusRepAmount, minPlayers, isTimeWalker, name2, minGear =
         GetRFDungeonInfo(i)
       if dID then
-        updateShortageInfo(dID, dName, isHoliday, minGear)
+        updateShortageInfo(dID, dName, isHoliday, minGear, isTimeWalker)
       end
     end
   end
@@ -522,17 +560,49 @@ local function BUII_CallToArms_Initialize()
       end,
     },
     {
-      setting = enum_CallToArmsSetting_Dungeon,
-      name = "Dungeon",
+      setting = enum_CallToArmsSetting_DungeonNormal,
+      name = "Dungeon: Normal",
       type = Enum.EditModeSettingDisplayType.Checkbox,
-      key = "dungeon",
+      key = "dungeon_normal",
       getter = function(f)
-        return BUIIDatabase["call_to_arms_dungeon"] and 1 or 0
+        return BUIIDatabase["call_to_arms_dungeon_normal"] and 1 or 0
       end,
       setter = function(f, val)
         local bVal = (val == 1)
-        if BUIIDatabase["call_to_arms_dungeon"] ~= bVal then
-          BUIIDatabase["call_to_arms_dungeon"] = bVal
+        if BUIIDatabase["call_to_arms_dungeon_normal"] ~= bVal then
+          BUIIDatabase["call_to_arms_dungeon_normal"] = bVal
+          BUII_CallToArms_Update()
+        end
+      end,
+    },
+    {
+      setting = enum_CallToArmsSetting_DungeonHeroic,
+      name = "Dungeon: Heroic",
+      type = Enum.EditModeSettingDisplayType.Checkbox,
+      key = "dungeon_heroic",
+      getter = function(f)
+        return BUIIDatabase["call_to_arms_dungeon_heroic"] and 1 or 0
+      end,
+      setter = function(f, val)
+        local bVal = (val == 1)
+        if BUIIDatabase["call_to_arms_dungeon_heroic"] ~= bVal then
+          BUIIDatabase["call_to_arms_dungeon_heroic"] = bVal
+          BUII_CallToArms_Update()
+        end
+      end,
+    },
+    {
+      setting = enum_CallToArmsSetting_DungeonTimewalking,
+      name = "Dungeon: Timewalking",
+      type = Enum.EditModeSettingDisplayType.Checkbox,
+      key = "dungeon_timewalking",
+      getter = function(f)
+        return BUIIDatabase["call_to_arms_dungeon_timewalking"] and 1 or 0
+      end,
+      setter = function(f, val)
+        local bVal = (val == 1)
+        if BUIIDatabase["call_to_arms_dungeon_timewalking"] ~= bVal then
+          BUIIDatabase["call_to_arms_dungeon_timewalking"] = bVal
           BUII_CallToArms_Update()
         end
       end,
@@ -734,8 +804,24 @@ function BUII_CallToArms_InitDB()
   if BUIIDatabase["call_to_arms"] == nil then
     BUIIDatabase["call_to_arms"] = false
   end
-  if BUIIDatabase["call_to_arms_dungeon"] == nil then
-    BUIIDatabase["call_to_arms_dungeon"] = true
+
+  -- Backwards compatibility: migrate old dungeon setting to new settings
+  if BUIIDatabase["call_to_arms_dungeon"] ~= nil then
+    local oldValue = BUIIDatabase["call_to_arms_dungeon"]
+    BUIIDatabase["call_to_arms_dungeon_normal"] = oldValue
+    BUIIDatabase["call_to_arms_dungeon_heroic"] = oldValue
+    BUIIDatabase["call_to_arms_dungeon_timewalking"] = oldValue
+    BUIIDatabase["call_to_arms_dungeon"] = nil -- Remove old key
+  end
+
+  if BUIIDatabase["call_to_arms_dungeon_normal"] == nil then
+    BUIIDatabase["call_to_arms_dungeon_normal"] = true
+  end
+  if BUIIDatabase["call_to_arms_dungeon_heroic"] == nil then
+    BUIIDatabase["call_to_arms_dungeon_heroic"] = true
+  end
+  if BUIIDatabase["call_to_arms_dungeon_timewalking"] == nil then
+    BUIIDatabase["call_to_arms_dungeon_timewalking"] = true
   end
   if BUIIDatabase["call_to_arms_lfr"] == nil then
     BUIIDatabase["call_to_arms_lfr"] = true
