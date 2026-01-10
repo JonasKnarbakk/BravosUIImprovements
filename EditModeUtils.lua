@@ -451,6 +451,33 @@ function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settin
     if EditModeManagerFrame and EditModeManagerFrame:IsShown() then
       if not self.isSelected and not self.hasActiveChanges then
         BUII_EditModeUtils:ApplySavedPosition(self, self.buiiDbKey)
+      elseif self.isSelected then
+        -- Detect position changes from arrow keys
+        local point, _, relativePoint, offsetX, offsetY = self:GetPoint()
+        local lastPos = self.lastKnownPosition
+
+        if
+          not lastPos
+          or lastPos.point ~= point
+          or lastPos.relativePoint ~= relativePoint
+          or math.abs((lastPos.offsetX or 0) - (offsetX or 0)) > 0.01
+          or math.abs((lastPos.offsetY or 0) - (offsetY or 0)) > 0.01
+        then
+          -- Position changed - update pending and mark dirty
+          self.lastKnownPosition = {
+            point = point,
+            relativePoint = relativePoint,
+            offsetX = offsetX,
+            offsetY = offsetY,
+          }
+
+          UpdatePending(self)
+          MarkLayoutDirty(self)
+
+          if EditModeSystemSettingsDialog then
+            EditModeSystemSettingsDialog:UpdateButtons(self)
+          end
+        end
       end
     end
   end)
@@ -479,6 +506,7 @@ function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settin
       self.pendingSettings = nil
     end
     frame.isSelected = false
+    frame.lastKnownPosition = nil
     if frame.Selection then
       frame.Selection:Hide()
     end
@@ -517,9 +545,25 @@ function BUII_EditModeUtils:InitHooks()
       end
     end)
 
+    hooksecurefunc(EditModeManagerFrame, "SelectSystem", function(mgr, systemFrame)
+      if systemFrame and self.RegisteredSystems[systemFrame.system] then
+        local frame = self.RegisteredSystems[systemFrame.system]
+        frame.isSelected = true
+        
+        local point, _, relativePoint, offsetX, offsetY = frame:GetPoint()
+        frame.lastKnownPosition = {
+          point = point,
+          relativePoint = relativePoint,
+          offsetX = offsetX,
+          offsetY = offsetY,
+        }
+      end
+    end)
+
     hooksecurefunc(EditModeManagerFrame, "ClearSelectedSystem", function()
       for _, frame in pairs(self.RegisteredSystems) do
         frame.isSelected = false
+        frame.lastKnownPosition = nil
       end
     end)
 
@@ -528,6 +572,7 @@ function BUII_EditModeUtils:InitHooks()
         frame.pendingSettings = nil
         frame.hasActiveChanges = false
         frame.isSelected = false
+        frame.lastKnownPosition = nil
         self:ApplySavedPosition(frame, frame.buiiDbKey, true)
       end
     end)
