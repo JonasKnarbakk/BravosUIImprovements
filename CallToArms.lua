@@ -420,14 +420,15 @@ local function updateDisplay()
     return
   end
 
+  local isEditMode = EditModeManagerFrame and EditModeManagerFrame:IsShown()
   local displayText = checkStatus()
   if displayText and string.len(displayText) > 0 then
     text:SetText(displayText)
     frame:SetWidth(text:GetStringWidth() + 10)
     frame:SetHeight(text:GetStringHeight() + 10)
 
-    -- Trigger Sound and Animation if text changed or frame was hidden
-    if displayText ~= lastText or not frame:IsShown() then
+    -- Trigger Sound and Animation if text changed or frame was hidden (but not during edit mode)
+    if not isEditMode and (displayText ~= lastText or not frame:IsShown()) then
       local soundId = BUIIDatabase["call_to_arms_sound_id"] or 17316
       if type(soundId) == "number" then
         PlaySound(soundId, "Master")
@@ -443,7 +444,7 @@ local function updateDisplay()
     lastText = ""
 
     -- Show only if in edit mode
-    if EditModeManagerFrame and EditModeManagerFrame:IsShown() then
+    if isEditMode then
       frame:Show()
     else
       frame:Hide()
