@@ -397,6 +397,15 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       if BUIIDatabase["stance_tracker_show_text"] == nil then
         BUIIDatabase["stance_tracker_show_text"] = true
       end
+      if BUIIDatabase["stance_tracker_emphasize"] == nil then
+        BUIIDatabase["stance_tracker_emphasize"] = false
+      end
+      if BUIIDatabase["stance_tracker_emp_scale"] == nil then
+        BUIIDatabase["stance_tracker_emp_scale"] = 1.0
+      end
+      if BUIIDatabase["stance_tracker_emp_intensity"] == nil then
+        BUIIDatabase["stance_tracker_emp_intensity"] = 20
+      end
 
       if BUIICharacterDatabase == nil then
         BUIICharacterDatabase = {}
@@ -444,16 +453,6 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       end
       if BUIICharacterDatabase["stance_tracker_emp_intensity"] == nil then
         BUIICharacterDatabase["stance_tracker_emp_intensity"] = 20
-      end
-
-      if BUIIDatabase["stance_tracker_emphasize"] == nil then
-        BUIIDatabase["stance_tracker_emphasize"] = false
-      end
-      if BUIIDatabase["stance_tracker_emp_scale"] == nil then
-        BUIIDatabase["stance_tracker_emp_scale"] = 1.0
-      end
-      if BUIIDatabase["stance_tracker_emp_intensity"] == nil then
-        BUIIDatabase["stance_tracker_emp_intensity"] = 20
       end
 
       self:UnregisterEvent("ADDON_LOADED")
