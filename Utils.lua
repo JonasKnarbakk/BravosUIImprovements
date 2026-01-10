@@ -12,8 +12,16 @@ Enum.EditModeSystem.BUII_GearAndTalentLoadout = 104
 BUII_HUD_EDIT_MODE_GEAR_AND_TALENT_LOADOUT_LABEL = "Gear & Talent Loadout"
 
 Enum.EditModeSystem.BUII_ReadyCheck = 105
-Enum.EditModeSystem.BUII_StanceTracker = 106
 BUII_HUD_EDIT_MODE_READY_CHECK_LABEL = "Ready Check Notification"
+
+Enum.EditModeSystem.BUII_StanceTracker = 106
+BUII_HUD_EDIT_MODE_STANCE_TRACKER_LABEL = "Stance Tracker"
+
+Enum.EditModeSystem.BUII_ResourceTracker = 107
+BUII_HUD_EDIT_MODE_RESOURCE_TRACKER_LABEL = "Resource Tracker"
+
+Enum.EditModeSystem.BUII_StatPanel = 108
+BUII_HUD_EDIT_MODE_STAT_PANEL_LABEL = "Stat Panel"
 
 function BUII_GetFontPath()
   local fontName = "Expressway"

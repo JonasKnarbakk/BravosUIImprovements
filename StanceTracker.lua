@@ -4,8 +4,6 @@ local icon = nil
 local text = nil
 local isTestMode = false
 
-_G["BUII_HUD_EDIT_MODE_STANCE_TRACKER_LABEL"] = "Stance Tracker"
-
 -- Settings Constants
 local enum_StanceTrackerSetting_UseCharSettings = 10
 local enum_StanceTrackerSetting_Scale = 11

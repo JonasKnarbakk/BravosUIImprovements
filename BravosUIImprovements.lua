@@ -280,6 +280,22 @@ function BUII_OnEventHandler(self, event, arg1, ...)
         BUIIDatabase["ready_check"] = false
         BUIIDatabase["group_tools"] = false
         BUIIDatabase["stance_tracker"] = false
+        BUIIDatabase["stat_panel"] = false
+        BUIIDatabase["stat_panel_width"] = 120
+        BUIIDatabase["stat_panel_font_size"] = 12
+        BUIIDatabase["stat_panel_row_spacing"] = 2
+        BUIIDatabase["stat_panel_background_opacity"] = 0.5
+        BUIIDatabase["stat_panel_show_title"] = true
+        BUIIDatabase["stat_panel_show_crit"] = true
+        BUIIDatabase["stat_panel_show_haste"] = true
+        BUIIDatabase["stat_panel_show_mastery"] = true
+        BUIIDatabase["stat_panel_show_vers"] = true
+        BUIIDatabase["stat_panel_show_leech"] = true
+        BUIIDatabase["stat_panel_show_speed"] = true
+        BUIIDatabase["stat_panel_show_avoidance"] = true
+        BUIIDatabase["stat_panel_show_dodge"] = true
+        BUIIDatabase["stat_panel_show_parry"] = true
+        BUIIDatabase["stat_panel_show_block"] = true
         BUIIDatabase["resource_tracker"] = false
         BUIIDatabase["resource_tracker_shaman"] = true
         BUIIDatabase["resource_tracker_demonhunter"] = true
@@ -345,6 +361,9 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       end
       if BUIIDatabase["stance_tracker"] == nil then
         BUIIDatabase["stance_tracker"] = false
+      end
+      if BUIIDatabase["stat_panel"] == nil then
+        BUIIDatabase["stat_panel"] = false
       end
       if BUIIDatabase["resource_tracker"] == nil then
         BUIIDatabase["resource_tracker"] = false
@@ -427,6 +446,10 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       -- Resource Tracker Character Settings Init
       if BUIICharacterDatabase["resource_tracker_use_char_settings"] == nil then
         BUIICharacterDatabase["resource_tracker_use_char_settings"] = false
+      end
+      -- Stat Panel Character Settings Init
+      if BUIICharacterDatabase["stat_panel_use_char_settings"] == nil then
+        BUIICharacterDatabase["stat_panel_use_char_settings"] = false
       end
 
       -- Mirror defaults in char DB just in case
@@ -540,6 +563,13 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       _G["BUIIOptionsPanelStanceTracker"]:SetChecked(true)
     else
       _G["BUIIOptionsPanelStanceTracker"]:SetChecked(false)
+    end
+
+    if BUIIDatabase["stat_panel"] then
+      BUII_StatPanel_Enable()
+      _G["BUIIOptionsPanelStatPanel"]:SetChecked(true)
+    else
+      _G["BUIIOptionsPanelStatPanel"]:SetChecked(false)
     end
 
     if BUIIDatabase["resource_tracker"] then
@@ -774,5 +804,15 @@ function BUII_ResourceTrackerDemonHunter_OnClick(self)
   BUIIDatabase["resource_tracker_demonhunter"] = self:GetChecked()
   if BUIIDatabase["resource_tracker"] then
     BUII_ResourceTracker_Enable()
+  end
+end
+
+function BUII_StatPanel_OnClick(self)
+  if self:GetChecked() then
+    BUII_StatPanel_Enable()
+    BUIIDatabase["stat_panel"] = true
+  else
+    BUII_StatPanel_Disable()
+    BUIIDatabase["stat_panel"] = false
   end
 end

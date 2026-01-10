@@ -9,6 +9,7 @@
 ## X-Curse-Project-ID: 701258
 
 ResourceTracker.xml
+StatPanel.lua
 BravosUIImprovements.xml
 ImprovedEditMode.xml
 ActionBarsImproved.lua
