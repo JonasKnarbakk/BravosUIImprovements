@@ -310,6 +310,7 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       BUII_StanceTracker_InitDB()
       BUII_StatPanel_InitDB()
       BUII_ResourceTracker_InitDB()
+      BUII_LootSpec_InitDB()
 
       self:UnregisterEvent("ADDON_LOADED")
     elseif arg1 == "Blizzard_EditMode" then
@@ -446,6 +447,13 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       _G["BUIIOptionsPanelStanceTrackerWarrior"]:SetChecked(true)
     else
       _G["BUIIOptionsPanelStanceTrackerWarrior"]:SetChecked(false)
+    end
+
+    if BUIIDatabase["loot_spec"] then
+      BUII_LootSpec_Enable()
+      _G["BUIIOptionsPanelLootSpec"]:SetChecked(true)
+    else
+      _G["BUIIOptionsPanelLootSpec"]:SetChecked(false)
     end
   end
 end
@@ -647,5 +655,15 @@ function BUII_StatPanel_OnClick(self)
   else
     BUII_StatPanel_Disable()
     BUIIDatabase["stat_panel"] = false
+  end
+end
+
+function BUII_LootSpec_OnClick(self)
+  if self:GetChecked() then
+    BUII_LootSpec_Enable()
+    BUIIDatabase["loot_spec"] = true
+  else
+    BUII_LootSpec_Disable()
+    BUIIDatabase["loot_spec"] = false
   end
 end

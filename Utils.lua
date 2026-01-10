@@ -23,6 +23,9 @@ BUII_HUD_EDIT_MODE_RESOURCE_TRACKER_LABEL = "Resource Tracker"
 Enum.EditModeSystem.BUII_StatPanel = 108
 BUII_HUD_EDIT_MODE_STAT_PANEL_LABEL = "Stat Panel"
 
+Enum.EditModeSystem.BUII_LootSpec = 109
+BUII_HUD_EDIT_MODE_LOOT_SPEC_LABEL = "Loot Specialization"
+
 function BUII_GetFontPath()
   local fontName = "Expressway"
   local LSM = LibStub and LibStub("LibSharedMedia-3.0", true)
