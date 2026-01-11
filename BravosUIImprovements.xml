@@ -619,7 +619,7 @@
         </Anchors>
         <Layers>
           <Layer level="ARTWORK">
-            <FontString name="$parentLabel" text="Resource Tracker (Shaman Maelstrom / DH Soul Fragments)" inherits="GameFontNormalSmall">
+            <FontString name="$parentLabel" text="Resource Tracker (Shaman Maelstrom / DH Soul Fragments or secondary resource)" inherits="GameFontNormalSmall">
               <Anchors>
                 <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
               </Anchors>
