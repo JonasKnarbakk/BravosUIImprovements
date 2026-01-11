@@ -374,9 +374,32 @@
         </Anchors>
       </Frame>
 
+      <!-- Texture Selection -->
+      <Frame name="$parentTextureLabel" parentKey="TextureLabel">
+        <Size x="60" y="20"/>
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeKey="$parent.OutlineLabel" relativePoint="BOTTOMLEFT" x="0" y="-15"/>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString parentKey="Text" text="Texture:" inherits="GameFontNormal">
+              <Anchors>
+                <Anchor point="LEFT"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+      </Frame>
+
+      <Frame name="$parentTextureDropdown" parentKey="TextureDropdown" inherits="UIDropDownMenuTemplate">
+        <Anchors>
+          <Anchor point="LEFT" relativeKey="$parent.TextureLabel" relativePoint="RIGHT" x="-10" y="0"/>
+        </Anchors>
+      </Frame>
+
       <CheckButton name="$parentCallToArms" parentKey="CallToArms" inherits="InterfaceOptionsCheckButtonTemplate">
         <Anchors>
-          <Anchor point="TOPLEFT" relativeKey="$parent.OutlineLabel" relativePoint="BOTTOMLEFT" x="0" y="-10"/>
+          <Anchor point="TOPLEFT" relativeKey="$parent.TextureLabel" relativePoint="BOTTOMLEFT" x="0" y="-10"/>
         </Anchors>
         <Layers>
           <Layer level="ARTWORK">

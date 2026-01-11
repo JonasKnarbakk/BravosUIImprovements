@@ -210,14 +210,15 @@ local function UpdatePoints()
       end
 
       if i <= currentStacks then
-        point.Fill:SetColorTexture(drawColor.r, drawColor.g, drawColor.b, db.currentOpacity or 1)
+        point.Fill:SetTexture(BUII_GetTexturePath())
+        point.Fill:SetVertexColor(drawColor.r, drawColor.g, drawColor.b, db.currentOpacity or 1)
         point.Fill:Show()
       else
         point.Fill:Hide()
       end
 
-      point.Background:SetColorTexture(0.1, 0.1, 0.1)
-      point.Background:SetAlpha(bgOpacity)
+      point.Background:SetTexture(BUII_GetTexturePath())
+      point.Background:SetVertexColor(0.1, 0.1, 0.1, bgOpacity)
     else
       point:Hide()
     end

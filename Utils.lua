@@ -44,6 +44,80 @@ BUII_OUTLINE_OPTIONS = {
   { name = "Monochrome Thick", value = "MONOCHROME, THICKOUTLINE" },
 }
 
+-- Default WoW Textures
+local DEFAULT_TEXTURES = {
+  { name = "Solid", path = "Interface\\Buttons\\WHITE8X8" },
+  { name = "Blizzard", path = "Interface\\TargetingFrame\\UI-StatusBar" },
+  { name = "Blizzard Character Skills", path = "Interface\\PaperDollInfoFrame\\UI-Character-Skills-Bar" },
+  { name = "Blizzard Raid Bar", path = "Interface\\RaidFrame\\Raid-Bar-Hp-Fill" },
+}
+
+function BUII_GetAvailableTextures()
+  local textures = {}
+  local textureNames = {} -- Track added textures to avoid duplicates
+
+  -- Add default WoW textures
+  for _, texture in ipairs(DEFAULT_TEXTURES) do
+    if not textureNames[texture.name] then
+      table.insert(textures, texture)
+      textureNames[texture.name] = true
+    end
+  end
+
+  -- Add LSM textures if available
+  local LSM = LibStub and LibStub("LibSharedMedia-3.0", true)
+  if LSM then
+    local lsmTextures = LSM:List("statusbar")
+    for _, textureName in ipairs(lsmTextures) do
+      -- Skip if already added
+      if not textureNames[textureName] then
+        local texturePath = LSM:Fetch("statusbar", textureName)
+        if texturePath then
+          table.insert(textures, { name = textureName, path = texturePath })
+          textureNames[textureName] = true
+        end
+      end
+    end
+  end
+
+  -- Sort textures alphabetically by name
+  table.sort(textures, function(a, b)
+    return a.name < b.name
+  end)
+
+  return textures
+end
+
+function BUII_GetTexturePath()
+  if not BUIIDatabase then
+    return "Interface\\Buttons\\WHITE8X8"
+  end
+
+  local selectedTexture = BUIIDatabase["texture_name"]
+  if not selectedTexture then
+    selectedTexture = "Solid"
+  end
+
+  -- Try LSM first
+  local LSM = LibStub and LibStub("LibSharedMedia-3.0", true)
+  if LSM then
+    local success, texture = pcall(LSM.Fetch, LSM, "statusbar", selectedTexture)
+    if success and texture then
+      return texture
+    end
+  end
+
+  -- Try default textures
+  for _, texture in ipairs(DEFAULT_TEXTURES) do
+    if texture.name == selectedTexture then
+      return texture.path
+    end
+  end
+
+  -- Fallback to Solid
+  return "Interface\\Buttons\\WHITE8X8"
+end
+
 function BUII_GetAvailableFonts()
   local fonts = {}
   local fontNames = {} -- Track added fonts to avoid duplicates

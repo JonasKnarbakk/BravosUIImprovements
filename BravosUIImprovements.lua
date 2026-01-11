@@ -242,6 +242,12 @@ local function BUII_RefreshAllModuleFonts()
   end
 end
 
+local function BUII_RefreshAllModuleTextures()
+  if BUIIDatabase["resource_tracker"] and BUII_ResourceTracker_Refresh then
+    BUII_ResourceTracker_Refresh()
+  end
+end
+
 function BUII_OptionsPanel_SelectTab(tabNum)
   local panel = BUIIOptionsPanel
   local scrollChild = panel.ScrollFrame.ScrollChild
@@ -260,19 +266,17 @@ function BUII_OptionsPanel_SelectTab(tabNum)
   end
 end
 
-local function BUII_InitializeFontDropdowns()
+local function BUII_InitializeDropdowns()
   local panel = BUIIOptionsPanel
   local weakAura = panel.ScrollFrame.ScrollChild.WeakAuraContent
-  local fontDropdown = weakAura.FontLabel
-  local outlineDropdown = weakAura.OutlineLabel
-
-  -- Get actual dropdown frames (children of the label frames)
-  fontDropdown = weakAura.FontDropdown
-  outlineDropdown = weakAura.OutlineDropdown
+  local fontDropdown = weakAura.FontDropdown
+  local outlineDropdown = weakAura.OutlineDropdown
+  local textureDropdown = weakAura.TextureDropdown
 
   -- Set dropdown widths
   UIDropDownMenu_SetWidth(fontDropdown, 150)
   UIDropDownMenu_SetWidth(outlineDropdown, 150)
+  UIDropDownMenu_SetWidth(textureDropdown, 150)
 
   -- Initialize Font Dropdown
   UIDropDownMenu_Initialize(fontDropdown, function(self, level)
@@ -321,6 +325,26 @@ local function BUII_InitializeFontDropdowns()
     end
   end
   UIDropDownMenu_SetText(outlineDropdown, currentOutlineName)
+
+  -- Initialize Texture Dropdown
+  UIDropDownMenu_Initialize(textureDropdown, function(self, level)
+    local textures = BUII_GetAvailableTextures()
+    for _, texture in ipairs(textures) do
+      local info = UIDropDownMenu_CreateInfo()
+      info.text = texture.name
+      info.arg1 = texture.name
+      info.func = function(self, textureName)
+        BUIIDatabase["texture_name"] = textureName
+        UIDropDownMenu_SetText(textureDropdown, textureName)
+        CloseDropDownMenus()
+        BUII_RefreshAllModuleTextures()
+      end
+      info.checked = (BUIIDatabase["texture_name"] == texture.name)
+      UIDropDownMenu_AddButton(info, level)
+    end
+  end)
+
+  UIDropDownMenu_SetText(textureDropdown, BUIIDatabase["texture_name"] or "Solid")
 end
 
 function BUII_OnLoadHandler(self)
@@ -432,6 +456,9 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       if BUIIDatabase["font_outline"] == nil then
         BUIIDatabase["font_outline"] = "OUTLINE"
       end
+      if BUIIDatabase["texture_name"] == nil then
+        BUIIDatabase["texture_name"] = "Solid"
+      end
 
       -- Initialize character-specific main file settings
       if BUIICharacterDatabase["hide_stance_bar"] == nil then
@@ -464,8 +491,8 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       BUII_ResourceTracker_InitDB()
       BUII_LootSpec_InitDB()
 
-      -- Initialize font and outline dropdowns
-      BUII_InitializeFontDropdowns()
+      -- Initialize font, outline, and texture dropdowns
+      BUII_InitializeDropdowns()
 
       self:UnregisterEvent("ADDON_LOADED")
     elseif arg1 == "Blizzard_EditMode" then
