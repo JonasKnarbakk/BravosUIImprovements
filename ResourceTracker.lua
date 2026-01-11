@@ -45,7 +45,7 @@ local CONFIG = {
   MONK = {
     powerType = Enum.PowerType.Chi,
     name = "Chi",
-    color = { r = 0.0, g = 0.78, b = 0.86 }, -- Monk Green
+    color = { r = 0.0, g = 0.78, b = 0.86 }, -- Monk Chi
     nativeFrame = "MonkHarmonyBarFrame",
   },
   DEATHKNIGHT = {
@@ -245,7 +245,20 @@ local function UpdateNativeFrameVisibility()
   local db = GetResourceTrackerDB()
   local config = GetActiveConfig()
 
-  if not config or not config.nativeFrame then
+  if not config then
+    -- If disabled, ensure native frame is shown
+    local _, classFilename = UnitClass("player")
+    local rawConfig = CONFIG[classFilename]
+    if rawConfig and rawConfig.nativeFrame then
+      local nativeFrame = _G[rawConfig.nativeFrame]
+      if nativeFrame then
+        nativeFrame:Show()
+      end
+    end
+    return
+  end
+
+  if not config.nativeFrame then
     return
   end
 
@@ -260,7 +273,7 @@ local function UpdateNativeFrameVisibility()
         nativeFrameHideHook = true
         hooksecurefunc(nativeFrame, "Show", function(self)
           local currentDb = GetResourceTrackerDB()
-          if currentDb.resource_tracker_hide_native then
+          if currentDb.resource_tracker_hide_native and GetActiveConfig() then
             self:Hide()
           end
         end)
@@ -853,6 +866,16 @@ function BUII_ResourceTracker_Disable()
   EventRegistry:UnregisterCallback("EditMode.Exit", "BUII_ResourceTracker_Custom_OnExit")
 
   frame:Hide()
+
+  -- Restore native frame if it exists
+  local _, classFilename = UnitClass("player")
+  local config = CONFIG[classFilename]
+  if config and config.nativeFrame then
+    local nativeFrame = _G[config.nativeFrame]
+    if nativeFrame then
+      nativeFrame:Show()
+    end
+  end
 end
 
 function BUII_ResourceTracker_Refresh()
