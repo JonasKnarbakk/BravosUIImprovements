@@ -36,7 +36,6 @@ local CONFIG = {
     nativeFrame = "WarlockPowerFrame",
   },
   PALADIN = {
-    spec = 70, -- Retribution
     powerType = Enum.PowerType.HolyPower,
     name = "Holy Power",
     color = { r = 0.95, g = 0.9, b = 0.1 }, -- Holy Power Gold
