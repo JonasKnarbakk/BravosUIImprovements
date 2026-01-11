@@ -20,6 +20,7 @@ local function UpdateBattleRez()
   local fontSize = frame.currentFontSize or 12
   if bRezText then
     bRezText:SetFont(BUII_GetFontPath(), fontSize, BUII_GetFontFlags())
+    bRezText:SetShadowOffset(BUII_GetFontShadow())
   end
 
   if spellChargeInfo == nil then

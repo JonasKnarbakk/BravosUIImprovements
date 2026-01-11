@@ -231,6 +231,7 @@ local function UpdatePoints()
     counterText:Show()
     counterText:SetText(currentStacks)
     counterText:SetFont(BUII_GetFontPath(), db.currentFontSize or 12, BUII_GetFontFlags())
+    counterText:SetShadowOffset(BUII_GetFontShadow())
   else
     counterText:Hide()
   end

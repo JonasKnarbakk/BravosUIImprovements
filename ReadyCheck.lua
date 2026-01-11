@@ -154,6 +154,7 @@ end
 function BUII_ReadyCheck_Refresh()
   if frame and text then
     text:SetFont(BUII_GetFontPath(), 44, BUII_GetFontFlags())
+    text:SetShadowOffset(BUII_GetFontShadow())
   end
 end
 

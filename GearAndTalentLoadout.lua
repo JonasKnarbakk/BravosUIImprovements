@@ -63,6 +63,9 @@ local function UpdateDisplay()
   gearText:SetFont(BUII_GetFontPath(), fontSize, BUII_GetFontFlags())
   talentText:SetFont(BUII_GetFontPath(), fontSize, BUII_GetFontFlags())
 
+  gearText:SetShadowOffset(BUII_GetFontShadow())
+  talentText:SetShadowOffset(BUII_GetFontShadow())
+
   gearText:ClearAllPoints()
   gearText:SetPoint("BOTTOM", contentFrame, "CENTER", 0, iconSize / 2 + verticalSpacing)
 

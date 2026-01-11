@@ -459,6 +459,9 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       if BUIIDatabase["texture_name"] == nil then
         BUIIDatabase["texture_name"] = "Solid"
       end
+      if BUIIDatabase["font_shadow"] == nil then
+        BUIIDatabase["font_shadow"] = true
+      end
 
       -- Initialize character-specific main file settings
       if BUIICharacterDatabase["hide_stance_bar"] == nil then
@@ -640,6 +643,12 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       weakAura.LootSpec:SetChecked(true)
     else
       weakAura.LootSpec:SetChecked(false)
+    end
+
+    if BUIIDatabase["font_shadow"] then
+      weakAura.FontShadow:SetChecked(true)
+    else
+      weakAura.FontShadow:SetChecked(false)
     end
   end
 end
@@ -852,4 +861,9 @@ function BUII_LootSpec_OnClick(self)
     BUII_LootSpec_Disable()
     BUIIDatabase["loot_spec"] = false
   end
+end
+
+function BUII_FontShadow_OnClick(self)
+  BUIIDatabase["font_shadow"] = self:GetChecked()
+  BUII_RefreshAllModuleFonts()
 end

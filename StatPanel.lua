@@ -85,6 +85,7 @@ local function UpdateStats()
       -- Fallback to default font
       title:SetFont(GameFontNormal:GetFont())
     end
+    title:SetShadowOffset(BUII_GetFontShadow())
 
     title:SetText(titleText or "Stats")
     title:SetPoint("TOPLEFT", frame, "TOPLEFT", 5, -5)
@@ -131,6 +132,7 @@ local function UpdateStats()
         -- Fallback to default font
         row.Label:SetFont(GameFontNormal:GetFont())
       end
+      row.Label:SetShadowOffset(BUII_GetFontShadow())
       row.Label:SetText(labelText)
       row.Label:SetPoint("LEFT", row, "LEFT", 0, 0)
 
@@ -144,6 +146,7 @@ local function UpdateStats()
         -- Fallback to default font
         row.Value:SetFont(GameFontNormal:GetFont())
       end
+      row.Value:SetShadowOffset(BUII_GetFontShadow())
       row.Value:SetText(valueText)
 
       -- Left align values in a "column" on the right side

@@ -351,6 +351,24 @@
         </Anchors>
       </Frame>
 
+      <CheckButton name="$parentFontShadow" parentKey="FontShadow" inherits="InterfaceOptionsCheckButtonTemplate">
+        <Anchors>
+          <Anchor point="LEFT" relativeKey="$parent.FontDropdown" relativePoint="RIGHT" x="0" y="0"/>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString name="$parentLabel" text="Font Shadow" inherits="GameFontNormalSmall">
+              <Anchors>
+                <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnClick function="BUII_FontShadow_OnClick"/>
+        </Scripts>
+      </CheckButton>
+
       <!-- Outline Selection -->
       <Frame name="$parentOutlineLabel" parentKey="OutlineLabel">
         <Size x="60" y="20"/>

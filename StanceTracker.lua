@@ -52,6 +52,7 @@ local function updateEmphasize()
   local currentEmpText = empText:GetText()
   empText:SetText("")
   empText:SetFont(BUII_GetFontPath(), 44, BUII_GetFontFlags())
+  empText:SetShadowOffset(BUII_GetFontShadow())
   empText:SetText(currentEmpText or "")
 
   if db["stance_tracker_emphasize"] then
@@ -176,6 +177,7 @@ local function updateDisplay()
   local db = GetStanceTrackerDB()
   local fontSize = db["stance_tracker_font_size"] or 12
   text:SetFont(BUII_GetFontPath(), fontSize, BUII_GetFontFlags())
+  text:SetShadowOffset(BUII_GetFontShadow())
   
   text:SetText(displayText)
   text:SetTextColor(textColor.r, textColor.g, textColor.b)

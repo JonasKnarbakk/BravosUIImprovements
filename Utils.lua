@@ -225,3 +225,15 @@ function BUII_GetFontFlags()
 
   return flags
 end
+
+function BUII_GetFontShadow()
+  if not BUIIDatabase then
+    return 1, -1
+  end
+
+  if BUIIDatabase["font_shadow"] == false then
+    return 0, 0
+  end
+
+  return 1, -1
+end

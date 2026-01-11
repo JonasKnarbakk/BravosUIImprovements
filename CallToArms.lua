@@ -763,6 +763,7 @@ end
 function BUII_CallToArms_Refresh()
   if frame and text then
     text:SetFont(BUII_GetFontPath(), 12, BUII_GetFontFlags())
+    text:SetShadowOffset(BUII_GetFontShadow())
     updateDisplay()
   end
 end

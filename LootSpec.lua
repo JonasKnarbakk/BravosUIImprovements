@@ -67,6 +67,7 @@ local function updateDisplay()
   -- Update text
   if showText then
     text:SetFont(BUII_GetFontPath(), fontSize, BUII_GetFontFlags())
+    text:SetShadowOffset(BUII_GetFontShadow())
     text:SetText(specName)
     text:Show()
   else
