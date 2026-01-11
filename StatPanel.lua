@@ -228,6 +228,7 @@ local function BUII_StatPanel_Initialize()
       name = "Character Specific",
       key = "stat_panel_use_char_settings",
       type = Enum.EditModeSettingDisplayType.Checkbox,
+      notSaved = true,
       getter = function(f)
         return BUIICharacterDatabase["stat_panel_use_char_settings"] and 1 or 0
       end,

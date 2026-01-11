@@ -131,7 +131,7 @@ function BUII_EditModeUtils:ApplySavedPosition(frame, dbKey, force)
         val = settingConfig.defaultValue
       end
 
-      if val ~= nil then
+      if val ~= nil and not settingConfig.notSaved then
         settingConfig.setter(frame, val)
       end
     end
@@ -200,7 +200,7 @@ local function UpdatePending(frame)
 
   -- Capture custom settings
   for _, settingConfig in ipairs(frame.buiiSettingsConfig or {}) do
-    if settingConfig.key then
+    if settingConfig.key and not settingConfig.notSaved then
       frame.pendingSettings.custom[settingConfig.key] = settingConfig.getter(frame)
     end
   end

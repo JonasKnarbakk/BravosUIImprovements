@@ -279,6 +279,7 @@ local function BUII_StanceTracker_Initialize()
       setting = enum_StanceTrackerSetting_UseCharSettings,
       name = "Character Specific",
       type = Enum.EditModeSettingDisplayType.Checkbox,
+      notSaved = true,
       getter = function(f)
         return BUIICharacterDatabase["stance_tracker_use_char_settings"] and 1 or 0
       end,

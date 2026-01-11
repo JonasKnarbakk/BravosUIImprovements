@@ -550,6 +550,7 @@ local function BUII_ResourceTracker_Initialize()
       name = "Character Specific",
       key = "resource_tracker_use_char_settings",
       type = Enum.EditModeSettingDisplayType.Checkbox,
+      notSaved = true,
       getter = function(f)
         return BUIICharacterDatabase["resource_tracker_use_char_settings"] and 1 or 0
       end,
