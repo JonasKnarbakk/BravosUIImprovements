@@ -152,6 +152,9 @@ local function BUII_StatPanel_Initialize()
   frame:SetClampedToScreen(true)
   frame:SetDontSavePosition(true)
 
+  -- Expose DB selector for EditModeUtils
+  frame.GetSettingsDB = GetStatPanelDB
+
   -- Selection Frame for Edit Mode
   frame.Selection = CreateFrame("Frame", nil, frame, "EditModeSystemSelectionTemplate")
   frame.Selection:SetAllPoints(frame)
