@@ -614,6 +614,54 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       weakAura.ResourceTrackerDemonHunter:SetChecked(false)
     end
 
+    if BUIIDatabase["resource_tracker_rogue"] then
+      weakAura.ResourceTrackerRogue:SetChecked(true)
+    else
+      weakAura.ResourceTrackerRogue:SetChecked(false)
+    end
+
+    if BUIIDatabase["resource_tracker_druid"] then
+      weakAura.ResourceTrackerDruid:SetChecked(true)
+    else
+      weakAura.ResourceTrackerDruid:SetChecked(false)
+    end
+
+    if BUIIDatabase["resource_tracker_mage"] then
+      weakAura.ResourceTrackerMage:SetChecked(true)
+    else
+      weakAura.ResourceTrackerMage:SetChecked(false)
+    end
+
+    if BUIIDatabase["resource_tracker_warlock"] then
+      weakAura.ResourceTrackerWarlock:SetChecked(true)
+    else
+      weakAura.ResourceTrackerWarlock:SetChecked(false)
+    end
+
+    if BUIIDatabase["resource_tracker_paladin"] then
+      weakAura.ResourceTrackerPaladin:SetChecked(true)
+    else
+      weakAura.ResourceTrackerPaladin:SetChecked(false)
+    end
+
+    if BUIIDatabase["resource_tracker_monk"] then
+      weakAura.ResourceTrackerMonk:SetChecked(true)
+    else
+      weakAura.ResourceTrackerMonk:SetChecked(false)
+    end
+
+    if BUIIDatabase["resource_tracker_deathknight"] then
+      weakAura.ResourceTrackerDeathKnight:SetChecked(true)
+    else
+      weakAura.ResourceTrackerDeathKnight:SetChecked(false)
+    end
+
+    if BUIIDatabase["resource_tracker_evoker"] then
+      weakAura.ResourceTrackerEvoker:SetChecked(true)
+    else
+      weakAura.ResourceTrackerEvoker:SetChecked(false)
+    end
+
     if BUIIDatabase["stance_tracker_druid"] then
       weakAura.StanceTrackerDruid:SetChecked(true)
     else
@@ -838,6 +886,62 @@ end
 
 function BUII_ResourceTrackerDemonHunter_OnClick(self)
   BUIIDatabase["resource_tracker_demonhunter"] = self:GetChecked()
+  if BUIIDatabase["resource_tracker"] then
+    BUII_ResourceTracker_Enable()
+  end
+end
+
+function BUII_ResourceTrackerRogue_OnClick(self)
+  BUIIDatabase["resource_tracker_rogue"] = self:GetChecked()
+  if BUIIDatabase["resource_tracker"] then
+    BUII_ResourceTracker_Enable()
+  end
+end
+
+function BUII_ResourceTrackerDruid_OnClick(self)
+  BUIIDatabase["resource_tracker_druid"] = self:GetChecked()
+  if BUIIDatabase["resource_tracker"] then
+    BUII_ResourceTracker_Enable()
+  end
+end
+
+function BUII_ResourceTrackerMage_OnClick(self)
+  BUIIDatabase["resource_tracker_mage"] = self:GetChecked()
+  if BUIIDatabase["resource_tracker"] then
+    BUII_ResourceTracker_Enable()
+  end
+end
+
+function BUII_ResourceTrackerWarlock_OnClick(self)
+  BUIIDatabase["resource_tracker_warlock"] = self:GetChecked()
+  if BUIIDatabase["resource_tracker"] then
+    BUII_ResourceTracker_Enable()
+  end
+end
+
+function BUII_ResourceTrackerPaladin_OnClick(self)
+  BUIIDatabase["resource_tracker_paladin"] = self:GetChecked()
+  if BUIIDatabase["resource_tracker"] then
+    BUII_ResourceTracker_Enable()
+  end
+end
+
+function BUII_ResourceTrackerMonk_OnClick(self)
+  BUIIDatabase["resource_tracker_monk"] = self:GetChecked()
+  if BUIIDatabase["resource_tracker"] then
+    BUII_ResourceTracker_Enable()
+  end
+end
+
+function BUII_ResourceTrackerDeathKnight_OnClick(self)
+  BUIIDatabase["resource_tracker_deathknight"] = self:GetChecked()
+  if BUIIDatabase["resource_tracker"] then
+    BUII_ResourceTracker_Enable()
+  end
+end
+
+function BUII_ResourceTrackerEvoker_OnClick(self)
+  BUIIDatabase["resource_tracker_evoker"] = self:GetChecked()
   if BUIIDatabase["resource_tracker"] then
     BUII_ResourceTracker_Enable()
   end

@@ -631,13 +631,32 @@
         </Scripts>
       </CheckButton>
 
-      <CheckButton name="$parentResourceTrackerDemonHunter" parentKey="ResourceTrackerDemonHunter" inherits="InterfaceOptionsCheckButtonTemplate">
+      <!-- Row 1: DK, DH, Druid, Evoker, Mage -->
+      <CheckButton name="$parentResourceTrackerDeathKnight" parentKey="ResourceTrackerDeathKnight" inherits="InterfaceOptionsCheckButtonTemplate">
         <Anchors>
-          <Anchor point="LEFT" relativeTo="$parentResourceTrackerLabel" relativePoint="RIGHT" x="10" y="0"/>
+          <Anchor point="TOPLEFT" relativeKey="$parent.ResourceTracker" relativePoint="BOTTOMLEFT" x="20" y="0"/>
         </Anchors>
         <Layers>
           <Layer level="ARTWORK">
-            <FontString name="$parentLabel" text="Demon Hunter" inherits="GameFontNormalSmall">
+            <FontString name="$parentLabel" text="DK" inherits="GameFontNormalSmall">
+              <Anchors>
+                <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnClick function="BUII_ResourceTrackerDeathKnight_OnClick"/>
+        </Scripts>
+      </CheckButton>
+
+      <CheckButton name="$parentResourceTrackerDemonHunter" parentKey="ResourceTrackerDemonHunter" inherits="InterfaceOptionsCheckButtonTemplate">
+        <Anchors>
+          <Anchor point="LEFT" relativeKey="$parent.ResourceTrackerDeathKnight" relativePoint="RIGHT" x="65" y="0"/>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString name="$parentLabel" text="DH" inherits="GameFontNormalSmall">
               <Anchors>
                 <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
               </Anchors>
@@ -649,9 +668,118 @@
         </Scripts>
       </CheckButton>
 
+      <CheckButton name="$parentResourceTrackerDruid" parentKey="ResourceTrackerDruid" inherits="InterfaceOptionsCheckButtonTemplate">
+        <Anchors>
+          <Anchor point="LEFT" relativeKey="$parent.ResourceTrackerDemonHunter" relativePoint="RIGHT" x="65" y="0"/>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString name="$parentLabel" text="Druid" inherits="GameFontNormalSmall">
+              <Anchors>
+                <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnClick function="BUII_ResourceTrackerDruid_OnClick"/>
+        </Scripts>
+      </CheckButton>
+
+      <CheckButton name="$parentResourceTrackerEvoker" parentKey="ResourceTrackerEvoker" inherits="InterfaceOptionsCheckButtonTemplate">
+        <Anchors>
+          <Anchor point="LEFT" relativeKey="$parent.ResourceTrackerDruid" relativePoint="RIGHT" x="65" y="0"/>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString name="$parentLabel" text="Evoker" inherits="GameFontNormalSmall">
+              <Anchors>
+                <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnClick function="BUII_ResourceTrackerEvoker_OnClick"/>
+        </Scripts>
+      </CheckButton>
+
+      <CheckButton name="$parentResourceTrackerMage" parentKey="ResourceTrackerMage" inherits="InterfaceOptionsCheckButtonTemplate">
+        <Anchors>
+          <Anchor point="LEFT" relativeKey="$parent.ResourceTrackerEvoker" relativePoint="RIGHT" x="65" y="0"/>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString name="$parentLabel" text="Mage" inherits="GameFontNormalSmall">
+              <Anchors>
+                <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnClick function="BUII_ResourceTrackerMage_OnClick"/>
+        </Scripts>
+      </CheckButton>
+
+      <!-- Row 2: Monk, Paladin, Rogue, Shaman, Warlock -->
+      <CheckButton name="$parentResourceTrackerMonk" parentKey="ResourceTrackerMonk" inherits="InterfaceOptionsCheckButtonTemplate">
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeKey="$parent.ResourceTrackerDeathKnight" relativePoint="BOTTOMLEFT" x="0" y="0"/>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString name="$parentLabel" text="Monk" inherits="GameFontNormalSmall">
+              <Anchors>
+                <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnClick function="BUII_ResourceTrackerMonk_OnClick"/>
+        </Scripts>
+      </CheckButton>
+
+      <CheckButton name="$parentResourceTrackerPaladin" parentKey="ResourceTrackerPaladin" inherits="InterfaceOptionsCheckButtonTemplate">
+        <Anchors>
+          <Anchor point="LEFT" relativeKey="$parent.ResourceTrackerMonk" relativePoint="RIGHT" x="65" y="0"/>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString name="$parentLabel" text="Paladin" inherits="GameFontNormalSmall">
+              <Anchors>
+                <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnClick function="BUII_ResourceTrackerPaladin_OnClick"/>
+        </Scripts>
+      </CheckButton>
+
+      <CheckButton name="$parentResourceTrackerRogue" parentKey="ResourceTrackerRogue" inherits="InterfaceOptionsCheckButtonTemplate">
+        <Anchors>
+          <Anchor point="LEFT" relativeKey="$parent.ResourceTrackerPaladin" relativePoint="RIGHT" x="65" y="0"/>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString name="$parentLabel" text="Rogue" inherits="GameFontNormalSmall">
+              <Anchors>
+                <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnClick function="BUII_ResourceTrackerRogue_OnClick"/>
+        </Scripts>
+      </CheckButton>
+
       <CheckButton name="$parentResourceTrackerShaman" parentKey="ResourceTrackerShaman" inherits="InterfaceOptionsCheckButtonTemplate">
         <Anchors>
-          <Anchor point="LEFT" relativeTo="$parentResourceTrackerDemonHunterLabel" relativePoint="RIGHT" x="10" y="0"/>
+          <Anchor point="LEFT" relativeKey="$parent.ResourceTrackerRogue" relativePoint="RIGHT" x="65" y="0"/>
         </Anchors>
         <Layers>
           <Layer level="ARTWORK">
@@ -667,9 +795,27 @@
         </Scripts>
       </CheckButton>
 
+      <CheckButton name="$parentResourceTrackerWarlock" parentKey="ResourceTrackerWarlock" inherits="InterfaceOptionsCheckButtonTemplate">
+        <Anchors>
+          <Anchor point="LEFT" relativeKey="$parent.ResourceTrackerShaman" relativePoint="RIGHT" x="65" y="0"/>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString name="$parentLabel" text="Warlock" inherits="GameFontNormalSmall">
+              <Anchors>
+                <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnClick function="BUII_ResourceTrackerWarlock_OnClick"/>
+        </Scripts>
+      </CheckButton>
+
       <CheckButton name="$parentStatPanel" parentKey="StatPanel" inherits="InterfaceOptionsCheckButtonTemplate">
         <Anchors>
-          <Anchor point="TOPLEFT" relativeKey="$parent.ResourceTracker" relativePoint="BOTTOMLEFT" x="0" y="0"/>
+          <Anchor point="TOPLEFT" relativeKey="$parent.ResourceTrackerMonk" relativePoint="BOTTOMLEFT" x="-20" y="-10"/>
         </Anchors>
         <Layers>
           <Layer level="ARTWORK">
