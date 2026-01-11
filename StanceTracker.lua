@@ -178,7 +178,7 @@ local function updateDisplay()
   local fontSize = db["stance_tracker_font_size"] or 12
   text:SetFont(BUII_GetFontPath(), fontSize, BUII_GetFontFlags())
   text:SetShadowOffset(BUII_GetFontShadow())
-  
+
   text:SetText(displayText)
   text:SetTextColor(textColor.r, textColor.g, textColor.b)
   icon:SetTexture(displayIcon)

@@ -306,7 +306,7 @@ function BUII_GroupTools_Refresh()
   if frame then
     UpdateBattleRez()
   end
-  -- Note: Buttons are updated when they are clicked or initialized, 
+  -- Note: Buttons are updated when they are clicked or initialized,
   -- but we can't easily reference them globally unless we store them.
   -- For now, UpdateBattleRez handles the main text.
   -- To properly update buttons, we'd need to store them in frame or locals.
