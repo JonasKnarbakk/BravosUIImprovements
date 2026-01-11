@@ -231,6 +231,9 @@ local function BUII_RefreshAllModuleFonts()
   if BUIIDatabase["ready_check"] and BUII_ReadyCheck_Refresh then
     BUII_ReadyCheck_Refresh()
   end
+  if BUIIDatabase["tank_shield_warning"] and BUII_TankShieldWarning_Refresh then
+    BUII_TankShieldWarning_Refresh()
+  end
   if BUIIDatabase["call_to_arms"] and BUII_CallToArms_Refresh then
     BUII_CallToArms_Refresh()
   end
@@ -423,6 +426,11 @@ function BUII_OnEventHandler(self, event, arg1, ...)
     if BUIIDatabase["resource_tracker"] then
       BUII_ResourceTracker_Enable()
     end
+
+    if BUIIDatabase["tank_shield_warning"] then
+      --  Enable will only work for Protection Warrior/Paladin
+      BUII_TankShieldWarning_Enable()
+    end
   elseif event == "ADDON_LOADED" then
     if arg1 == "BravosUIImprovements" then
       BUII_RegisterEditModeSystem()
@@ -488,6 +496,7 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       BUII_GearAndTalentLoadout_InitDB()
       BUII_CombatState_InitDB()
       BUII_ReadyCheck_InitDB()
+      BUII_TankShieldWarning_InitDB()
       BUII_GroupTools_InitDB()
       BUII_StanceTracker_InitDB()
       BUII_StatPanel_InitDB()
@@ -574,6 +583,13 @@ function BUII_OnEventHandler(self, event, arg1, ...)
     if BUIIDatabase["ready_check"] then
       BUII_ReadyCheck_Enable()
       weakAura.ReadyCheck:SetChecked(true)
+    end
+
+    if BUIIDatabase["tank_shield_warning"] then
+      BUII_TankShieldWarning_Enable()
+      weakAura.TankShieldWarning:SetChecked(true)
+    else
+      weakAura.TankShieldWarning:SetChecked(false)
     end
 
     if BUIIDatabase["group_tools"] then
@@ -816,6 +832,16 @@ function BUII_ReadyCheck_OnClick(self)
   else
     BUII_ReadyCheck_Disable()
     BUIIDatabase["ready_check"] = false
+  end
+end
+
+function BUII_TankShieldWarning_OnClick(self)
+  if self:GetChecked() then
+    BUIIDatabase["tank_shield_warning"] = true
+    BUII_TankShieldWarning_Enable()
+  else
+    BUIIDatabase["tank_shield_warning"] = false
+    BUII_TankShieldWarning_Disable()
   end
 end
 

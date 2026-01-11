@@ -8,6 +8,7 @@
   <Script file="GearAndTalentLoadout.lua"/>
   <Script file="CombatState.lua"/>
   <Script file="ReadyCheck.lua"/>
+  <Script file="TankShieldWarning.lua"/>
   <Script file="StanceTracker.lua"/>
   <Script file="ResourceTracker.lua"/>
   <Script file="LootSpec.lua"/>
@@ -79,6 +80,16 @@
     <KeyValues>
       <KeyValue key="system" value="Enum.EditModeSystem.BUII_LootSpec" type="global"/>
       <KeyValue key="systemNameString" value="BUII_HUD_EDIT_MODE_LOOT_SPEC_LABEL" type="global"/>
+    </KeyValues>
+    <Frames>
+      <Frame inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
+    </Frames>
+  </Frame>
+
+  <Frame name="BUII_TankShieldWarningEditModeTemplate" inherits="EditModeSystemTemplate" virtual="true">
+    <KeyValues>
+      <KeyValue key="system" value="Enum.EditModeSystem.BUII_TankShieldWarning" type="global"/>
+      <KeyValue key="systemNameString" value="BUII_HUD_EDIT_MODE_TANK_SHIELD_WARNING_LABEL" type="global"/>
     </KeyValues>
     <Frames>
       <Frame inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
@@ -505,9 +516,27 @@
         </Scripts>
       </CheckButton>
 
-      <CheckButton name="$parentGroupTools" parentKey="GroupTools" inherits="InterfaceOptionsCheckButtonTemplate">
+      <CheckButton name="$parentTankShieldWarning" parentKey="TankShieldWarning" inherits="InterfaceOptionsCheckButtonTemplate">
         <Anchors>
           <Anchor point="TOPLEFT" relativeKey="$parent.ReadyCheck" relativePoint="BOTTOMLEFT" x="0" y="0"/>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString name="$parentLabel" text="Tank Shield Durability Warning" inherits="GameFontNormalSmall">
+              <Anchors>
+                <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnClick function="BUII_TankShieldWarning_OnClick"/>
+        </Scripts>
+      </CheckButton>
+
+      <CheckButton name="$parentGroupTools" parentKey="GroupTools" inherits="InterfaceOptionsCheckButtonTemplate">
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeKey="$parent.TankShieldWarning" relativePoint="BOTTOMLEFT" x="0" y="0"/>
         </Anchors>
         <Layers>
           <Layer level="ARTWORK">

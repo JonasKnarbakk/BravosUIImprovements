@@ -26,6 +26,9 @@ BUII_HUD_EDIT_MODE_STAT_PANEL_LABEL = "Stat Panel"
 Enum.EditModeSystem.BUII_LootSpec = 109
 BUII_HUD_EDIT_MODE_LOOT_SPEC_LABEL = "Loot Specialization"
 
+Enum.EditModeSystem.BUII_TankShieldWarning = 110
+BUII_HUD_EDIT_MODE_TANK_SHIELD_WARNING_LABEL = "Tank Shield Warning"
+
 -- Default WoW fonts
 local DEFAULT_FONTS = {
   { name = "Friz Quadrata TT", path = "Fonts\\FRIZQT__.TTF" },

@@ -8,20 +8,12 @@ local durabilityFrame = nil
 local durabilityIcon = nil
 local durabilityText = nil
 
--- Shield durability frame variables
-local shieldDurabilityFrame = nil
-local shieldDurabilityIcon = nil
-local shieldDurabilityText = nil
-
 -- Settings Constants
 local enum_ReadyCheckSetting_Scale = 50
 local enum_ReadyCheckSetting_FontSize = 51
 local enum_ReadyCheckSetting_ShowRepairWarning = 52
 local enum_ReadyCheckSetting_RepairThreshold = 53
 local enum_ReadyCheckSetting_RepairYOffset = 54
-local enum_ReadyCheckSetting_ShowShieldWarning = 55
-local enum_ReadyCheckSetting_ShieldThreshold = 56
-local enum_ReadyCheckSetting_ShieldYOffset = 57
 
 -- Equipment slots that have durability
 local EQUIPMENT_SLOTS_WITH_DURABILITY = {
@@ -44,24 +36,6 @@ local function updateDurabilityYPosition()
     durabilityFrame:ClearAllPoints()
     durabilityFrame:SetPoint("CENTER", frame, "CENTER", 0, yOffset)
   end
-end
-
--- Update shield durability frame Y position
-local function updateShieldDurabilityYPosition()
-  if shieldDurabilityFrame then
-    local yOffset = BUIIDatabase["ready_check_shield_y_offset"] or -52
-    shieldDurabilityFrame:ClearAllPoints()
-    shieldDurabilityFrame:SetPoint("CENTER", frame, "CENTER", 0, yOffset)
-  end
-end
-
--- Calculate shield durability percentage
-local function getShieldDurability()
-  local current, max = GetInventoryItemDurability(17) -- Off-hand slot
-  if current and max and max > 0 then
-    return (current / max) * 100
-  end
-  return 100
 end
 
 -- Calculate average durability percentage across all equipped items
@@ -118,28 +92,11 @@ local function onEvent(self, event)
     else
       durabilityFrame:Hide()
     end
-
-    -- Check shield durability and show warning if needed
-    local showShieldWarning = BUIIDatabase["ready_check_show_shield"] or false
-    local shieldThreshold = BUIIDatabase["ready_check_shield_threshold"] or 99
-
-    if showShieldWarning then
-      local shieldDur = getShieldDurability()
-      if shieldDur < shieldThreshold then
-        shieldDurabilityText:SetText(string.format("Shield: %.0f%%", shieldDur))
-        shieldDurabilityFrame:Show()
-      else
-        shieldDurabilityFrame:Hide()
-      end
-    else
-      shieldDurabilityFrame:Hide()
-    end
   elseif event == "READY_CHECK_FINISHED" then
     hideTimer = C_Timer.NewTimer(10, function()
       animGroup:Stop()
       frame:Hide()
       durabilityFrame:Hide()
-      shieldDurabilityFrame:Hide()
       hideTimer = nil
     end)
   end
@@ -197,24 +154,6 @@ local function BUII_ReadyCheck_Initialize()
   durabilityText:SetFont(BUII_GetFontPath(), 28, BUII_GetFontFlags())
   durabilityText:SetPoint("LEFT", durabilityIcon, "RIGHT", 8, 0)
   durabilityText:SetTextColor(1, 0.2, 0.2) -- Red text for warning
-
-  -- Create shield durability warning frame
-  shieldDurabilityFrame = CreateFrame("Frame", "BUII_ReadyCheckShieldDurabilityFrame", frame)
-  shieldDurabilityFrame:SetSize(200, 40)
-  updateShieldDurabilityYPosition()
-  shieldDurabilityFrame:Hide()
-
-  -- Shield icon
-  shieldDurabilityIcon = shieldDurabilityFrame:CreateTexture(nil, "ARTWORK")
-  shieldDurabilityIcon:SetTexture(134951) -- Shield icon
-  shieldDurabilityIcon:SetSize(32, 32)
-  shieldDurabilityIcon:SetPoint("LEFT", shieldDurabilityFrame, "LEFT", 0, 0)
-
-  -- Shield durability text
-  shieldDurabilityText = shieldDurabilityFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-  shieldDurabilityText:SetFont(BUII_GetFontPath(), 28, BUII_GetFontFlags())
-  shieldDurabilityText:SetPoint("LEFT", shieldDurabilityIcon, "RIGHT", 8, 0)
-  shieldDurabilityText:SetTextColor(1, 0.2, 0.2) -- Red text for warning
 
   -- Register System
   local settingsConfig = {
@@ -279,52 +218,6 @@ local function BUII_ReadyCheck_Initialize()
         updateDurabilityYPosition()
       end,
     },
-    {
-      setting = enum_ReadyCheckSetting_ShowShieldWarning,
-      name = "Show Shield Warning",
-      type = Enum.EditModeSettingDisplayType.Checkbox,
-      getter = function(f)
-        return BUIIDatabase["ready_check_show_shield"] or false
-      end,
-      setter = function(f, val)
-        BUIIDatabase["ready_check_show_shield"] = val
-      end,
-    },
-    {
-      setting = enum_ReadyCheckSetting_ShieldThreshold,
-      name = "Shield Threshold",
-      type = Enum.EditModeSettingDisplayType.Slider,
-      minValue = 10,
-      maxValue = 99,
-      stepSize = 1,
-      formatter = function(val)
-        return string.format("%.0f%%", val)
-      end,
-      getter = function(f)
-        return BUIIDatabase["ready_check_shield_threshold"] or 99
-      end,
-      setter = function(f, val)
-        BUIIDatabase["ready_check_shield_threshold"] = val
-      end,
-    },
-    {
-      setting = enum_ReadyCheckSetting_ShieldYOffset,
-      name = "Shield Y Offset",
-      type = Enum.EditModeSettingDisplayType.Slider,
-      minValue = -100,
-      maxValue = 100,
-      stepSize = 1,
-      formatter = function(val)
-        return string.format("%.0f", val)
-      end,
-      getter = function(f)
-        return BUIIDatabase["ready_check_shield_y_offset"] or -52
-      end,
-      setter = function(f, val)
-        BUIIDatabase["ready_check_shield_y_offset"] = val
-        updateShieldDurabilityYPosition()
-      end,
-    },
   }
 
   BUII_EditModeUtils:RegisterSystem(
@@ -354,12 +247,6 @@ local function editMode_OnEnter()
     durabilityText:SetText("Repair: 87%")
     durabilityFrame:Show()
   end
-  -- Show shield durability frame in edit mode for preview if enabled
-  local showShieldWarning = BUIIDatabase["ready_check_show_shield"] or false
-  if showShieldWarning then
-    shieldDurabilityText:SetText("Shield: 73%")
-    shieldDurabilityFrame:Show()
-  end
 end
 
 local function editMode_OnExit()
@@ -367,7 +254,6 @@ local function editMode_OnExit()
   animGroup:Stop()
   frame:Hide()
   durabilityFrame:Hide()
-  shieldDurabilityFrame:Hide()
 end
 
 function BUII_ReadyCheck_Enable()
@@ -413,10 +299,6 @@ function BUII_ReadyCheck_Refresh()
     durabilityText:SetFont(BUII_GetFontPath(), 28, BUII_GetFontFlags())
     durabilityText:SetShadowOffset(BUII_GetFontShadow())
   end
-  if shieldDurabilityText then
-    shieldDurabilityText:SetFont(BUII_GetFontPath(), 28, BUII_GetFontFlags())
-    shieldDurabilityText:SetShadowOffset(BUII_GetFontShadow())
-  end
 end
 
 function BUII_ReadyCheck_InitDB()
@@ -431,14 +313,5 @@ function BUII_ReadyCheck_InitDB()
   end
   if BUIIDatabase["ready_check_repair_y_offset"] == nil then
     BUIIDatabase["ready_check_repair_y_offset"] = 52
-  end
-  if BUIIDatabase["ready_check_show_shield"] == nil then
-    BUIIDatabase["ready_check_show_shield"] = true
-  end
-  if BUIIDatabase["ready_check_shield_threshold"] == nil then
-    BUIIDatabase["ready_check_shield_threshold"] = 99
-  end
-  if BUIIDatabase["ready_check_shield_y_offset"] == nil then
-    BUIIDatabase["ready_check_shield_y_offset"] = -52
   end
 end
