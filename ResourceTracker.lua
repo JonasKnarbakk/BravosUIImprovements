@@ -16,7 +16,7 @@ local CONFIG = {
     spec = 263, -- Enhancement
     buffs = { 344179, 384088 }, -- Maelstrom Weapon
     name = "Maelstrom Weapon",
-    maxPoints = 10, -- Maelstrom goes up to 10
+    maxPoints = 5, -- Show 5, the extra 5 will be layered
     color = { r = 0.447, g = 0.780, b = 1.0 }, -- Light Blue #72C7FF
     color2 = { r = 1.0, g = 0.4, b = 0.4 }, -- Red #FF6666
     layered = true, -- Stack count > 5 changes color
@@ -183,33 +183,51 @@ local function GetResourceState(config)
       else
         if duration > 0 then
           local prog = (time - start) / duration
-          table.insert(progressList, math.max(0, math.min(1, prog)))
+          table.insert(progressList, {
+            progress = math.max(0, math.min(1, prog)),
+            start = start,
+            duration = duration,
+            endTime = start + duration,
+          })
         else
-          table.insert(progressList, 0)
+          table.insert(progressList, { progress = 0, start = 0, duration = 0, endTime = math.huge })
         end
       end
     end
-    -- Sort progress descending so the most complete runes fill the first empty slots
+    -- Sort by estimated completion time (soonest first) to ensure Left-to-Right filling order
     table.sort(progressList, function(a, b)
-      return a > b
+      return a.endTime < b.endTime
     end)
 
-    return ready, progressList, nil
+    -- Death Knights can only recharge 3 runes at a time. Mark the rest as queued.
+    for i = 4, #progressList do
+      progressList[i].isQueued = true
+    end
 
+    return ready, progressList, nil
     -- Evoker Essence
   elseif config.class == "EVOKER" and config.powerType == Enum.PowerType.Essence then
     local power = UnitPower("player", config.powerType)
-    -- EssenceFramePlayer.lua uses UnitPartialPower / 1000
     local partial = (UnitPartialPower("player", config.powerType) or 0) / 1000
-    return power, partial, nil
+    local regen = GetPowerRegenForPowerType(Enum.PowerType.Essence)
+    -- print("DEBUG: Evoker State", power, partial, regen)
+    if not regen or regen == 0 then
+      regen = 0.2 -- Default fallback matching Blizzard UI
+    end
+
+    local duration = 1 / regen
+    return power, { { progress = partial, duration = duration } }, nil
 
     -- Warlock Soul Shards
   elseif config.class == "WARLOCK" and config.powerType == Enum.PowerType.SoulShards then
-    local power = UnitPower("player", config.powerType, true)
+    local power = UnitPower("player", config.powerType)
+    local precise = UnitPower("player", config.powerType, true)
     local mod = UnitPowerDisplayMod(config.powerType)
-    local val = (mod ~= 0) and (power / mod) or 0
-    local whole = math.floor(val)
-    return whole, (val - whole), nil
+    local partial = 0
+    if mod > 1 then
+      partial = (precise % mod) / mod
+    end
+    return power, partial, nil
 
     -- Rogue Combo Points
   elseif config.class == "ROGUE" and config.powerType == Enum.PowerType.ComboPoints then
@@ -301,8 +319,6 @@ local function UpdatePoints()
 
   if not config and not isEditMode then
     frame:Hide()
-    -- Ensure OnUpdate is off if hidden
-    frame:SetScript("OnUpdate", nil)
     return
   end
 
@@ -339,8 +355,6 @@ local function UpdatePoints()
       color = { r = 1, g = 1, b = 0 } -- Default Yellow
     end
     frame:Show()
-    -- No OnUpdate in Edit Mode
-    frame:SetScript("OnUpdate", nil)
   elseif config then
     -- Determine max points dynamically if possible
     if config.powerType then
@@ -473,32 +487,138 @@ local function UpdatePoints()
       point:SetBackdropBorderColor(borderColor.r, borderColor.g, borderColor.b, borderColor.a)
 
       local myPartial = 0
+      local myPartialData = nil
       if type(partialFill) == "table" then
-        myPartial = partialFill[i - currentStacks] or 0
+        if type(partialFill[i - currentStacks]) == "table" then
+          myPartialData = partialFill[i - currentStacks]
+          myPartial = myPartialData.progress
+        else
+          myPartial = partialFill[i - currentStacks] or 0
+        end
       elseif i == currentStacks + 1 then
         myPartial = partialFill
       end
 
+      -- Update ProgressBar
+      point.ProgressBar:SetStatusBarTexture(BUII_GetTexturePath())
+
+      -- Ensure AnimTexture exists for DK smooth filling without OnUpdate
+      if not point.AnimTexture then
+        point.AnimTexture = point:CreateTexture(nil, "ARTWORK")
+        point.AnimTexture:SetPoint("TOPLEFT", point, "TOPLEFT", 1, -1)
+        point.AnimTexture:SetPoint("BOTTOMLEFT", point, "BOTTOMLEFT", 1, 1)
+        point.AnimTexture:SetTexture(BUII_GetTexturePath())
+
+        point.AnimGroup = point.AnimTexture:CreateAnimationGroup()
+        point.ScaleAnim = point.AnimGroup:CreateAnimation("Scale")
+        point.ScaleAnim:SetOrigin("LEFT", 0, 0)
+      end
+
       if i <= currentStacks then
-        -- Full point - reset to default anchors
-        point.Fill:ClearAllPoints()
-        point.Fill:SetPoint("TOPLEFT", point, "TOPLEFT", 1, -1)
-        point.Fill:SetPoint("BOTTOMRIGHT", point, "BOTTOMRIGHT", -1, 1)
-        point.Fill:SetTexture(BUII_GetTexturePath())
-        point.Fill:SetVertexColor(drawColor.r, drawColor.g, drawColor.b, db.currentOpacity or 1)
-        point.Fill:Show()
+        -- Full point
+        if point.ProgressBar.ResetSmoothedValue then
+          point.ProgressBar:ResetSmoothedValue(1)
+        else
+          point.ProgressBar:SetValue(1)
+        end
+        point.ProgressBar:SetStatusBarColor(drawColor.r, drawColor.g, drawColor.b, db.currentOpacity or 1)
+        point.ProgressBar:Show()
+
+        point.AnimGroup:Stop()
+        point.AnimTexture:Hide()
+        point.lastStart = nil
+        point.lastDuration = nil
+      elseif myPartialData then
+        if myPartialData.isQueued then
+          -- Queued rune (waiting for recharge slot)
+          if point.ProgressBar.ResetSmoothedValue then
+            point.ProgressBar:ResetSmoothedValue(0)
+          else
+            point.ProgressBar:SetValue(0)
+          end
+          point.ProgressBar:Hide()
+          point.AnimTexture:Hide()
+          point.AnimGroup:Stop()
+          point.lastStart = nil
+          point.lastDuration = nil
+        else
+          -- Time-based fill (DK Runes, Evoker Essence)
+          point.ProgressBar:Hide()
+          point.AnimTexture:Show()
+          point.AnimTexture:SetVertexColor(drawColor.r, drawColor.g, drawColor.b, (db.currentOpacity or 1) * 0.7)
+
+          if myPartialData.start then
+            -- DK Logic (Strict Time Sync)
+            if
+              point.lastStart ~= myPartialData.start
+              or math.abs((point.lastDuration or 0) - myPartialData.duration) > 0.01
+            then
+              point.lastStart = myPartialData.start
+              point.lastDuration = myPartialData.duration
+
+              local now = GetTime()
+              local offset = math.max(0, now - myPartialData.start)
+
+              local totalWidth = pointWidth - 2
+              point.AnimTexture:SetWidth(totalWidth)
+
+              point.ScaleAnim:SetScaleFrom(0, 1)
+              point.ScaleAnim:SetScaleTo(1, 1)
+              point.ScaleAnim:SetDuration(myPartialData.duration)
+              -- point.ScaleAnim:SetSmoothing("NONE")
+
+              point.AnimGroup:Restart(false, offset)
+            end
+          else
+            -- Evoker Logic (Continuous Regen Sync)
+            local serverProgress = myPartialData.progress
+            local durationChanged = math.abs((point.lastDuration or 0) - myPartialData.duration) > 0.01
+            local isPlaying = point.AnimGroup:IsPlaying()
+
+            -- Trust the animation speed (derived from regen). Only restart if stopped or speed changes.
+            if durationChanged or not isPlaying then
+              point.lastDuration = myPartialData.duration
+
+              local offset = serverProgress * myPartialData.duration
+
+              local totalWidth = pointWidth - 2
+              point.AnimTexture:SetWidth(totalWidth)
+
+              point.ScaleAnim:SetScaleFrom(0, 1)
+              point.ScaleAnim:SetScaleTo(1, 1)
+              point.ScaleAnim:SetDuration(myPartialData.duration)
+              -- point.ScaleAnim:SetSmoothing("NONE")
+
+              point.AnimGroup:Restart(false, offset)
+            end
+          end
+        end
       elseif myPartial > 0 then
-        -- Partial point - resize to show only partial width
-        point.Fill:ClearAllPoints()
-        point.Fill:SetPoint("TOPLEFT", point, "TOPLEFT", 1, -1)
-        point.Fill:SetPoint("BOTTOMLEFT", point, "BOTTOMLEFT", 1, 1)
-        local fillWidth = (pointWidth - 2) * myPartial -- -2 for borders
-        point.Fill:SetWidth(fillWidth)
-        point.Fill:SetTexture(BUII_GetTexturePath())
-        point.Fill:SetVertexColor(drawColor.r, drawColor.g, drawColor.b, (db.currentOpacity or 1) * 0.7)
-        point.Fill:Show()
+        -- Partial point (Generic / Others)
+        point.AnimGroup:Stop()
+        point.AnimTexture:Hide()
+        point.lastStart = nil
+        point.lastDuration = nil
+
+        if point.ProgressBar.SetSmoothedValue then
+          point.ProgressBar:SetSmoothedValue(myPartial)
+        else
+          point.ProgressBar:SetValue(myPartial)
+        end
+        point.ProgressBar:SetStatusBarColor(drawColor.r, drawColor.g, drawColor.b, (db.currentOpacity or 1) * 0.7)
+        point.ProgressBar:Show()
       else
-        point.Fill:Hide()
+        -- Empty point
+        if point.ProgressBar.ResetSmoothedValue then
+          point.ProgressBar:ResetSmoothedValue(0)
+        else
+          point.ProgressBar:SetValue(0)
+        end
+        point.ProgressBar:Hide()
+        point.AnimGroup:Stop()
+        point.AnimTexture:Hide()
+        point.lastStart = nil
+        point.lastDuration = nil
       end
 
       point.Background:SetTexture(BUII_GetTexturePath())
@@ -836,13 +956,13 @@ end
 function BUII_ResourceTracker_Enable()
   BUII_ResourceTracker_Initialize()
 
-  frame:RegisterEvent("UNIT_AURA")
-  frame:RegisterEvent("UNIT_POWER_UPDATE")
-  frame:RegisterEvent("UNIT_POWER_FREQUENT")
-  frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+  frame:RegisterEvent("UNIT_AURA", "player")
+  frame:RegisterEvent("UNIT_POWER_UPDATE", "player")
+  frame:RegisterEvent("UNIT_POWER_FREQUENT", "player")
+  frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED", "player")
+  frame:RegisterEvent("RUNE_POWER_UPDATE", "player")
   frame:RegisterEvent("PLAYER_ENTERING_WORLD")
   frame:SetScript("OnEvent", onEvent)
-  frame:SetScript("OnUpdate", UpdatePoints)
 
   -- Register Edit Mode Callbacks
   EventRegistry:RegisterCallback("EditMode.Enter", editMode_OnEnter, "BUII_ResourceTracker_Custom_OnEnter")
@@ -859,7 +979,6 @@ function BUII_ResourceTracker_Disable()
   end
   frame:UnregisterAllEvents()
   frame:SetScript("OnEvent", nil)
-  frame:SetScript("OnUpdate", nil)
 
   EventRegistry:UnregisterCallback("EditMode.Enter", "BUII_ResourceTracker_Custom_OnEnter")
   EventRegistry:UnregisterCallback("EditMode.Exit", "BUII_ResourceTracker_Custom_OnExit")
