@@ -72,7 +72,21 @@ local function UpdateStats()
   local currentY = -5
   if db.stat_panel_show_title then
     title:Show()
-    title:SetFont(BUII_GetFontPath(), fontSize + 2, "OUTLINE")
+    local fontPath = BUII_GetFontPath()
+    local fontFlags = BUII_GetFontFlags()
+
+    -- Save text, clear it, change font, restore text to force refresh
+    local titleText = title:GetText()
+    title:SetText("")
+
+    local success, err = pcall(title.SetFont, title, fontPath, fontSize + 2, fontFlags)
+    if not success then
+      print("BUII StatPanel: Failed to set title font - " .. tostring(err))
+      -- Fallback to default font
+      title:SetFont(GameFontNormal:GetFont())
+    end
+
+    title:SetText(titleText or "Stats")
     title:SetPoint("TOPLEFT", frame, "TOPLEFT", 5, -5)
     title:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -5, -5)
     currentY = currentY - (fontSize + 2) - 5
@@ -105,13 +119,32 @@ local function UpdateStats()
       row:SetPoint("TOPLEFT", frame, "TOPLEFT", 5, currentY)
       row:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -5, currentY)
 
-      row.Label:SetFont(BUII_GetFontPath(), fontSize, "OUTLINE")
-      row.Label:SetText(statDef.label)
+      local fontPath = BUII_GetFontPath()
+      local fontFlags = BUII_GetFontFlags()
+
+      -- Save text, clear, change font, restore to force refresh
+      local labelText = statDef.label
+      row.Label:SetText("")
+
+      local success = pcall(row.Label.SetFont, row.Label, fontPath, fontSize, fontFlags)
+      if not success then
+        -- Fallback to default font
+        row.Label:SetFont(GameFontNormal:GetFont())
+      end
+      row.Label:SetText(labelText)
       row.Label:SetPoint("LEFT", row, "LEFT", 0, 0)
 
-      row.Value:SetFont(BUII_GetFontPath(), fontSize, "OUTLINE")
+      -- Same for value
       local val = statDef.func()
-      row.Value:SetText(FormatValue(val, statDef.percent))
+      local valueText = FormatValue(val, statDef.percent)
+      row.Value:SetText("")
+
+      success = pcall(row.Value.SetFont, row.Value, fontPath, fontSize, fontFlags)
+      if not success then
+        -- Fallback to default font
+        row.Value:SetFont(GameFontNormal:GetFont())
+      end
+      row.Value:SetText(valueText)
       row.Value:SetPoint("RIGHT", row, "RIGHT", 0, 0)
 
       currentY = currentY - fontSize - spacing
@@ -390,6 +423,24 @@ function BUII_StatPanel_Disable()
   EventRegistry:UnregisterCallback("EditMode.Exit", "BUII_StatPanel_OnExit")
 
   frame:Hide()
+end
+
+function BUII_StatPanel_Refresh()
+  if not frame then
+    return
+  end
+
+  -- Force a complete visual refresh by hiding and showing
+  local wasShown = frame:IsShown()
+  if wasShown then
+    frame:Hide()
+  end
+
+  UpdateStats()
+
+  if wasShown then
+    frame:Show()
+  end
 end
 
 function BUII_StatPanel_InitDB()

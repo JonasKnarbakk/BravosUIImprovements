@@ -86,6 +86,9 @@
   </Frame>
 
   <Frame name="BUIIOptionsPanel" hidden="false">
+    <Size>
+      <AbsDimension x="630" y="580"/>
+    </Size>
 
     <Layers>
       <Layer level="ARTWORK">
@@ -102,10 +105,56 @@
     </Layers>
 
     <Frames>
+      <!-- Tab Buttons -->
+      <Button name="$parentTab1" parentKey="Tab1" inherits="PanelTabButtonTemplate" id="1" text="Default UI">
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeTo="$parentDisplayHeader" relativePoint="BOTTOMLEFT" x="10" y="-5"/>
+        </Anchors>
+        <Scripts>
+          <OnClick>
+            BUII_OptionsPanel_SelectTab(1)
+          </OnClick>
+        </Scripts>
+      </Button>
+
+      <Button name="$parentTab2" parentKey="Tab2" inherits="PanelTabButtonTemplate" id="2" text="WeakAura-like">
+        <Anchors>
+          <Anchor point="LEFT" relativeTo="$parentTab1" relativePoint="RIGHT" x="0" y="0"/>
+        </Anchors>
+        <Scripts>
+          <OnClick>
+            BUII_OptionsPanel_SelectTab(2)
+          </OnClick>
+        </Scripts>
+      </Button>
+
+      <ScrollFrame parentKey="ScrollFrame" inherits="UIPanelScrollFrameTemplate">
+        <Size>
+          <AbsDimension x="600" y="495"/>
+        </Size>
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeTo="$parentTab1" relativePoint="BOTTOMLEFT" x="-10" y="-5"/>
+        </Anchors>
+        <ScrollChild>
+          <Frame parentKey="ScrollChild">
+            <Size>
+              <AbsDimension x="580" y="1200"/>
+            </Size>
+            <Frames>
+
+      <!-- Default UI Tab Content -->
+      <Frame name="$parentDefaultUIContent" parentKey="DefaultUIContent">
+        <Size>
+          <AbsDimension x="580" y="600"/>
+        </Size>
+        <Anchors>
+          <Anchor point="TOPLEFT" x="0" y="0"/>
+        </Anchors>
+        <Frames>
 
       <CheckButton name="$parentHealthClassColor" parentKey="HealthClassColor" inherits="InterfaceOptionsCheckButtonTemplate">
         <Anchors>
-          <Anchor point="TOPLEFT" relativeTo="$parentDisplayHeader" relativePoint="BOTTOMLEFT" x="0" y="-25"/>
+          <Anchor point="TOPLEFT" x="0" y="-10"/>
         </Anchors>
         <Layers>
           <Layer level="ARTWORK">
@@ -265,9 +314,69 @@
         </Scripts>
       </CheckButton>
 
+        </Frames> <!-- End DefaultUIContent Frames -->
+      </Frame> <!-- End DefaultUIContent -->
+
+      <!-- WeakAura-like Tab Content -->
+      <Frame name="$parentWeakAuraContent" parentKey="WeakAuraContent">
+        <Size>
+          <AbsDimension x="580" y="600"/>
+        </Size>
+        <Anchors>
+          <Anchor point="TOPLEFT" x="0" y="0"/>
+        </Anchors>
+        <Frames>
+
+      <!-- Font Selection -->
+      <Frame name="$parentFontLabel" parentKey="FontLabel">
+        <Size x="50" y="20"/>
+        <Anchors>
+          <!-- <Anchor point="TOPLEFT" relativeKey="$parent.TooltipExpansion" relativePoint="BOTTOMLEFT" x="10" y="-15"/> -->
+          <Anchor point="TOPLEFT" x="0" y="-10"/>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString parentKey="Text" text="Font:" inherits="GameFontNormal">
+              <Anchors>
+                <Anchor point="LEFT" x="0" y="0"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+      </Frame>
+
+      <Frame name="$parentFontDropdown" parentKey="FontDropdown" inherits="UIDropDownMenuTemplate">
+        <Anchors>
+          <Anchor point="LEFT" relativeKey="$parent.FontLabel" relativePoint="RIGHT" x="0" y="0"/>
+        </Anchors>
+      </Frame>
+
+      <!-- Outline Selection -->
+      <Frame name="$parentOutlineLabel" parentKey="OutlineLabel">
+        <Size x="60" y="20"/>
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeKey="$parent.FontLabel" relativePoint="BOTTOMLEFT" x="0" y="-15"/>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString parentKey="Text" text="Outline:" inherits="GameFontNormal">
+              <Anchors>
+                <Anchor point="LEFT"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+      </Frame>
+
+      <Frame name="$parentOutlineDropdown" parentKey="OutlineDropdown" inherits="UIDropDownMenuTemplate">
+        <Anchors>
+          <Anchor point="LEFT" relativeKey="$parent.OutlineLabel" relativePoint="RIGHT" x="-10" y="0"/>
+        </Anchors>
+      </Frame>
+
       <CheckButton name="$parentCallToArms" parentKey="CallToArms" inherits="InterfaceOptionsCheckButtonTemplate">
         <Anchors>
-          <Anchor point="TOPLEFT" relativeKey="$parent.TooltipExpansion" relativePoint="BOTTOMLEFT" x="0" y="0"/>
+          <Anchor point="TOPLEFT" relativeKey="$parent.OutlineLabel" relativePoint="BOTTOMLEFT" x="0" y="-10"/>
         </Anchors>
         <Layers>
           <Layer level="ARTWORK">
@@ -553,7 +662,14 @@
         </Scripts>
       </CheckButton>
 
-    </Frames>
+        </Frames> <!-- End WeakAuraContent Frames -->
+      </Frame> <!-- End WeakAuraContent -->
+
+            </Frames> <!-- End ScrollChild Frames -->
+          </Frame> <!-- End ScrollChild -->
+        </ScrollChild>
+      </ScrollFrame>
+    </Frames> <!-- End Main Panel Frames -->
 
     <Scripts>
       <OnLoad function="BUII_OnLoadHandler"/>

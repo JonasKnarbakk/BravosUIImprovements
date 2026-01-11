@@ -30,7 +30,10 @@ local function setPlayerClassColor()
     playerHealthBar = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer.HealthBar
   end
 
-  if _G["BUIIOptionsPanelHealthClassColor"]:GetChecked() then
+  local panel = BUIIOptionsPanel
+  local defaultUIContent = panel.ScrollFrame.ScrollChild.DefaultUIContent
+
+  if defaultUIContent.HealthClassColor:GetChecked() then
     playerHealthBar:SetStatusBarDesaturated(true)
     playerHealthBar:SetStatusBarColor(r, g, b)
     BUIIDatabase["class_color"] = true
@@ -208,6 +211,118 @@ local function handleUnitFramePortraitUpdate(self)
   end
 end
 
+local function BUII_RefreshAllModuleFonts()
+  -- Update all active modules that use fonts
+  if BUIIDatabase["stat_panel"] and BUII_StatPanel_Refresh then
+    BUII_StatPanel_Refresh()
+  end
+  if BUIIDatabase["stance_tracker"] and BUII_StanceTracker_Refresh then
+    BUII_StanceTracker_Refresh()
+  end
+  if BUIIDatabase["resource_tracker"] and BUII_ResourceTracker_Refresh then
+    BUII_ResourceTracker_Refresh()
+  end
+  if BUIIDatabase["gear_talent_loadout"] and BUII_GearAndTalentLoadout_Refresh then
+    BUII_GearAndTalentLoadout_Refresh()
+  end
+  if BUIIDatabase["combat_state"] and BUII_CombatState_Refresh then
+    BUII_CombatState_Refresh()
+  end
+  if BUIIDatabase["ready_check"] and BUII_ReadyCheck_Refresh then
+    BUII_ReadyCheck_Refresh()
+  end
+  if BUIIDatabase["call_to_arms"] and BUII_CallToArms_Refresh then
+    BUII_CallToArms_Refresh()
+  end
+  if BUIIDatabase["group_tools"] and BUII_GroupTools_Refresh then
+    BUII_GroupTools_Refresh()
+  end
+  if BUIIDatabase["loot_spec"] and BUII_LootSpec_Refresh then
+    BUII_LootSpec_Refresh()
+  end
+end
+
+function BUII_OptionsPanel_SelectTab(tabNum)
+  local panel = BUIIOptionsPanel
+  local scrollChild = panel.ScrollFrame.ScrollChild
+
+  -- Hide all tab contents
+  scrollChild.DefaultUIContent:Hide()
+  scrollChild.WeakAuraContent:Hide()
+
+  -- Show selected tab content
+  if tabNum == 1 then
+    scrollChild.DefaultUIContent:Show()
+    PanelTemplates_SetTab(panel, 1)
+  elseif tabNum == 2 then
+    scrollChild.WeakAuraContent:Show()
+    PanelTemplates_SetTab(panel, 2)
+  end
+end
+
+local function BUII_InitializeFontDropdowns()
+  local panel = BUIIOptionsPanel
+  local weakAura = panel.ScrollFrame.ScrollChild.WeakAuraContent
+  local fontDropdown = weakAura.FontLabel
+  local outlineDropdown = weakAura.OutlineLabel
+
+  -- Get actual dropdown frames (children of the label frames)
+  fontDropdown = weakAura.FontDropdown
+  outlineDropdown = weakAura.OutlineDropdown
+
+  -- Set dropdown widths
+  UIDropDownMenu_SetWidth(fontDropdown, 150)
+  UIDropDownMenu_SetWidth(outlineDropdown, 150)
+
+  -- Initialize Font Dropdown
+  UIDropDownMenu_Initialize(fontDropdown, function(self, level)
+    local fonts = BUII_GetAvailableFonts()
+    for _, font in ipairs(fonts) do
+      local info = UIDropDownMenu_CreateInfo()
+      info.text = font.name
+      info.arg1 = font.name
+      info.func = function(self, fontName)
+        BUIIDatabase["font_name"] = fontName
+        UIDropDownMenu_SetText(fontDropdown, fontName)
+        CloseDropDownMenus()
+        BUII_RefreshAllModuleFonts()
+      end
+      info.checked = (BUIIDatabase["font_name"] == font.name)
+      UIDropDownMenu_AddButton(info, level)
+    end
+  end)
+
+  UIDropDownMenu_SetText(fontDropdown, BUIIDatabase["font_name"] or "Expressway")
+
+  -- Initialize Outline Dropdown
+  UIDropDownMenu_Initialize(outlineDropdown, function(self, level)
+    for _, option in ipairs(BUII_OUTLINE_OPTIONS) do
+      local info = UIDropDownMenu_CreateInfo()
+      info.text = option.name
+      info.arg1 = option.value
+      info.arg2 = option.name
+      info.func = function(self, outlineValue, outlineName)
+        BUIIDatabase["font_outline"] = outlineValue
+        UIDropDownMenu_SetText(outlineDropdown, outlineName)
+        CloseDropDownMenus()
+        BUII_RefreshAllModuleFonts()
+      end
+      info.checked = (BUIIDatabase["font_outline"] == option.value)
+      UIDropDownMenu_AddButton(info, level)
+    end
+  end)
+
+  -- Find and set the display name for the current outline value
+  local currentOutlineName = "Outline"
+  for _, option in ipairs(BUII_OUTLINE_OPTIONS) do
+    if option.value == (BUIIDatabase["font_outline"] or "OUTLINE") then
+      currentOutlineName = option.name
+      break
+    end
+  end
+  UIDropDownMenu_SetText(outlineDropdown, currentOutlineName)
+end
+
 function BUII_OnLoadHandler(self)
   self:RegisterEvent("ADDON_LOADED")
   self:RegisterEvent("PLAYER_ENTERING_WORLD")
@@ -215,13 +330,44 @@ function BUII_OnLoadHandler(self)
   EventRegistry:RegisterCallback("EditMode.Exit", editMode_OnExit, "BUII_Improvements_OnExit")
   hooksecurefunc("UnitFramePortrait_Update", handleUnitFramePortraitUpdate)
 
-  self.name = "Bravo's UI Improvements"
-  if InterfaceOptions_AddCategory then
-    InterfaceOptions_AddCategory(self)
+  -- Register with modern Settings API
+  if Settings and Settings.RegisterVerticalLayoutCategory then
+    -- Create main category with vertical layout
+    local mainCategory, mainLayout = Settings.RegisterVerticalLayoutCategory("Bravo's UI Improvements")
+    mainCategory.ID = "BravosUIImprovements"
+
+    -- Create Default UI subcategory
+    local defaultUIPanel = BUIIOptionsPanel.ScrollFrame.ScrollChild.DefaultUIContent
+    defaultUIPanel.name = "Default UI"
+    local defaultUICategory, defaultUILayout =
+      Settings.RegisterCanvasLayoutSubcategory(mainCategory, defaultUIPanel, "Default UI")
+    defaultUICategory.ID = "BravosUIImprovements_DefaultUI"
+
+    -- Create WeakAura-like subcategory
+    local weakAuraPanel = BUIIOptionsPanel.ScrollFrame.ScrollChild.WeakAuraContent
+    weakAuraPanel.name = "WeakAura-like"
+    local weakAuraCategory, weakAuraLayout =
+      Settings.RegisterCanvasLayoutSubcategory(mainCategory, weakAuraPanel, "WeakAura-like")
+    weakAuraCategory.ID = "BravosUIImprovements_WeakAura"
+
+    -- Register the addon category
+    Settings.RegisterAddOnCategory(mainCategory)
+
+    -- Hide manual tabs since Settings API provides category navigation
+    if BUIIOptionsPanel.Tab1 then
+      BUIIOptionsPanel.Tab1:Hide()
+    end
+    if BUIIOptionsPanel.Tab2 then
+      BUIIOptionsPanel.Tab2:Hide()
+    end
+
+    addon.settingsCategory = mainCategory
+    addon.defaultUICategory = defaultUICategory
+    addon.weakAuraCategory = weakAuraCategory
   else
-    local category, layout = Settings.RegisterCanvasLayoutCategory(self, self.name)
-    Settings.RegisterAddOnCategory(category)
-    addon.settingsCategory = category
+    -- Fallback for older interface
+    self.name = "Bravo's UI Improvements"
+    InterfaceOptions_AddCategory(self)
   end
 end
 
@@ -280,6 +426,12 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       if BUIIDatabase["sane_bag_sort"] == nil then
         BUIIDatabase["sane_bag_sort"] = false
       end
+      if BUIIDatabase["font_name"] == nil then
+        BUIIDatabase["font_name"] = "Expressway"
+      end
+      if BUIIDatabase["font_outline"] == nil then
+        BUIIDatabase["font_outline"] = "OUTLINE"
+      end
 
       -- Initialize character-specific main file settings
       if BUIICharacterDatabase["hide_stance_bar"] == nil then
@@ -312,148 +464,155 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       BUII_ResourceTracker_InitDB()
       BUII_LootSpec_InitDB()
 
+      -- Initialize font and outline dropdowns
+      BUII_InitializeFontDropdowns()
+
       self:UnregisterEvent("ADDON_LOADED")
     elseif arg1 == "Blizzard_EditMode" then
       BUII_RegisterEditModeSystem()
     end
   elseif event == "PLAYER_ENTERING_WORLD" then
+    local panel = BUIIOptionsPanel
+    local defaultUI = panel.ScrollFrame.ScrollChild.DefaultUIContent
+    local weakAura = panel.ScrollFrame.ScrollChild.WeakAuraContent
+
     if BUIIDatabase["class_color"] then
-      _G["BUIIOptionsPanelHealthClassColor"]:SetChecked(true)
+      defaultUI.HealthClassColor:SetChecked(true)
       setPlayerClassColor()
     end
 
     if BUIIDatabase["castbar_timers"] then
       BUII_CastBarTimersEnable()
-      _G["BUIIOptionsPanelCastBarTimers"]:SetChecked(true)
+      defaultUI.CastBarTimers:SetChecked(true)
     end
 
     if BUIIDatabase["castbar_icon"] then
       showPlayerCastBarIcon(true)
-      _G["BUIIOptionsPanelCastBarIcon"]:SetChecked(true)
+      defaultUI.CastBarIcon:SetChecked(true)
     end
 
     if BUIIDatabase["castbar_on_top"] then
       setCastBarOnTop(true)
-      _G["BUIIOptionsPanelCastBarOnTop"]:SetChecked(true)
+      defaultUI.CastBarOnTop:SetChecked(true)
     end
 
     if BUIIDatabase["sane_bag_sort"] then
       setSaneBagSorting(true)
-      _G["BUIIOptionsPanelSaneCombinedBagSorting"]:SetChecked(true)
+      defaultUI.SaneCombinedBagSorting:SetChecked(true)
     end
 
     if BUIICharacterDatabase["hide_stance_bar"] then
       setHideStanceBar(true)
-      _G["BUIIOptionsPanelHideStanceBar"]:SetChecked(true)
+      defaultUI.HideStanceBar:SetChecked(true)
     end
 
     if BUIIDatabase["quick_keybind_shortcut"] then
       BUII_QuickKeybindModeShortcutEnable()
-      _G["BUIIOptionsPanelQuickKeybindShortcut"]:SetChecked(true)
+      defaultUI.QuickKeybindShortcut:SetChecked(true)
     end
 
     if BUIIDatabase["improved_edit_mode"] then
       BUII_ImprovedEditModeEnable()
-      _G["BUIIOptionsPanelImprovedEditMode"]:SetChecked(true)
+      defaultUI.ImprovedEditMode:SetChecked(true)
     end
 
     if BUIIDatabase["tooltip_expansion"] then
       BUII_TooltipImprovements_Enabled()
-      _G["BUIIOptionsPanelTooltipExpansion"]:SetChecked(true)
+      defaultUI.TooltipExpansion:SetChecked(true)
     end
 
     if BUIIDatabase["call_to_arms"] then
       BUII_CallToArms_Enable()
-      _G["BUIIOptionsPanelCallToArms"]:SetChecked(true)
+      weakAura.CallToArms:SetChecked(true)
     end
 
     if BUIIDatabase["ion_mode"] then
       BUII_Ion_Enable()
-      _G["BUIIOptionsPanelIon"]:SetChecked(true)
+      weakAura.Ion:SetChecked(true)
     end
 
     if BUIIDatabase["gear_talent_loadout"] then
       BUII_GearAndTalentLoadout_Enable()
-      _G["BUIIOptionsPanelGearAndTalentLoadout"]:SetChecked(true)
+      weakAura.GearAndTalentLoadout:SetChecked(true)
     end
 
     if BUIIDatabase["combat_state"] then
       BUII_CombatState_Enable()
-      _G["BUIIOptionsPanelCombatState"]:SetChecked(true)
+      weakAura.CombatState:SetChecked(true)
     end
 
     if BUIIDatabase["ready_check"] then
       BUII_ReadyCheck_Enable()
-      _G["BUIIOptionsPanelReadyCheck"]:SetChecked(true)
+      weakAura.ReadyCheck:SetChecked(true)
     end
 
     if BUIIDatabase["group_tools"] then
       BUII_GroupTools_Enable()
-      _G["BUIIOptionsPanelGroupTools"]:SetChecked(true)
+      weakAura.GroupTools:SetChecked(true)
     end
 
     if BUIIDatabase["stance_tracker"] then
       BUII_StanceTracker_Enable()
-      _G["BUIIOptionsPanelStanceTracker"]:SetChecked(true)
+      weakAura.StanceTracker:SetChecked(true)
     else
-      _G["BUIIOptionsPanelStanceTracker"]:SetChecked(false)
+      weakAura.StanceTracker:SetChecked(false)
     end
 
     if BUIIDatabase["stat_panel"] then
       BUII_StatPanel_Enable()
-      _G["BUIIOptionsPanelStatPanel"]:SetChecked(true)
+      weakAura.StatPanel:SetChecked(true)
     else
-      _G["BUIIOptionsPanelStatPanel"]:SetChecked(false)
+      weakAura.StatPanel:SetChecked(false)
     end
 
     if BUIIDatabase["resource_tracker"] then
       BUII_ResourceTracker_Enable()
-      _G["BUIIOptionsPanelResourceTracker"]:SetChecked(true)
+      weakAura.ResourceTracker:SetChecked(true)
     else
-      _G["BUIIOptionsPanelResourceTracker"]:SetChecked(false)
+      weakAura.ResourceTracker:SetChecked(false)
     end
 
     if BUIIDatabase["resource_tracker_shaman"] then
-      _G["BUIIOptionsPanelResourceTrackerShaman"]:SetChecked(true)
+      weakAura.ResourceTrackerShaman:SetChecked(true)
     else
-      _G["BUIIOptionsPanelResourceTrackerShaman"]:SetChecked(false)
+      weakAura.ResourceTrackerShaman:SetChecked(false)
     end
 
     if BUIIDatabase["resource_tracker_demonhunter"] then
-      _G["BUIIOptionsPanelResourceTrackerDemonHunter"]:SetChecked(true)
+      weakAura.ResourceTrackerDemonHunter:SetChecked(true)
     else
-      _G["BUIIOptionsPanelResourceTrackerDemonHunter"]:SetChecked(false)
+      weakAura.ResourceTrackerDemonHunter:SetChecked(false)
     end
 
     if BUIIDatabase["stance_tracker_druid"] then
-      _G["BUIIOptionsPanelStanceTrackerDruid"]:SetChecked(true)
+      weakAura.StanceTrackerDruid:SetChecked(true)
     else
-      _G["BUIIOptionsPanelStanceTrackerDruid"]:SetChecked(false)
+      weakAura.StanceTrackerDruid:SetChecked(false)
     end
 
     if BUIIDatabase["stance_tracker_paladin"] then
-      _G["BUIIOptionsPanelStanceTrackerPaladin"]:SetChecked(true)
+      weakAura.StanceTrackerPaladin:SetChecked(true)
     else
-      _G["BUIIOptionsPanelStanceTrackerPaladin"]:SetChecked(false)
+      weakAura.StanceTrackerPaladin:SetChecked(false)
     end
 
     if BUIIDatabase["stance_tracker_rogue"] then
-      _G["BUIIOptionsPanelStanceTrackerRogue"]:SetChecked(true)
+      weakAura.StanceTrackerRogue:SetChecked(true)
     else
-      _G["BUIIOptionsPanelStanceTrackerRogue"]:SetChecked(false)
+      weakAura.StanceTrackerRogue:SetChecked(false)
     end
 
     if BUIIDatabase["stance_tracker_warrior"] then
-      _G["BUIIOptionsPanelStanceTrackerWarrior"]:SetChecked(true)
+      weakAura.StanceTrackerWarrior:SetChecked(true)
     else
-      _G["BUIIOptionsPanelStanceTrackerWarrior"]:SetChecked(false)
+      weakAura.StanceTrackerWarrior:SetChecked(false)
     end
 
     if BUIIDatabase["loot_spec"] then
       BUII_LootSpec_Enable()
-      _G["BUIIOptionsPanelLootSpec"]:SetChecked(true)
+      weakAura.LootSpec:SetChecked(true)
     else
-      _G["BUIIOptionsPanelLootSpec"]:SetChecked(false)
+      weakAura.LootSpec:SetChecked(false)
     end
   end
 end

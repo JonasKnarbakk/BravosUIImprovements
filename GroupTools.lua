@@ -19,7 +19,7 @@ local function UpdateBattleRez()
   -- Apply font size from the single source of truth
   local fontSize = frame.currentFontSize or 12
   if bRezText then
-    bRezText:SetFont(BUII_GetFontPath(), fontSize, "OUTLINE")
+    bRezText:SetFont(BUII_GetFontPath(), fontSize, BUII_GetFontFlags())
   end
 
   if spellChargeInfo == nil then
@@ -176,7 +176,7 @@ local function BUII_GroupTools_Initialize()
   bRezIcon:SetTexCoord(0, 1, 0, 1)
 
   bRezText = bRezFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-  bRezText:SetFont(BUII_GetFontPath(), 12, "OUTLINE")
+  bRezText:SetFont(BUII_GetFontPath(), 12, BUII_GetFontFlags())
   bRezText:SetPoint("LEFT", bRezIcon, "RIGHT", 5, 0)
   bRezText:SetJustifyH("LEFT")
 
@@ -184,7 +184,7 @@ local function BUII_GroupTools_Initialize()
   pullBtn:SetSize(140, 20)
   pullBtn:SetPoint("TOP", bRezFrame, "BOTTOM", 0, -5)
   pullBtn:SetText("Pull Timer")
-  pullBtn:GetFontString():SetFont(BUII_GetFontPath(), 10, "OUTLINE")
+  pullBtn:GetFontString():SetFont(BUII_GetFontPath(), 10, BUII_GetFontFlags())
   pullBtn:RegisterForClicks("LeftButtonUp", "RightButtonUp")
   pullBtn:SetScript("OnClick", function(self, button)
     local timer = IsInRaid() and 10 or 5
@@ -203,7 +203,7 @@ local function BUII_GroupTools_Initialize()
   rcBtn:SetSize(140, 20)
   rcBtn:SetPoint("TOP", pullBtn, "BOTTOM", 0, -5)
   rcBtn:SetText("Ready Check")
-  rcBtn:GetFontString():SetFont(BUII_GetFontPath(), 10, "OUTLINE")
+  rcBtn:GetFontString():SetFont(BUII_GetFontPath(), 10, BUII_GetFontFlags())
   rcBtn:SetScript("OnClick", function()
     DoReadyCheck()
   end)
@@ -299,6 +299,16 @@ function BUII_GroupTools_Disable()
   frame:SetScript("OnEvent", nil)
   timerFrame:Hide()
   frame:Hide()
+end
+
+function BUII_GroupTools_Refresh()
+  if frame then
+    UpdateBattleRez()
+  end
+  -- Note: Buttons are updated when they are clicked or initialized, 
+  -- but we can't easily reference them globally unless we store them.
+  -- For now, UpdateBattleRez handles the main text.
+  -- To properly update buttons, we'd need to store them in frame or locals.
 end
 
 function BUII_GroupTools_InitDB()

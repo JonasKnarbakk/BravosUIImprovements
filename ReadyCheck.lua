@@ -48,7 +48,7 @@ local function BUII_ReadyCheck_Initialize()
   frame:Hide()
 
   text = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
-  text:SetFont(BUII_GetFontPath(), 44, "OUTLINE")
+  text:SetFont(BUII_GetFontPath(), 44, BUII_GetFontFlags())
   text:SetPoint("CENTER", frame, "CENTER")
   text:SetText("Check Gear & Talents")
   text:SetTextColor(1, 1, 1) -- White text
@@ -96,7 +96,7 @@ local function BUII_ReadyCheck_Initialize()
     "ready_check",
     {
       OnReset = function(f)
-        text:SetFont(BUII_GetFontPath(), 44, "OUTLINE")
+        text:SetFont(BUII_GetFontPath(), 44, BUII_GetFontFlags())
       end,
       OnApplySettings = function(f)
         -- Scale handled automatically
@@ -148,6 +148,12 @@ function BUII_ReadyCheck_Disable()
   if hideTimer then
     hideTimer:Cancel()
     hideTimer = nil
+  end
+end
+
+function BUII_ReadyCheck_Refresh()
+  if frame and text then
+    text:SetFont(BUII_GetFontPath(), 44, BUII_GetFontFlags())
   end
 end
 

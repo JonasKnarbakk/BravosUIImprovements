@@ -26,16 +26,128 @@ BUII_HUD_EDIT_MODE_STAT_PANEL_LABEL = "Stat Panel"
 Enum.EditModeSystem.BUII_LootSpec = 109
 BUII_HUD_EDIT_MODE_LOOT_SPEC_LABEL = "Loot Specialization"
 
-function BUII_GetFontPath()
-  local fontName = "Expressway"
-  local LSM = LibStub and LibStub("LibSharedMedia-3.0", true)
-  if LSM then
-    local font = LSM:Fetch("font", fontName)
-    if font then
-      return font
+-- Default WoW fonts
+local DEFAULT_FONTS = {
+  { name = "Friz Quadrata TT", path = "Fonts\\FRIZQT__.TTF" },
+  { name = "Arial Narrow", path = "Fonts\\ARIALN.TTF" },
+  { name = "Skurri", path = "Fonts\\skurri.ttf" },
+  { name = "Morpheus", path = "Fonts\\MORPHEUS.ttf" },
+}
+
+-- Outline options
+BUII_OUTLINE_OPTIONS = {
+  { name = "None", value = "" },
+  { name = "Outline", value = "OUTLINE" },
+  { name = "Thick Outline", value = "THICKOUTLINE" },
+  { name = "Monochrome", value = "MONOCHROME" },
+  { name = "Monochrome Outline", value = "MONOCHROME, OUTLINE" },
+  { name = "Monochrome Thick", value = "MONOCHROME, THICKOUTLINE" },
+}
+
+function BUII_GetAvailableFonts()
+  local fonts = {}
+  local fontNames = {} -- Track added fonts to avoid duplicates
+
+  -- Add default WoW fonts
+  for _, font in ipairs(DEFAULT_FONTS) do
+    if not fontNames[font.name] then
+      table.insert(fonts, font)
+      fontNames[font.name] = true
     end
   end
-  -- Fallback
-  local filename = GameFontHighlight:GetFont()
-  return filename
+
+  -- Add LSM fonts if available
+  local LSM = LibStub and LibStub("LibSharedMedia-3.0", true)
+  if LSM then
+    local lsmFonts = LSM:List("font")
+    for _, fontName in ipairs(lsmFonts) do
+      -- Skip if already added
+      if not fontNames[fontName] then
+        local fontPath = LSM:Fetch("font", fontName)
+        if fontPath then
+          table.insert(fonts, { name = fontName, path = fontPath })
+          fontNames[fontName] = true
+        end
+      end
+    end
+  end
+
+  -- Sort fonts alphabetically by name for easier browsing
+  table.sort(fonts, function(a, b)
+    return a.name < b.name
+  end)
+
+  return fonts
+end
+
+-- Test if a font path is valid by trying to create a temporary font string
+local function BUII_ValidateFontPath(fontPath, fontSize, flags)
+  if not fontPath or fontPath == "" then
+    return false
+  end
+
+  -- Create a temporary font string to test the font
+  local testFrame = CreateFrame("Frame")
+  local testString = testFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  local success = pcall(testString.SetFont, testString, fontPath, fontSize or 12, flags or "")
+
+  testFrame:Hide()
+  testFrame = nil
+
+  return success
+end
+
+function BUII_GetFontPath()
+  if not BUIIDatabase then
+    return GameFontHighlight:GetFont()
+  end
+
+  local selectedFont = BUIIDatabase["font_name"]
+  if not selectedFont then
+    selectedFont = "Expressway"
+  end
+
+  local fontPath = nil
+
+  -- Try LSM first
+  local LSM = LibStub and LibStub("LibSharedMedia-3.0", true)
+  if LSM then
+    local success, font = pcall(LSM.Fetch, LSM, "font", selectedFont)
+    if success and font then
+      fontPath = font
+    end
+  end
+
+  -- Try default fonts if LSM failed
+  if not fontPath then
+    for _, font in ipairs(DEFAULT_FONTS) do
+      if font.name == selectedFont then
+        fontPath = font.path
+        break
+      end
+    end
+  end
+
+  -- Validate the font path before returning it
+  -- Use a simple outline flag for validation to avoid recursion
+  if fontPath and BUII_ValidateFontPath(fontPath, 12, "OUTLINE") then
+    return fontPath
+  end
+
+  -- If validation failed, fall back to default WoW font
+  print("BUII: Font '" .. (selectedFont or "nil") .. "' failed to load, using default")
+  return GameFontHighlight:GetFont()
+end
+
+function BUII_GetFontFlags()
+  if not BUIIDatabase then
+    return "OUTLINE"
+  end
+
+  local flags = BUIIDatabase["font_outline"]
+  if not flags then
+    flags = "OUTLINE"
+  end
+
+  return flags
 end

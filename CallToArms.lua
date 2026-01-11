@@ -529,7 +529,7 @@ local function BUII_CallToArms_Initialize()
   frame:Hide()
 
   text = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  text:SetFont(BUII_GetFontPath(), 12, "OUTLINE")
+  text:SetFont(BUII_GetFontPath(), 12, BUII_GetFontFlags())
   text:SetTextColor(1, 1, 1)
   text:SetPoint("CENTER", frame, "CENTER")
   text:SetJustifyH("LEFT")
@@ -757,6 +757,13 @@ function BUII_CallToArms_Disable()
   frame:Hide()
   if timer then
     timer:Cancel()
+  end
+end
+
+function BUII_CallToArms_Refresh()
+  if frame and text then
+    text:SetFont(BUII_GetFontPath(), 12, BUII_GetFontFlags())
+    updateDisplay()
   end
 end
 

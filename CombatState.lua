@@ -41,7 +41,7 @@ local function BUII_CombatState_Initialize()
   frame:Hide()
 
   text = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
-  text:SetFont(BUII_GetFontPath(), 32, "OUTLINE")
+  text:SetFont(BUII_GetFontPath(), 32, BUII_GetFontFlags())
   text:SetPoint("CENTER", frame, "CENTER")
   text:SetAlpha(0) -- Start invisible
 
@@ -92,7 +92,7 @@ local function BUII_CombatState_Initialize()
     "combat_state",
     {
       OnReset = function(f)
-        text:SetFont(BUII_GetFontPath(), 32, "OUTLINE")
+        text:SetFont(BUII_GetFontPath(), 32, BUII_GetFontFlags())
       end,
       OnApplySettings = function(f)
         -- Scale handled automatically
@@ -142,6 +142,12 @@ function BUII_CombatState_Disable()
   EventRegistry:UnregisterCallback("EditMode.Exit", "BUII_CombatState_Custom_OnExit")
 
   frame:Hide()
+end
+
+function BUII_CombatState_Refresh()
+  if frame and text then
+    text:SetFont(BUII_GetFontPath(), 32, BUII_GetFontFlags())
+  end
 end
 
 function BUII_CombatState_InitDB()

@@ -48,6 +48,12 @@ local function updateEmphasize()
   local isEditMode = EditModeManagerFrame and EditModeManagerFrame:IsShown()
   local shouldShow = false
 
+  -- Font Update Workaround
+  local currentEmpText = empText:GetText()
+  empText:SetText("")
+  empText:SetFont(BUII_GetFontPath(), 44, BUII_GetFontFlags())
+  empText:SetText(currentEmpText or "")
+
   if db["stance_tracker_emphasize"] then
     if isEditMode then
       shouldShow = true
@@ -165,6 +171,12 @@ local function updateDisplay()
     return
   end
 
+  -- Font Update Workaround
+  text:SetText("")
+  local db = GetStanceTrackerDB()
+  local fontSize = db["stance_tracker_font_size"] or 12
+  text:SetFont(BUII_GetFontPath(), fontSize, BUII_GetFontFlags())
+  
   text:SetText(displayText)
   text:SetTextColor(textColor.r, textColor.g, textColor.b)
   icon:SetTexture(displayIcon)
@@ -226,7 +238,7 @@ local function BUII_StanceTracker_Initialize()
   icon:SetSize(20, 20)
   icon:SetPoint("LEFT", frame, "LEFT", 0, 0)
   text = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  text:SetFont(BUII_GetFontPath(), 12, "OUTLINE")
+  text:SetFont(BUII_GetFontPath(), 12, BUII_GetFontFlags())
   text:SetTextColor(1, 1, 1)
   text:SetPoint("LEFT", icon, "RIGHT", 5, 0)
   text:SetJustifyH("LEFT")
@@ -242,7 +254,7 @@ local function BUII_StanceTracker_Initialize()
   empFrame:Hide()
 
   empText = empFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  empText:SetFont(BUII_GetFontPath(), 44, "OUTLINE")
+  empText:SetFont(BUII_GetFontPath(), 44, BUII_GetFontFlags())
   empText:SetTextColor(1, 1, 1)
   empText:SetPoint("CENTER", empFrame, "CENTER")
 
@@ -360,7 +372,7 @@ local function BUII_StanceTracker_Initialize()
       setter = function(f, val)
         local db = GetStanceTrackerDB()
         db["stance_tracker_font_size"] = val
-        text:SetFont(BUII_GetFontPath(), val, "OUTLINE")
+        text:SetFont(BUII_GetFontPath(), val, BUII_GetFontFlags())
         updateDisplay()
       end,
     },
@@ -488,7 +500,7 @@ function BUII_StanceTracker_Enable()
   -- Apply initial font size
   local db = GetStanceTrackerDB()
   if text and db["stance_tracker_font_size"] then
-    text:SetFont(BUII_GetFontPath(), db["stance_tracker_font_size"], "OUTLINE")
+    text:SetFont(BUII_GetFontPath(), db["stance_tracker_font_size"], BUII_GetFontFlags())
   end
 
   updateDisplay()
@@ -506,6 +518,12 @@ function BUII_StanceTracker_Disable()
   if empFrame then
     empFrame:Hide()
     empAnimGroup:Stop()
+  end
+end
+
+function BUII_StanceTracker_Refresh()
+  if frame then
+    updateDisplay()
   end
 end
 

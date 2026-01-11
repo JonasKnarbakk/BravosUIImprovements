@@ -60,8 +60,8 @@ local function UpdateDisplay()
 
   icon:SetSize(iconSize, iconSize)
 
-  gearText:SetFont(BUII_GetFontPath(), fontSize, "OUTLINE")
-  talentText:SetFont(BUII_GetFontPath(), fontSize, "OUTLINE")
+  gearText:SetFont(BUII_GetFontPath(), fontSize, BUII_GetFontFlags())
+  talentText:SetFont(BUII_GetFontPath(), fontSize, BUII_GetFontFlags())
 
   gearText:ClearAllPoints()
   gearText:SetPoint("BOTTOM", contentFrame, "CENTER", 0, iconSize / 2 + verticalSpacing)
@@ -137,14 +137,14 @@ local function BUII_GearAndTalentLoadout_Initialize()
   -- Create gear text - anchored BOTTOM to CENTER of content frame
   gearText = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
   gearText:SetFontObject("GameFontHighlight")
-  gearText:SetFont(BUII_GetFontPath(), DEFAULT_TEXT_FONT_SIZE, "OUTLINE")
+  gearText:SetFont(BUII_GetFontPath(), DEFAULT_TEXT_FONT_SIZE, BUII_GetFontFlags())
   gearText:SetPoint("BOTTOM", contentFrame, "CENTER", 0, DEFAULT_ICON_SIZE / 2 + DEFAULT_VERTICAL_SPACING)
   gearText:SetJustifyH("CENTER")
 
   -- Create talent text - anchored TOP to CENTER of content frame
   talentText = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
   talentText:SetFontObject("GameFontHighlight")
-  talentText:SetFont(BUII_GetFontPath(), DEFAULT_TEXT_FONT_SIZE, "OUTLINE")
+  talentText:SetFont(BUII_GetFontPath(), DEFAULT_TEXT_FONT_SIZE, BUII_GetFontFlags())
   talentText:SetPoint("TOP", contentFrame, "CENTER", 0, -(DEFAULT_ICON_SIZE / 2 + DEFAULT_VERTICAL_SPACING))
   talentText:SetJustifyH("CENTER")
 
@@ -291,6 +291,10 @@ function BUII_GearAndTalentLoadout_Disable()
   if contentFrame then
     contentFrame:Hide()
   end
+end
+
+function BUII_GearAndTalentLoadout_Refresh()
+  UpdateDisplay()
 end
 
 function BUII_GearAndTalentLoadout_InitDB()

@@ -229,7 +229,7 @@ local function UpdatePoints()
   if db.showText then
     counterText:Show()
     counterText:SetText(currentStacks)
-    counterText:SetFont(BUII_GetFontPath(), db.currentFontSize or 12, "OUTLINE")
+    counterText:SetFont(BUII_GetFontPath(), db.currentFontSize or 12, BUII_GetFontFlags())
   else
     counterText:Hide()
   end
@@ -553,6 +553,12 @@ function BUII_ResourceTracker_Disable()
   EventRegistry:UnregisterCallback("EditMode.Exit", "BUII_ResourceTracker_Custom_OnExit")
 
   frame:Hide()
+end
+
+function BUII_ResourceTracker_Refresh()
+  if frame then
+    UpdatePoints()
+  end
 end
 
 function BUII_ResourceTracker_InitDB()

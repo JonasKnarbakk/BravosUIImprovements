@@ -66,7 +66,7 @@ local function updateDisplay()
 
   -- Update text
   if showText then
-    text:SetFont(BUII_GetFontPath(), fontSize, "OUTLINE")
+    text:SetFont(BUII_GetFontPath(), fontSize, BUII_GetFontFlags())
     text:SetText(specName)
     text:Show()
   else
@@ -155,7 +155,7 @@ local function BUII_LootSpec_Initialize()
 
   -- Create text
   text = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  text:SetFont(BUII_GetFontPath(), 12, "OUTLINE")
+  text:SetFont(BUII_GetFontPath(), 12, BUII_GetFontFlags())
   text:SetTextColor(1, 1, 1, 1) -- White text
   text:SetPoint("LEFT", icon, "RIGHT", 4, 0)
   text:SetJustifyH("LEFT")
@@ -296,6 +296,12 @@ function BUII_LootSpec_Disable()
   EventRegistry:UnregisterCallback("EditMode.Exit", "BUII_LootSpec_Custom_OnExit")
 
   frame:Hide()
+end
+
+function BUII_LootSpec_Refresh()
+  if frame then
+    updateDisplay()
+  end
 end
 
 function BUII_LootSpec_InitDB()
