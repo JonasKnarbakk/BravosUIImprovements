@@ -145,7 +145,14 @@ local function UpdateStats()
         row.Value:SetFont(GameFontNormal:GetFont())
       end
       row.Value:SetText(valueText)
+
+      -- Left align values in a "column" on the right side
+      row.Value:SetJustifyH("LEFT")
+      row.Value:ClearAllPoints()
+      -- Estimate width needed for "100.00%" based on font size
+      local valueColWidth = fontSize * 4.5
       row.Value:SetPoint("RIGHT", row, "RIGHT", 0, 0)
+      row.Value:SetPoint("LEFT", row, "RIGHT", -valueColWidth, 0)
 
       currentY = currentY - fontSize - spacing
     else
