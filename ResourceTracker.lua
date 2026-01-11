@@ -45,7 +45,7 @@ local CONFIG = {
   MONK = {
     powerType = Enum.PowerType.Chi,
     name = "Chi",
-    color = { r = 0.0, g = 1.0, b = 0.59 }, -- Monk Green
+    color = { r = 0.0, g = 0.78, b = 0.86 }, -- Monk Green
     nativeFrame = "MonkHarmonyBarFrame",
   },
   DEATHKNIGHT = {
