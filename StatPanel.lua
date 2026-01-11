@@ -22,7 +22,7 @@ local STATS = {
   { key = "avoidance", label = "Avoidance", name = "Avoidance", func = GetAvoidance, percent = true },
   { key = "dodge", label = "Dodge", name = "Dodge", func = GetDodgeChance, percent = true },
   { key = "parry", label = "Parry", name = "Parry", func = GetParryChance, percent = true },
-  { key = "block", label = "Block", name = "Block", func = GetShieldBlock, percent = true },
+  { key = "block", label = "Block", name = "Block", func = GetBlockChance, percent = true },
 }
 
 -- Settings Constants
