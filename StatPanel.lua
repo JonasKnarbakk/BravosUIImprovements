@@ -46,9 +46,9 @@ end
 
 local function FormatValue(value, isPercent)
   if isPercent then
-    return string.format("%.1f%%", value)
+    return string.format("%.2f%%", value)
   else
-    return string.format("%.1f", value)
+    return string.format("%.2f", value)
   end
 end
 
