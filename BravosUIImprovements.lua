@@ -168,9 +168,18 @@ local function handleUnitFramePortraitUpdate(self)
     -- as that's where the player will be
     if UnitInVehicle(self.unit) then
       healthBar = PetFrameHealthBar
+      if PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer.HealthBar ~= nil then
+        PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer.HealthBar:SetStatusBarDesaturated(
+          false
+        )
+        PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer.HealthBar:SetStatusBarColor(1, 1, 1)
+      else
+        PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBar:SetStatusBarDesaturated(false)
+        PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBar:SetStatusBarColor(1, 1, 1)
+      end
     else
-      if PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarArea ~= nil then
-        healthBar = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarArea.HealthBar
+      if PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer.HealthBar ~= nil then
+        healthBar = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer.HealthBar
       else
         healthBar = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBar
       end
