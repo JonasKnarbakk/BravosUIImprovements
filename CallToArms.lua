@@ -370,7 +370,29 @@ local function GenerateTestOutput()
   return testOutput
 end
 
+local function IsCallToArmsRelevant()
+  if isTestMode or (EditModeManagerFrame and EditModeManagerFrame:IsShown()) then
+    return true
+  end
+
+  local inInstance, instanceType = IsInInstance()
+  local numGroupMembers = GetNumGroupMembers()
+
+  if inInstance then
+    if instanceType == "pvp" or instanceType == "arena" then
+      return false
+    elseif (instanceType == "party" or instanceType == "raid") and numGroupMembers > 3 then
+      return false
+    end
+  end
+  return true
+end
+
 local function checkStatus()
+  if not IsCallToArmsRelevant() then
+    return ""
+  end
+
   if isTestMode or (EditModeManagerFrame and EditModeManagerFrame:IsShown()) then
     return GenerateTestOutput()
   end
@@ -500,12 +522,16 @@ local function onEvent(self, event, ...)
     updateDisplay()
     timer = C_Timer.NewTimer(10, function()
       locked = false
-      RequestLFDPlayerLockInfo()
+      if IsCallToArmsRelevant() then
+        RequestLFDPlayerLockInfo()
+      end
     end, 1)
   elseif timer and timer:IsCancelled() then -- Restart timer if it was somehow cancelled
     timer = C_Timer.NewTimer(10, function()
       locked = false
-      RequestLFDPlayerLockInfo()
+      if IsCallToArmsRelevant() then
+        RequestLFDPlayerLockInfo()
+      end
     end, 1)
   end
 end
