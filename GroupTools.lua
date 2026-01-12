@@ -133,11 +133,6 @@ local function UpdateVisibility()
 end
 
 local function onEvent(self, event)
-  if event == "EDIT_MODE_LAYOUTS_UPDATED" then
-    BUII_EditModeUtils:ApplySavedPosition(frame, "group_tools")
-    return
-  end
-
   UpdateBattleRez()
   UpdateVisibility()
   if event == "PLAYER_ENTERING_WORLD" or event == "ENCOUNTER_START" then

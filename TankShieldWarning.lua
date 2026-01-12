@@ -308,19 +308,14 @@ local function BUII_TankShieldWarning_Initialize()
       OnApplySettings = function(f)
         updateDisplay()
       end,
+      OnEditModeEnter = function(f)
+        updateDisplay()
+      end,
+      OnEditModeExit = function(f)
+        updateDisplay()
+      end,
     }
   )
-end
-
--- Edit Mode Integration
-local function editMode_OnEnter()
-  frame:EnableMouse(true)
-  updateDisplay()
-end
-
-local function editMode_OnExit()
-  frame:EnableMouse(false)
-  updateDisplay()
 end
 
 function BUII_TankShieldWarning_Enable()
@@ -336,9 +331,6 @@ function BUII_TankShieldWarning_Enable()
   frame:RegisterEvent("PLAYER_ENTERING_WORLD")
   frame:SetScript("OnEvent", onEvent)
 
-  EventRegistry:RegisterCallback("EditMode.Enter", editMode_OnEnter, "BUII_TankShieldWarning_Custom_OnEnter")
-  EventRegistry:RegisterCallback("EditMode.Exit", editMode_OnExit, "BUII_TankShieldWarning_Custom_OnExit")
-
   BUII_EditModeUtils:ApplySavedPosition(frame, "tank_shield_warning")
 
   updateDisplay()
@@ -350,9 +342,6 @@ function BUII_TankShieldWarning_Disable()
   end
   frame:UnregisterAllEvents()
   frame:SetScript("OnEvent", nil)
-
-  EventRegistry:UnregisterCallback("EditMode.Enter", "BUII_TankShieldWarning_Custom_OnEnter")
-  EventRegistry:UnregisterCallback("EditMode.Exit", "BUII_TankShieldWarning_Custom_OnExit")
 
   frame:Hide()
   if animGroup then

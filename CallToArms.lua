@@ -491,11 +491,6 @@ local function updateDisplay()
 end
 
 local function onEvent(self, event, ...)
-  if event == "EDIT_MODE_LAYOUTS_UPDATED" then
-    BUII_EditModeUtils:ApplySavedPosition(frame, "call_to_arms")
-    return
-  end
-
   if not BUIIDatabase["call_to_arms"] then
     return
   end
@@ -707,26 +702,21 @@ local function BUII_CallToArms_Initialize()
       OnApplySettings = function(f)
         updateDisplay()
       end,
+      OnEditModeEnter = function(f)
+        -- Show test text for positioning context
+        local testOutput = GenerateTestOutput()
+
+        text:SetText(testOutput)
+        frame:SetWidth(text:GetStringWidth() + 10)
+        frame:SetHeight(text:GetStringHeight() + 10)
+        text:Show()
+      end,
+      OnEditModeExit = function(f)
+        text:Show()
+        updateDisplay()
+      end,
     }
   )
-end
-
--- Edit Mode Integration
-local function editMode_OnEnter()
-  frame:EnableMouse(true)
-  -- Show test text for positioning context
-  local testOutput = GenerateTestOutput()
-
-  text:SetText(testOutput)
-  frame:SetWidth(text:GetStringWidth() + 10)
-  frame:SetHeight(text:GetStringHeight() + 10)
-  text:Show()
-end
-
-local function editMode_OnExit()
-  frame:EnableMouse(false)
-  text:Show()
-  updateDisplay()
 end
 
 function BUII_CallToArms_Enable()
@@ -734,12 +724,6 @@ function BUII_CallToArms_Enable()
 
   frame:RegisterEvent("LFG_UPDATE_RANDOM_INFO")
   frame:SetScript("OnEvent", onEvent)
-
-  -- Register Edit Mode Callbacks
-  -- Note: We register these in addition to the generic ones registered by EditModeUtils
-  -- to handle the specific test text logic.
-  EventRegistry:RegisterCallback("EditMode.Enter", editMode_OnEnter, "BUII_CallToArms_Custom_OnEnter")
-  EventRegistry:RegisterCallback("EditMode.Exit", editMode_OnExit, "BUII_CallToArms_Custom_OnExit")
 
   BUII_EditModeUtils:ApplySavedPosition(frame, "call_to_arms")
   RequestLFDPlayerLockInfo()
@@ -752,8 +736,6 @@ function BUII_CallToArms_Disable()
   end
   frame:UnregisterEvent("LFG_UPDATE_RANDOM_INFO")
   frame:SetScript("OnEvent", nil)
-  EventRegistry:UnregisterCallback("EditMode.Enter", "BUII_CallToArms_Custom_OnEnter")
-  EventRegistry:UnregisterCallback("EditMode.Exit", "BUII_CallToArms_Custom_OnExit")
   frame:Hide()
   if timer then
     timer:Cancel()

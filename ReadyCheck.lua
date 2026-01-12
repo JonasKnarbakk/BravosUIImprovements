@@ -59,11 +59,6 @@ local function getAverageDurability()
 end
 
 local function onEvent(self, event)
-  if event == "EDIT_MODE_LAYOUTS_UPDATED" then
-    BUII_EditModeUtils:ApplySavedPosition(frame, "ready_check")
-    return
-  end
-
   if event == "READY_CHECK" then
     local _, instanceType = IsInInstance()
     if instanceType ~= "party" and instanceType ~= "raid" then
@@ -233,27 +228,22 @@ local function BUII_ReadyCheck_Initialize()
       OnApplySettings = function(f)
         -- Scale handled automatically
       end,
+      OnEditModeEnter = function(f)
+        animGroup:Play()
+        -- Show durability frame in edit mode for preview if enabled
+        local showRepairWarning = BUIIDatabase["ready_check_show_repair"] or false
+        if showRepairWarning then
+          durabilityText:SetText("Repair: 87%")
+          durabilityFrame:Show()
+        end
+      end,
+      OnEditModeExit = function(f)
+        animGroup:Stop()
+        frame:Hide()
+        durabilityFrame:Hide()
+      end,
     }
   )
-end
-
--- Edit Mode Integration
-local function editMode_OnEnter()
-  frame:EnableMouse(true)
-  animGroup:Play()
-  -- Show durability frame in edit mode for preview if enabled
-  local showRepairWarning = BUIIDatabase["ready_check_show_repair"] or false
-  if showRepairWarning then
-    durabilityText:SetText("Repair: 87%")
-    durabilityFrame:Show()
-  end
-end
-
-local function editMode_OnExit()
-  frame:EnableMouse(false)
-  animGroup:Stop()
-  frame:Hide()
-  durabilityFrame:Hide()
 end
 
 function BUII_ReadyCheck_Enable()
@@ -262,10 +252,6 @@ function BUII_ReadyCheck_Enable()
   frame:RegisterEvent("READY_CHECK")
   frame:RegisterEvent("READY_CHECK_FINISHED")
   frame:SetScript("OnEvent", onEvent)
-
-  -- Register Edit Mode Callbacks
-  EventRegistry:RegisterCallback("EditMode.Enter", editMode_OnEnter, "BUII_ReadyCheck_Custom_OnEnter")
-  EventRegistry:RegisterCallback("EditMode.Exit", editMode_OnExit, "BUII_ReadyCheck_Custom_OnExit")
 
   BUII_EditModeUtils:ApplySavedPosition(frame, "ready_check")
   frame:Hide() -- Hide initially
@@ -278,9 +264,6 @@ function BUII_ReadyCheck_Disable()
   frame:UnregisterEvent("READY_CHECK")
   frame:UnregisterEvent("READY_CHECK_FINISHED")
   frame:SetScript("OnEvent", nil)
-
-  EventRegistry:UnregisterCallback("EditMode.Enter", "BUII_ReadyCheck_Custom_OnEnter")
-  EventRegistry:UnregisterCallback("EditMode.Exit", "BUII_ReadyCheck_Custom_OnExit")
 
   frame:Hide()
   animGroup:Stop()

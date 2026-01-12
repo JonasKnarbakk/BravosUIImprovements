@@ -2,6 +2,50 @@ BUII_EditModeUtils = {}
 BUII_EditModeUtils.RegisteredSystems = {}
 BUII_EditModeUtils.HooksInitialized = false
 
+-- Centralized Edit Mode Labels
+_G["BUII_HUD_EDIT_MODE_GROUP_TOOLS_LABEL"] = "Group Tools"
+_G["BUII_HUD_EDIT_MODE_CALL_TO_ARMS_LABEL"] = "Call to Arms"
+_G["BUII_HUD_EDIT_MODE_COMBAT_STATE_LABEL"] = "Combat State Notification"
+_G["BUII_HUD_EDIT_MODE_GEAR_AND_TALENT_LOADOUT_LABEL"] = "Gear & Talent Loadout"
+_G["BUII_HUD_EDIT_MODE_READY_CHECK_LABEL"] = "Ready Check Notification"
+_G["BUII_HUD_EDIT_MODE_STANCE_TRACKER_LABEL"] = "Stance Tracker"
+_G["BUII_HUD_EDIT_MODE_RESOURCE_TRACKER_LABEL"] = "Resource Tracker"
+_G["BUII_HUD_EDIT_MODE_STAT_PANEL_LABEL"] = "Stat Panel"
+_G["BUII_HUD_EDIT_MODE_LOOT_SPEC_LABEL"] = "Loot Specialization"
+_G["BUII_HUD_EDIT_MODE_TANK_SHIELD_WARNING_LABEL"] = "Tank Shield Warning"
+
+-- Helper to get appropriate DB (Global or Character)
+function BUII_EditModeUtils:GetDB(dbKey)
+  local charKey = dbKey .. "_use_char_settings"
+  if BUIICharacterDatabase and BUIICharacterDatabase[charKey] then
+    return BUIICharacterDatabase
+  end
+  return BUIIDatabase
+end
+
+-- Centralized Character Specific setting helper
+function BUII_EditModeUtils:AddCharacterSpecificSetting(settingsConfig, dbKey, onUpdateFunc)
+  table.insert(settingsConfig, 1, {
+    setting = 1, -- Usually safe as first setting
+    name = "Character Specific",
+    key = dbKey .. "_use_char_settings",
+    type = Enum.EditModeSettingDisplayType.Checkbox,
+    notSaved = true,
+    getter = function(f)
+      return BUIICharacterDatabase[dbKey .. "_use_char_settings"] and 1 or 0
+    end,
+    setter = function(f, val)
+      BUIICharacterDatabase[dbKey .. "_use_char_settings"] = (val == 1)
+      if f.UpdateSystem then
+        f:UpdateSystem()
+      end
+      if onUpdateFunc then
+        onUpdateFunc(f)
+      end
+    end,
+  })
+end
+
 -- Generic Formatters
 function BUII_EditModeUtils.FormatPercentage(value)
   return math.floor(value * 100 + 0.5) .. "%"
@@ -32,8 +76,8 @@ function BUII_EditModeUtils:ApplySavedPosition(frame, dbKey, force)
     return
   end
 
-  -- Prevent infinite recursion if a setter triggers an update
-  if frame.isApplyingSettings then
+  -- Prevent infinite recursion if a setter triggers an update or during restoration
+  if frame.isApplyingSettings or frame.isRestoringPosition then
     return
   end
   frame.isApplyingSettings = true
@@ -45,10 +89,7 @@ function BUII_EditModeUtils:ApplySavedPosition(frame, dbKey, force)
     return
   end
 
-  local db = BUIIDatabase
-  if frame.GetSettingsDB then
-    db = frame:GetSettingsDB()
-  end
+  local db = self:GetDB(frame.buiiDbKey or dbKey)
 
   local layoutKey = self:GetActiveLayoutKey()
   local layouts = db[dbKey .. "_layouts"] or {}
@@ -155,10 +196,7 @@ end
 -- Helper to save pending changes
 function BUII_EditModeUtils:CommitPendingChanges(frame, dbKey)
   if frame.pendingSettings then
-    local db = BUIIDatabase
-    if frame.GetSettingsDB then
-      db = frame:GetSettingsDB()
-    end
+    local db = self:GetDB(dbKey)
 
     local layoutKey = self:GetActiveLayoutKey()
     db[dbKey .. "_layouts"] = db[dbKey .. "_layouts"] or {}
@@ -232,7 +270,7 @@ local function OnUpdateSettings(self, systemFrame)
         local pool
         if config.type == Enum.EditModeSettingDisplayType.Slider then
           pool = sliderPool
-        elseif config.type == Enum.ChrCustomizationOptionType.Checkbox then
+        elseif config.type == Enum.EditModeSettingDisplayType.Checkbox then
           pool = checkboxPool
         elseif config.type == Enum.EditModeSettingDisplayType.Dropdown then
           pool = dropdownPool
@@ -345,9 +383,11 @@ function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settin
   frame.buiiSettingsConfig = settingsConfig
   frame.buiiDbKey = dbKey
 
-  -- Assign Callbacks
-  frame.OnReset = callbacks and callbacks.OnReset
-  frame.OnApplySettings = callbacks and callbacks.OnApplySettings
+  -- Assign Callbacks (using buii prefix to avoid clashing with Blizzard methods)
+  frame.buiiOnReset = callbacks and callbacks.OnReset
+  frame.buiiOnApplySettings = callbacks and callbacks.OnApplySettings
+  frame.buiiOnEditModeEnter = callbacks and callbacks.OnEditModeEnter
+  frame.buiiOnEditModeExit = callbacks and callbacks.OnEditModeExit
 
   -- Initialize System Info
   frame.systemInfo = {
@@ -375,8 +415,8 @@ function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settin
       self.defaultY or 0
     )
 
-    if self.OnReset then
-      self.OnReset(self)
+    if self.buiiOnReset then
+      self.buiiOnReset(self)
     end
 
     UpdatePending(self)
@@ -417,6 +457,57 @@ function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settin
     end
   end
 
+  -- Blizzard-expected methods
+  function frame:OnEditModeEnter()
+    self.pendingSettings = nil
+    self.hasActiveChanges = false
+    self.isSelected = false
+    self:EnableMouse(true)
+    self:Show()
+    if self.Selection then
+      self.Selection:Show()
+      self.Selection:ShowHighlighted()
+    end
+    -- Call module-specific callback
+    if self.buiiOnEditModeEnter then
+      self.buiiOnEditModeEnter(self)
+    end
+  end
+
+  function frame:OnEditModeExit()
+    self:EnableMouse(false)
+    self.isSelected = false
+    self.lastKnownPosition = nil
+
+    -- Hide Selection immediately
+    if self.Selection then
+      self.Selection:Hide()
+    end
+
+    -- Always restore position on exit to handle PTR changes where Blizzard
+    -- may reset frame positions even if they weren't moved
+    -- Delay by one frame to ensure Blizzard's code finishes first
+    local capturedFrame = self
+    local capturedDbKey = self.buiiDbKey
+    C_Timer.After(0, function()
+      if capturedFrame.isRestoringPosition then
+        return -- Prevent infinite loop
+      end
+      capturedFrame.isRestoringPosition = true
+      BUII_EditModeUtils:ApplySavedPosition(capturedFrame, capturedDbKey, true)
+      capturedFrame.hasActiveChanges = false
+      capturedFrame.pendingSettings = nil
+      if capturedFrame.OnApplySettings then
+        capturedFrame.OnApplySettings(capturedFrame) -- Often used to update visibility
+      end
+      -- Call module-specific callback
+      if capturedFrame.buiiOnEditModeExit then
+        capturedFrame.buiiOnEditModeExit(capturedFrame)
+      end
+      capturedFrame.isRestoringPosition = false
+    end)
+  end
+
   -- Setting Display Info Map (Standard Blizzard requirement)
   frame.settingDisplayInfoMap = {}
   for _, config in ipairs(settingsConfig or {}) do
@@ -435,24 +526,46 @@ function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settin
   -- Selection Interaction
   if frame.Selection then
     frame.Selection.Label:SetText(systemName)
+    frame.Selection.GetLabelText = function()
+      return systemName
+    end
   end
 
-  -- Hook Drag Stop to capture position changes
+  -- Hook Drag Stop to capture final snapped position
   hooksecurefunc(frame, "OnDragStop", function(self)
-    UpdatePending(self)
-    MarkLayoutDirty(self)
-    if EditModeSystemSettingsDialog then
-      EditModeSystemSettingsDialog:UpdateButtons(self)
-    end
+    -- Defer by one frame to let Blizzard's snap-to-guide logic complete
+    C_Timer.After(0, function()
+      local point, relativeTo, relativePoint, offsetX, offsetY = self:GetPoint()
+
+      -- If Blizzard's snap reparented us to another frame, we need to convert back to UIParent coords
+      if relativeTo and relativeTo ~= UIParent then
+        -- Get absolute screen position (GetLeft/GetBottom already account for effective scale)
+        local left = self:GetLeft()
+        local bottom = self:GetBottom()
+
+        -- Reparent back to UIParent and calculate equivalent offsets
+        self:ClearAllPoints()
+        self:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", left, bottom)
+
+        -- Now get the normalized position
+        point, relativeTo, relativePoint, offsetX, offsetY = self:GetPoint()
+      end
+
+      UpdatePending(self)
+      MarkLayoutDirty(self)
+      if EditModeSystemSettingsDialog then
+        EditModeSystemSettingsDialog:UpdateButtons(self)
+      end
+    end)
   end)
 
   -- Position Enforcement Loop
   frame:HookScript("OnUpdate", function(self)
     if EditModeManagerFrame and EditModeManagerFrame:IsShown() then
-      if not self.isSelected and not self.hasActiveChanges then
+      if not self.isSelected and not self.hasActiveChanges and not self.isRestoringPosition then
         BUII_EditModeUtils:ApplySavedPosition(self, self.buiiDbKey)
       elseif self.isSelected then
-        -- Detect position changes from arrow keys
+        -- Detect position changes from arrow keys or manual dragging
         local point, _, relativePoint, offsetX, offsetY = self:GetPoint()
         local lastPos = self.lastKnownPosition
 
@@ -463,19 +576,39 @@ function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settin
           or math.abs((lastPos.offsetX or 0) - (offsetX or 0)) > 0.01
           or math.abs((lastPos.offsetY or 0) - (offsetY or 0)) > 0.01
         then
-          -- Position changed - update pending and mark dirty
-          self.lastKnownPosition = {
-            point = point,
-            relativePoint = relativePoint,
-            offsetX = offsetX,
-            offsetY = offsetY,
-          }
+          -- Position changed - but only update if this looks like a user-initiated change
+          -- Don't overwrite pendingSettings if we already have active changes and the position
+          -- is being reset to the old saved position (which Blizzard does after drag ends)
+          local isResetToSaved = false
+          if self.hasActiveChanges and self.pendingSettings then
+            -- Check if this "new" position matches our saved position (a reset)
+            local db = BUII_EditModeUtils:GetDB(self.buiiDbKey)
+            local layoutKey = BUII_EditModeUtils:GetActiveLayoutKey()
+            local savedPos = db[self.buiiDbKey .. "_layouts"] and db[self.buiiDbKey .. "_layouts"][layoutKey]
+            if savedPos then
+              if
+                math.abs((savedPos.offsetX or 0) - (offsetX or 0)) < 0.1
+                and math.abs((savedPos.offsetY or 0) - (offsetY or 0)) < 0.1
+              then
+                isResetToSaved = true
+              end
+            end
+          end
 
-          UpdatePending(self)
-          MarkLayoutDirty(self)
+          if not isResetToSaved then
+            self.lastKnownPosition = {
+              point = point,
+              relativePoint = relativePoint,
+              offsetX = offsetX,
+              offsetY = offsetY,
+            }
 
-          if EditModeSystemSettingsDialog then
-            EditModeSystemSettingsDialog:UpdateButtons(self)
+            UpdatePending(self)
+            MarkLayoutDirty(self)
+
+            if EditModeSystemSettingsDialog then
+              EditModeSystemSettingsDialog:UpdateButtons(self)
+            end
           end
         end
       end
@@ -487,37 +620,6 @@ function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settin
     self:InitHooks()
   end
 
-  -- Enter/Exit Events
-  local function editMode_OnEnter()
-    self.pendingSettings = nil
-    self.hasActiveChanges = false
-    self.isSelected = false
-    frame:Show()
-    if frame.Selection then
-      frame.Selection:Show()
-      frame.Selection:ShowHighlighted()
-    end
-  end
-
-  local function editMode_OnExit()
-    if frame.hasActiveChanges then
-      BUII_EditModeUtils:ApplySavedPosition(frame, frame.buiiDbKey)
-      frame.hasActiveChanges = false
-      self.pendingSettings = nil
-    end
-    frame.isSelected = false
-    frame.lastKnownPosition = nil
-    if frame.Selection then
-      frame.Selection:Hide()
-    end
-    if frame.OnApplySettings then
-      frame.OnApplySettings(frame) -- Often used to update visibility
-    end
-  end
-
-  EventRegistry:RegisterCallback("EditMode.Enter", editMode_OnEnter, "BUII_EditMode_" .. systemEnum .. "_OnEnter")
-  EventRegistry:RegisterCallback("EditMode.Exit", editMode_OnExit, "BUII_EditMode_" .. systemEnum .. "_OnExit")
-
   -- Initial Apply
   BUII_EditModeUtils:ApplySavedPosition(frame, dbKey)
 end
@@ -526,6 +628,22 @@ function BUII_EditModeUtils:InitHooks()
   if self.HooksInitialized then
     return
   end
+
+  -- Register global event handler for layout updates
+  local layoutUpdateFrame = CreateFrame("Frame")
+  layoutUpdateFrame:RegisterEvent("EDIT_MODE_LAYOUTS_UPDATED")
+  layoutUpdateFrame:SetScript("OnEvent", function(_, event)
+    if event == "EDIT_MODE_LAYOUTS_UPDATED" then
+      -- Delay by one frame to ensure Blizzard's code finishes first
+      C_Timer.After(0, function()
+        for _, frame in pairs(self.RegisteredSystems) do
+          if frame.buiiDbKey then
+            self:ApplySavedPosition(frame, frame.buiiDbKey, true)
+          end
+        end
+      end)
+    end
+  end)
 
   if EditModeSystemSettingsDialog then
     hooksecurefunc(EditModeSystemSettingsDialog, "UpdateSettings", OnUpdateSettings)
@@ -546,9 +664,22 @@ function BUII_EditModeUtils:InitHooks()
     end)
 
     hooksecurefunc(EditModeManagerFrame, "SelectSystem", function(mgr, systemFrame)
+      -- First, clear all other selections and ensure they are highlighted
+      for _, f in pairs(self.RegisteredSystems) do
+        f.isSelected = false
+        f.lastKnownPosition = nil
+        if f.Selection then
+          f.Selection:ShowHighlighted()
+        end
+      end
+
+      -- Then select the new system if it's one of ours
       if systemFrame and self.RegisteredSystems[systemFrame.system] then
         local frame = self.RegisteredSystems[systemFrame.system]
         frame.isSelected = true
+        if frame.Selection then
+          frame.Selection:ShowSelected()
+        end
 
         local point, _, relativePoint, offsetX, offsetY = frame:GetPoint()
         frame.lastKnownPosition = {
@@ -564,6 +695,9 @@ function BUII_EditModeUtils:InitHooks()
       for _, frame in pairs(self.RegisteredSystems) do
         frame.isSelected = false
         frame.lastKnownPosition = nil
+        if frame.Selection then
+          frame.Selection:ShowHighlighted()
+        end
       end
     end)
 
@@ -574,6 +708,17 @@ function BUII_EditModeUtils:InitHooks()
         frame.isSelected = false
         frame.lastKnownPosition = nil
         self:ApplySavedPosition(frame, frame.buiiDbKey, true)
+        if frame.Selection then
+          frame.Selection:ShowHighlighted()
+        end
+      end
+    end)
+
+    -- Hook SaveLayouts to commit pending changes
+    -- This is a direct hook as backup in case the EditMode.SavedLayouts event doesn't fire
+    hooksecurefunc(EditModeManagerFrame, "SaveLayouts", function()
+      for _, frame in pairs(self.RegisteredSystems) do
+        self:CommitPendingChanges(frame, frame.buiiDbKey)
       end
     end)
   end

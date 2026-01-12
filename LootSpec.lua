@@ -116,11 +116,6 @@ local function updateDisplay()
 end
 
 local function onEvent(self, event, ...)
-  if event == "EDIT_MODE_LAYOUTS_UPDATED" then
-    BUII_EditModeUtils:ApplySavedPosition(frame, "loot_spec")
-    return
-  end
-
   if
     event == "PLAYER_LOOT_SPEC_UPDATED"
     or event == "PLAYER_SPECIALIZATION_CHANGED"
@@ -253,19 +248,14 @@ local function BUII_LootSpec_Initialize()
       OnApplySettings = function(f)
         updateDisplay()
       end,
+      OnEditModeEnter = function(f)
+        updateDisplay()
+      end,
+      OnEditModeExit = function(f)
+        updateDisplay()
+      end,
     }
   )
-end
-
--- Edit Mode Integration
-local function editMode_OnEnter()
-  frame:EnableMouse(true)
-  updateDisplay()
-end
-
-local function editMode_OnExit()
-  frame:EnableMouse(false)
-  updateDisplay()
 end
 
 function BUII_LootSpec_Enable()
@@ -275,10 +265,6 @@ function BUII_LootSpec_Enable()
   frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
   frame:RegisterEvent("PLAYER_ENTERING_WORLD")
   frame:SetScript("OnEvent", onEvent)
-
-  -- Register Edit Mode Callbacks
-  EventRegistry:RegisterCallback("EditMode.Enter", editMode_OnEnter, "BUII_LootSpec_Custom_OnEnter")
-  EventRegistry:RegisterCallback("EditMode.Exit", editMode_OnExit, "BUII_LootSpec_Custom_OnExit")
 
   BUII_EditModeUtils:ApplySavedPosition(frame, "loot_spec")
   updateDisplay()
@@ -292,9 +278,6 @@ function BUII_LootSpec_Disable()
   frame:UnregisterEvent("PLAYER_SPECIALIZATION_CHANGED")
   frame:UnregisterEvent("PLAYER_ENTERING_WORLD")
   frame:SetScript("OnEvent", nil)
-
-  EventRegistry:UnregisterCallback("EditMode.Enter", "BUII_LootSpec_Custom_OnEnter")
-  EventRegistry:UnregisterCallback("EditMode.Exit", "BUII_LootSpec_Custom_OnExit")
 
   frame:Hide()
 end

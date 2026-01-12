@@ -8,8 +8,6 @@ if not Enum.EditModeSystem.BUII_ResourceTracker then
   Enum.EditModeSystem.BUII_ResourceTracker = 9004
 end
 
-_G["BUII_HUD_EDIT_MODE_RESOURCE_TRACKER_LABEL"] = "Resource Tracker"
-
 -- Configuration
 local CONFIG = {
   SHAMAN = {
@@ -31,7 +29,7 @@ local CONFIG = {
   WARLOCK = {
     powerType = Enum.PowerType.SoulShards,
     name = "Soul Shards",
-    color = { r = 0.64, g = 0.00, b = 0.94 }, -- Warlock Purple
+    color = { r = 0.64, g = 0.00, b = 0.94 }, -- Soul Shard Purple
     progressFill = true,
     nativeFrame = "WarlockPowerFrame",
   },
@@ -89,19 +87,18 @@ local CONFIG = {
 }
 
 -- Settings Constants
-local enum_ResourceTrackerSetting_UseCharSettings = 60
-local enum_ResourceTrackerSetting_Scale = 61
-local enum_ResourceTrackerSetting_TotalWidth = 62
-local enum_ResourceTrackerSetting_Spacing = 63
-local enum_ResourceTrackerSetting_Height = 64
-local enum_ResourceTrackerSetting_ShowText = 65
-local enum_ResourceTrackerSetting_FontSize = 66
-local enum_ResourceTrackerSetting_ShowBorder = 67
-local enum_ResourceTrackerSetting_UseClassColor = 68
-local enum_ResourceTrackerSetting_ResourceOpacity = 69
-local enum_ResourceTrackerSetting_BackgroundOpacity = 70
-local enum_ResourceTrackerSetting_FrameStrata = 71
-local enum_ResourceTrackerSetting_HideNativeFrame = 72
+local enum_ResourceTrackerSetting_Scale = 60
+local enum_ResourceTrackerSetting_TotalWidth = 61
+local enum_ResourceTrackerSetting_Spacing = 62
+local enum_ResourceTrackerSetting_Height = 63
+local enum_ResourceTrackerSetting_ShowText = 64
+local enum_ResourceTrackerSetting_FontSize = 65
+local enum_ResourceTrackerSetting_ShowBorder = 66
+local enum_ResourceTrackerSetting_UseClassColor = 67
+local enum_ResourceTrackerSetting_ResourceOpacity = 68
+local enum_ResourceTrackerSetting_BackgroundOpacity = 69
+local enum_ResourceTrackerSetting_FrameStrata = 70
+local enum_ResourceTrackerSetting_HideNativeFrame = 71
 
 -- Frame Strata Options
 local FRAME_STRATA_OPTIONS = {
@@ -121,10 +118,7 @@ local FRAME_STRATA_VALUES = {
 }
 
 local function GetResourceTrackerDB()
-  if BUIICharacterDatabase and BUIICharacterDatabase["resource_tracker_use_char_settings"] then
-    return BUIICharacterDatabase
-  end
-  return BUIIDatabase
+  return BUII_EditModeUtils:GetDB("resource_tracker")
 end
 
 local function GetActiveConfig()
@@ -642,11 +636,6 @@ local function UpdatePoints()
 end
 
 local function onEvent(self, event, ...)
-  if event == "EDIT_MODE_LAYOUTS_UPDATED" then
-    BUII_EditModeUtils:ApplySavedPosition(frame, "resource_tracker")
-    return
-  end
-
   UpdatePoints()
 end
 
@@ -677,23 +666,6 @@ local function BUII_ResourceTracker_Initialize()
 
   -- Register System
   local settingsConfig = {
-    {
-      setting = enum_ResourceTrackerSetting_UseCharSettings,
-      name = "Character Specific",
-      key = "resource_tracker_use_char_settings",
-      type = Enum.EditModeSettingDisplayType.Checkbox,
-      notSaved = true,
-      getter = function(f)
-        return BUIICharacterDatabase["resource_tracker_use_char_settings"] and 1 or 0
-      end,
-      setter = function(f, val)
-        BUIICharacterDatabase["resource_tracker_use_char_settings"] = (val == 1)
-        if f.UpdateSystem then
-          f:UpdateSystem()
-        end
-        UpdatePoints()
-      end,
-    },
     {
       setting = enum_ResourceTrackerSetting_Scale,
       name = "Scale",
@@ -910,6 +882,8 @@ local function BUII_ResourceTracker_Initialize()
     },
   }
 
+  BUII_EditModeUtils:AddCharacterSpecificSetting(settingsConfig, "resource_tracker", UpdatePoints)
+
   BUII_EditModeUtils:RegisterSystem(
     frame,
     Enum.EditModeSystem.BUII_ResourceTracker,
@@ -935,22 +909,17 @@ local function BUII_ResourceTracker_Initialize()
       OnApplySettings = function(f)
         UpdatePoints()
       end,
+      OnEditModeEnter = function(f)
+        UpdatePoints()
+      end,
+      OnEditModeExit = function(f)
+        -- Don't update during combat to avoid taint when Edit Mode system calls SelectSystem
+        if not InCombatLockdown() then
+          UpdatePoints()
+        end
+      end,
     }
   )
-end
-
--- Edit Mode Integration
-local function editMode_OnEnter()
-  frame:EnableMouse(true)
-  UpdatePoints()
-end
-
-local function editMode_OnExit()
-  frame:EnableMouse(false)
-  -- Don't update during combat to avoid taint when Edit Mode system calls SelectSystem
-  if not InCombatLockdown() then
-    UpdatePoints()
-  end
 end
 
 function BUII_ResourceTracker_Enable()
@@ -964,10 +933,6 @@ function BUII_ResourceTracker_Enable()
   frame:RegisterEvent("PLAYER_ENTERING_WORLD")
   frame:SetScript("OnEvent", onEvent)
 
-  -- Register Edit Mode Callbacks
-  EventRegistry:RegisterCallback("EditMode.Enter", editMode_OnEnter, "BUII_ResourceTracker_Custom_OnEnter")
-  EventRegistry:RegisterCallback("EditMode.Exit", editMode_OnExit, "BUII_ResourceTracker_Custom_OnExit")
-
   BUII_EditModeUtils:ApplySavedPosition(frame, "resource_tracker")
   UpdatePoints()
   UpdateNativeFrameVisibility()
@@ -979,10 +944,6 @@ function BUII_ResourceTracker_Disable()
   end
   frame:UnregisterAllEvents()
   frame:SetScript("OnEvent", nil)
-
-  EventRegistry:UnregisterCallback("EditMode.Enter", "BUII_ResourceTracker_Custom_OnEnter")
-  EventRegistry:UnregisterCallback("EditMode.Exit", "BUII_ResourceTracker_Custom_OnExit")
-
   frame:Hide()
 
   -- Restore native frame if it exists

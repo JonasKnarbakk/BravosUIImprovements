@@ -7,11 +7,6 @@ local enum_CombatStateSetting_Scale = 30
 local enum_CombatStateSetting_FontSize = 31
 
 local function onEvent(self, event)
-  if event == "EDIT_MODE_LAYOUTS_UPDATED" then
-    BUII_EditModeUtils:ApplySavedPosition(frame, "combat_state")
-    return
-  end
-
   if event == "PLAYER_REGEN_DISABLED" then
     -- Enter Combat
     text:SetText("+Combat+")
@@ -97,22 +92,17 @@ local function BUII_CombatState_Initialize()
       OnApplySettings = function(f)
         -- Scale handled automatically
       end,
+      OnEditModeEnter = function(f)
+        -- Preview
+        text:SetText("+Combat+")
+        text:SetTextColor(1, 0.8, 0.8)
+        text:SetAlpha(1)
+      end,
+      OnEditModeExit = function(f)
+        text:SetAlpha(0)
+      end,
     }
   )
-end
-
--- Edit Mode Integration
-local function editMode_OnEnter()
-  frame:EnableMouse(true)
-  -- Preview
-  text:SetText("+Combat+")
-  text:SetTextColor(1, 0.8, 0.8)
-  text:SetAlpha(1)
-end
-
-local function editMode_OnExit()
-  frame:EnableMouse(false)
-  text:SetAlpha(0)
 end
 
 function BUII_CombatState_Enable()
@@ -121,10 +111,6 @@ function BUII_CombatState_Enable()
   frame:RegisterEvent("PLAYER_REGEN_DISABLED")
   frame:RegisterEvent("PLAYER_REGEN_ENABLED")
   frame:SetScript("OnEvent", onEvent)
-
-  -- Register Edit Mode Callbacks
-  EventRegistry:RegisterCallback("EditMode.Enter", editMode_OnEnter, "BUII_CombatState_Custom_OnEnter")
-  EventRegistry:RegisterCallback("EditMode.Exit", editMode_OnExit, "BUII_CombatState_Custom_OnExit")
 
   BUII_EditModeUtils:ApplySavedPosition(frame, "combat_state")
   frame:Show()
@@ -137,9 +123,6 @@ function BUII_CombatState_Disable()
   frame:UnregisterEvent("PLAYER_REGEN_DISABLED")
   frame:UnregisterEvent("PLAYER_REGEN_ENABLED")
   frame:SetScript("OnEvent", nil)
-
-  EventRegistry:UnregisterCallback("EditMode.Enter", "BUII_CombatState_Custom_OnEnter")
-  EventRegistry:UnregisterCallback("EditMode.Exit", "BUII_CombatState_Custom_OnExit")
 
   frame:Hide()
 end

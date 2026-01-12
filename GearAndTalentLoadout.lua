@@ -88,11 +88,6 @@ local function UpdateDisplay()
 end
 
 local function onEvent(self, event, ...)
-  if event == "EDIT_MODE_LAYOUTS_UPDATED" then
-    BUII_EditModeUtils:ApplySavedPosition(frame, "gear_talent_loadout")
-    return
-  end
-
   if event == "EQUIPMENT_SETS_CHANGED" or event == "TRAIT_CONFIG_UPDATED" then
     UpdateDisplay()
   end
@@ -243,19 +238,14 @@ local function BUII_GearAndTalentLoadout_Initialize()
       OnApplySettings = function(f)
         UpdateDisplay()
       end,
+      OnEditModeEnter = function(f)
+        UpdateDisplay()
+      end,
+      OnEditModeExit = function(f)
+        UpdateDisplay()
+      end,
     }
   )
-end
-
--- Edit Mode Integration
-local function editMode_OnEnter()
-  frame:EnableMouse(true)
-  UpdateDisplay()
-end
-
-local function editMode_OnExit()
-  frame:EnableMouse(false)
-  UpdateDisplay()
 end
 
 function BUII_GearAndTalentLoadout_Enable()
@@ -266,10 +256,6 @@ function BUII_GearAndTalentLoadout_Enable()
   frame:RegisterEvent("TRAIT_CONFIG_UPDATED")
   frame:RegisterEvent("PLAYER_ENTERING_WORLD")
   frame:SetScript("OnEvent", onEvent)
-
-  -- Register Edit Mode Callbacks
-  EventRegistry:RegisterCallback("EditMode.Enter", editMode_OnEnter, "BUII_GearAndTalentLoadout_Custom_OnEnter")
-  EventRegistry:RegisterCallback("EditMode.Exit", editMode_OnExit, "BUII_GearAndTalentLoadout_Custom_OnExit")
 
   BUII_EditModeUtils:ApplySavedPosition(frame, "gear_talent_loadout")
   frame:Show()
@@ -286,9 +272,6 @@ function BUII_GearAndTalentLoadout_Disable()
   frame:UnregisterEvent("TRAIT_CONFIG_UPDATED")
   frame:UnregisterEvent("PLAYER_ENTERING_WORLD")
   frame:SetScript("OnEvent", nil)
-
-  EventRegistry:UnregisterCallback("EditMode.Enter", "BUII_GearAndTalentLoadout_Custom_OnEnter")
-  EventRegistry:UnregisterCallback("EditMode.Exit", "BUII_GearAndTalentLoadout_Custom_OnExit")
 
   frame:Hide()
   if contentFrame then

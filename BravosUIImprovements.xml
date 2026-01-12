@@ -96,6 +96,16 @@
     </Frames>
   </Frame>
 
+  <Frame name="BUII_StatPanelEditModeTemplate" inherits="EditModeSystemTemplate" virtual="true">
+    <KeyValues>
+      <KeyValue key="system" value="Enum.EditModeSystem.BUII_StatPanel" type="global"/>
+      <KeyValue key="systemNameString" value="BUII_HUD_EDIT_MODE_STAT_PANEL_LABEL" type="global"/>
+    </KeyValues>
+    <Frames>
+      <Frame inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
+    </Frames>
+  </Frame>
+
   <Frame name="BUIIOptionsPanel" hidden="false">
     <Size>
       <AbsDimension x="630" y="580"/>

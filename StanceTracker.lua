@@ -5,22 +5,18 @@ local text = nil
 local isTestMode = false
 
 -- Settings Constants
-local enum_StanceTrackerSetting_UseCharSettings = 10
-local enum_StanceTrackerSetting_Scale = 11
-local enum_StanceTrackerSetting_ShowIcon = 12
-local enum_StanceTrackerSetting_IconSize = 13
-local enum_StanceTrackerSetting_ShowText = 14
-local enum_StanceTrackerSetting_FontSize = 15
-local enum_StanceTrackerSetting_Emphasize = 16
-local enum_StanceTrackerSetting_EmphasizeScale = 17
-local enum_StanceTrackerSetting_EmphasizeIntensity = 18
-local enum_StanceTrackerSetting_EmphasizeYOffset = 19
+local enum_StanceTrackerSetting_Scale = 10
+local enum_StanceTrackerSetting_ShowIcon = 11
+local enum_StanceTrackerSetting_IconSize = 12
+local enum_StanceTrackerSetting_ShowText = 13
+local enum_StanceTrackerSetting_FontSize = 14
+local enum_StanceTrackerSetting_Emphasize = 15
+local enum_StanceTrackerSetting_EmphasizeScale = 16
+local enum_StanceTrackerSetting_EmphasizeIntensity = 17
+local enum_StanceTrackerSetting_EmphasizeYOffset = 18
 
 local function GetStanceTrackerDB()
-  if BUIICharacterDatabase and BUIICharacterDatabase["stance_tracker_use_char_settings"] then
-    return BUIICharacterDatabase
-  end
-  return BUIIDatabase
+  return BUII_EditModeUtils:GetDB("stance_tracker")
 end
 
 local empAnchor = nil
@@ -276,22 +272,6 @@ local function BUII_StanceTracker_Initialize()
   -- Register System
   local settingsConfig = {
     {
-      setting = enum_StanceTrackerSetting_UseCharSettings,
-      name = "Character Specific",
-      type = Enum.EditModeSettingDisplayType.Checkbox,
-      notSaved = true,
-      getter = function(f)
-        return BUIICharacterDatabase["stance_tracker_use_char_settings"] and 1 or 0
-      end,
-      setter = function(f, val)
-        BUIICharacterDatabase["stance_tracker_use_char_settings"] = (val == 1)
-        if f.UpdateSystem then
-          f:UpdateSystem()
-        end
-        updateDisplay()
-      end,
-    },
-    {
       setting = enum_StanceTrackerSetting_Scale,
       name = "Scale",
       type = Enum.EditModeSettingDisplayType.Slider,
@@ -458,6 +438,8 @@ local function BUII_StanceTracker_Initialize()
     },
   }
 
+  BUII_EditModeUtils:AddCharacterSpecificSetting(settingsConfig, "stance_tracker", updateDisplay)
+
   BUII_EditModeUtils:RegisterSystem(
     frame,
     Enum.EditModeSystem.BUII_StanceTracker,
@@ -471,19 +453,14 @@ local function BUII_StanceTracker_Initialize()
       OnApplySettings = function(f)
         updateDisplay()
       end,
+      OnEditModeEnter = function(f)
+        updateDisplay()
+      end,
+      OnEditModeExit = function(f)
+        updateDisplay()
+      end,
     }
   )
-end
-
--- Edit Mode Integration
-local function editMode_OnEnter()
-  frame:EnableMouse(true)
-  updateDisplay()
-end
-
-local function editMode_OnExit()
-  frame:EnableMouse(false)
-  updateDisplay()
 end
 
 function BUII_StanceTracker_Enable()
@@ -492,11 +469,7 @@ function BUII_StanceTracker_Enable()
   frame:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
   frame:RegisterEvent("UPDATE_VEHICLE_ACTIONBAR") -- Sometimes relevant for stance bar updates
   frame:RegisterEvent("PLAYER_ENTERING_WORLD")
-
   frame:SetScript("OnEvent", onEvent)
-
-  EventRegistry:RegisterCallback("EditMode.Enter", editMode_OnEnter, "BUII_StanceTracker_Custom_OnEnter")
-  EventRegistry:RegisterCallback("EditMode.Exit", editMode_OnExit, "BUII_StanceTracker_Custom_OnExit")
 
   BUII_EditModeUtils:ApplySavedPosition(frame, "stance_tracker")
 
@@ -515,8 +488,6 @@ function BUII_StanceTracker_Disable()
   end
   frame:UnregisterAllEvents()
   frame:SetScript("OnEvent", nil)
-  EventRegistry:UnregisterCallback("EditMode.Enter", "BUII_StanceTracker_Custom_OnEnter")
-  EventRegistry:UnregisterCallback("EditMode.Exit", "BUII_StanceTracker_Custom_OnExit")
   frame:Hide()
   if empFrame then
     empFrame:Hide()

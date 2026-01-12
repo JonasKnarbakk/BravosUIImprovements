@@ -26,22 +26,18 @@ local STATS = {
 }
 
 -- Settings Constants
-local enum_StatPanelSetting_UseCharSettings = 80
-local enum_StatPanelSetting_Scale = 81
-local enum_StatPanelSetting_FontSize = 82
-local enum_StatPanelSetting_RowSpacing = 83
-local enum_StatPanelSetting_BackgroundOpacity = 84
-local enum_StatPanelSetting_Width = 85
-local enum_StatPanelSetting_ShowTitle = 86
+local enum_StatPanelSetting_Scale = 80
+local enum_StatPanelSetting_FontSize = 81
+local enum_StatPanelSetting_RowSpacing = 82
+local enum_StatPanelSetting_BackgroundOpacity = 83
+local enum_StatPanelSetting_Width = 84
+local enum_StatPanelSetting_ShowTitle = 85
 
 -- Start dynamic enums for stats from 100
 local STAT_ENUM_START = 100
 
 local function GetStatPanelDB()
-  if BUIICharacterDatabase and BUIICharacterDatabase["stat_panel_use_char_settings"] then
-    return BUIICharacterDatabase
-  end
-  return BUIIDatabase
+  return BUII_EditModeUtils:GetDB("stat_panel")
 end
 
 local function FormatValue(value, isPercent)
@@ -176,11 +172,6 @@ local function UpdateStats()
 end
 
 local function onEvent(self, event, ...)
-  if event == "EDIT_MODE_LAYOUTS_UPDATED" then
-    BUII_EditModeUtils:ApplySavedPosition(frame, "stat_panel")
-    return
-  end
-
   UpdateStats()
 end
 
@@ -189,7 +180,7 @@ local function BUII_StatPanel_Initialize()
     return
   end
 
-  frame = CreateFrame("Frame", "BUII_StatPanelFrame", UIParent, "EditModeSystemTemplate")
+  frame = CreateFrame("Frame", "BUII_StatPanelFrame", UIParent, "BUII_StatPanelEditModeTemplate")
   frame:SetSize(120, 100)
   frame:SetMovable(true)
   frame:SetClampedToScreen(true)
@@ -197,11 +188,6 @@ local function BUII_StatPanel_Initialize()
 
   -- Expose DB selector for EditModeUtils
   frame.GetSettingsDB = GetStatPanelDB
-
-  -- Selection Frame for Edit Mode
-  frame.Selection = CreateFrame("Frame", nil, frame, "EditModeSystemSelectionTemplate")
-  frame.Selection:SetAllPoints(frame)
-  frame.Selection:Hide()
 
   -- Backdrop
   frame.Background = frame:CreateTexture(nil, "BACKGROUND")
@@ -214,32 +200,8 @@ local function BUII_StatPanel_Initialize()
   title:SetText("Stats")
   title:SetJustifyH("CENTER")
 
-  -- Ensure system is set and OnSystemLoad is fully processed
-  frame.system = Enum.EditModeSystem.BUII_StatPanel
-  frame.systemNameString = _G["BUII_HUD_EDIT_MODE_STAT_PANEL_LABEL"]
-  if frame.OnSystemLoad then
-    frame:OnSystemLoad()
-  end
-
   -- Edit Mode Configuration
   local settingsConfig = {
-    {
-      setting = enum_StatPanelSetting_UseCharSettings,
-      name = "Character Specific",
-      key = "stat_panel_use_char_settings",
-      type = Enum.EditModeSettingDisplayType.Checkbox,
-      notSaved = true,
-      getter = function(f)
-        return BUIICharacterDatabase["stat_panel_use_char_settings"] and 1 or 0
-      end,
-      setter = function(f, val)
-        BUIICharacterDatabase["stat_panel_use_char_settings"] = (val == 1)
-        if f.UpdateSystem then
-          f:UpdateSystem()
-        end
-        UpdateStats()
-      end,
-    },
     {
       setting = enum_StatPanelSetting_Scale,
       name = "Scale",
@@ -363,6 +325,8 @@ local function BUII_StatPanel_Initialize()
     })
   end
 
+  BUII_EditModeUtils:AddCharacterSpecificSetting(settingsConfig, "stat_panel", UpdateStats)
+
   BUII_EditModeUtils:RegisterSystem(
     frame,
     Enum.EditModeSystem.BUII_StatPanel,
@@ -385,19 +349,14 @@ local function BUII_StatPanel_Initialize()
       OnApplySettings = function(f)
         UpdateStats()
       end,
+      OnEditModeEnter = function(f)
+        UpdateStats()
+      end,
+      OnEditModeExit = function(f)
+        UpdateStats()
+      end,
     }
   )
-end
-
--- Edit Mode Callbacks
-local function editMode_OnEnter()
-  frame:EnableMouse(true)
-  UpdateStats()
-end
-
-local function editMode_OnExit()
-  frame:EnableMouse(false)
-  UpdateStats()
 end
 
 function BUII_StatPanel_Enable()
@@ -415,9 +374,6 @@ function BUII_StatPanel_Enable()
 
   frame:SetScript("OnEvent", onEvent)
 
-  EventRegistry:RegisterCallback("EditMode.Enter", editMode_OnEnter, "BUII_StatPanel_OnEnter")
-  EventRegistry:RegisterCallback("EditMode.Exit", editMode_OnExit, "BUII_StatPanel_OnExit")
-
   BUII_EditModeUtils:ApplySavedPosition(frame, "stat_panel")
   UpdateStats()
   frame:Show()
@@ -429,9 +385,6 @@ function BUII_StatPanel_Disable()
   end
   frame:UnregisterAllEvents()
   frame:SetScript("OnEvent", nil)
-
-  EventRegistry:UnregisterCallback("EditMode.Enter", "BUII_StatPanel_OnEnter")
-  EventRegistry:UnregisterCallback("EditMode.Exit", "BUII_StatPanel_OnExit")
 
   frame:Hide()
 end
