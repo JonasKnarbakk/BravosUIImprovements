@@ -316,10 +316,6 @@ end
 
 -- Called when the player leaves combat
 local function combat_OnExit()
-  if InCombatLockdown() then
-    return
-  end
-
   for frameName, mode in pairs(FrameVisibility) do
     local frame = _G[frameName]
     if mode == VisibilityMode.IN_COMBAT then
@@ -339,8 +335,6 @@ local function queueStatusButtonOverlayFrame_OnMouseUp()
 end
 
 local queueStatusButtonHooksInstalled = false
-local originalQueueStatusButtonUpdatePosition = nil
-local originalMicroMenuContainerLayout = nil
 
 local function installQueueStatusButtonHooks()
   if queueStatusButtonHooksInstalled then
@@ -350,40 +344,17 @@ local function installQueueStatusButtonHooks()
     return
   end
 
-  originalQueueStatusButtonUpdatePosition = QueueStatusButton.UpdatePosition
-  QueueStatusButton.UpdatePosition = function(self, ...)
+  hooksecurefunc(QueueStatusButton, "UpdatePosition", function(self)
     if queueStatusButtonOverlayFrameHookEnabled and queueStatusButtonOverlayFrame then
-      return
+      restorePosition(QueueStatusButton, "queue_status_button_position")
     end
-    return originalQueueStatusButtonUpdatePosition(self, ...)
-  end
+  end)
 
-  originalMicroMenuContainerLayout = MicroMenuContainer.Layout
-  MicroMenuContainer.Layout = function(self)
+  hooksecurefunc(MicroMenuContainer, "Layout", function(self)
     if queueStatusButtonOverlayFrameHookEnabled and queueStatusButtonOverlayFrame then
-      local originalGetPoint = QueueStatusButton.GetPoint
-      local originalGetWidth = QueueStatusButton.GetWidth
-      local originalGetHeight = QueueStatusButton.GetHeight
-
-      QueueStatusButton.GetPoint = function()
-        return "TOPLEFT", MicroMenuContainer, "TOPLEFT", 0, 0
-      end
-      QueueStatusButton.GetWidth = function()
-        return 0
-      end
-      QueueStatusButton.GetHeight = function()
-        return 0
-      end
-
-      originalMicroMenuContainerLayout(self)
-
-      QueueStatusButton.GetPoint = originalGetPoint
-      QueueStatusButton.GetWidth = originalGetWidth
-      QueueStatusButton.GetHeight = originalGetHeight
-    else
-      originalMicroMenuContainerLayout(self)
+      restorePosition(QueueStatusButton, "queue_status_button_position")
     end
-  end
+  end)
 
   queueStatusButtonHooksInstalled = true
 end

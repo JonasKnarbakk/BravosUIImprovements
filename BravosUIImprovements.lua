@@ -70,6 +70,10 @@ local function setSaneBagSorting(setSane)
 end
 
 local function stanceBar_OnUpdate()
+  if InCombatLockdown() then
+    return
+  end
+
   if BUIICharacterDatabase["hide_stance_bar"] then
     local point, _, relativePoint, xOffset, yOffset = StanceBar:GetPoint()
     if
@@ -86,6 +90,10 @@ local function stanceBar_OnUpdate()
 end
 
 local function setHideStanceBar(shouldHide)
+  if InCombatLockdown() then
+    return
+  end
+
   if shouldHide then
     local point, _, relativePoint, xOffset, yOffset = StanceBar:GetPoint()
     BUIICharacterDatabase["stance_bar_position"] = {
@@ -103,7 +111,7 @@ local function setHideStanceBar(shouldHide)
     StanceBar:SetClampedToScreen(false)
     StanceBar:SetPoint("TOPLEFT", UIParent, "TOPLEFT", math.ceil(0 - (StanceBar:GetWidth() + 100)), 0)
     if not stanceBarHookSet then
-      StanceBar:HookScript("OnUpdate", stanceBar_OnUpdate)
+      hooksecurefunc(StanceBar, "OnUpdate", stanceBar_OnUpdate)
       stanceBarHookSet = true
     end
   else
