@@ -317,11 +317,11 @@ local function BUII_InitializeDropdowns()
     local fonts = BUII_GetAvailableFonts()
     for _, font in ipairs(fonts) do
       local fontObj = BUII_GetFontObject(font.name, font.path)
-      
+
       local isSelected = function()
         return BUIIDatabase["font_name"] == font.name
       end
-      
+
       local setSelected = function()
         BUIIDatabase["font_name"] = font.name
         dropdown:SetText(font.name)
@@ -356,7 +356,7 @@ local function BUII_InitializeDropdowns()
       local isSelected = function()
         return BUIIDatabase["font_outline"] == option.value
       end
-      
+
       local setSelected = function()
         BUIIDatabase["font_outline"] = option.value
         dropdown:SetText(option.name)
@@ -386,21 +386,32 @@ local function BUII_InitializeDropdowns()
     rootDescription:SetScrollMode(250)
 
     local textures = BUII_GetAvailableTextures()
-    
+
     local orderedClasses = {
-      "WARRIOR", "PALADIN", "HUNTER", "ROGUE", "PRIEST", "DEATHKNIGHT",
-      "SHAMAN", "MAGE", "WARLOCK", "MONK", "DRUID", "DEMONHUNTER", "EVOKER"
+      "WARRIOR",
+      "PALADIN",
+      "HUNTER",
+      "ROGUE",
+      "PRIEST",
+      "DEATHKNIGHT",
+      "SHAMAN",
+      "MAGE",
+      "WARLOCK",
+      "MONK",
+      "DRUID",
+      "DEMONHUNTER",
+      "EVOKER",
     }
 
     for i, texture in ipairs(textures) do
       local classIndex = ((i - 1) % #orderedClasses) + 1
       local className = orderedClasses[classIndex]
-      local color = RAID_CLASS_COLORS[className] or {r=1, g=1, b=1}
+      local color = RAID_CLASS_COLORS[className] or { r = 1, g = 1, b = 1 }
 
       local isSelected = function()
         return BUIIDatabase["texture_name"] == texture.name
       end
-      
+
       local setSelected = function()
         BUIIDatabase["texture_name"] = texture.name
         dropdown:SetText(texture.name)
@@ -420,10 +431,10 @@ local function BUII_InitializeDropdowns()
           btn.TexturePreview = btn:AttachTexture()
           btn.TexturePreview:SetAllPoints()
           btn.TexturePreview:SetAlpha(1.0)
-          
+
           -- Ensure text is on top
           if btn.fontString then
-             btn.fontString:SetDrawLayer("OVERLAY")
+            btn.fontString:SetDrawLayer("OVERLAY")
           end
         end
         btn.TexturePreview:SetTexture(texture.path)
@@ -446,7 +457,7 @@ local function BUII_InitializeDropdowns()
     end
   end
   textureDropdown.PreviewTexture:SetTexture(BUII_GetTexturePath())
-  
+
   -- Calculate initial color based on selection index
   local textures = BUII_GetAvailableTextures()
   local selectedTextureName = BUIIDatabase["texture_name"] or "Solid"
@@ -457,15 +468,26 @@ local function BUII_InitializeDropdowns()
       break
     end
   end
-  
+
   local orderedClasses = {
-      "WARRIOR", "PALADIN", "HUNTER", "ROGUE", "PRIEST", "DEATHKNIGHT",
-      "SHAMAN", "MAGE", "WARLOCK", "MONK", "DRUID", "DEMONHUNTER", "EVOKER"
+    "WARRIOR",
+    "PALADIN",
+    "HUNTER",
+    "ROGUE",
+    "PRIEST",
+    "DEATHKNIGHT",
+    "SHAMAN",
+    "MAGE",
+    "WARLOCK",
+    "MONK",
+    "DRUID",
+    "DEMONHUNTER",
+    "EVOKER",
   }
   local classIndex = ((selectedIndex - 1) % #orderedClasses) + 1
   local className = orderedClasses[classIndex]
-  local color = RAID_CLASS_COLORS[className] or {r=1, g=1, b=1}
-  
+  local color = RAID_CLASS_COLORS[className] or { r = 1, g = 1, b = 1 }
+
   textureDropdown.PreviewTexture:SetVertexColor(color.r, color.g, color.b)
   textureDropdown.PreviewTexture:SetDesaturated(false)
 end

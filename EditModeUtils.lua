@@ -13,6 +13,7 @@ _G["BUII_HUD_EDIT_MODE_RESOURCE_TRACKER_LABEL"] = "Resource Tracker"
 _G["BUII_HUD_EDIT_MODE_STAT_PANEL_LABEL"] = "Stat Panel"
 _G["BUII_HUD_EDIT_MODE_LOOT_SPEC_LABEL"] = "Loot Specialization"
 _G["BUII_HUD_EDIT_MODE_TANK_SHIELD_WARNING_LABEL"] = "Tank Shield Warning"
+_G["BUII_HUD_EDIT_MODE_QUEUE_STATUS_BUTTON_LABEL"] = "Queue Status Button"
 
 -- Helper to get appropriate DB (Global or Character)
 function BUII_EditModeUtils:GetDB(dbKey)
@@ -258,7 +259,7 @@ local function OnUpdateSettings(self, systemFrame)
     local frame = systemFrame -- It is the same frame
 
     -- If we have registered settings
-    if frame.buiiSettingsConfig then
+    if frame.buiiSettingsConfig and #frame.buiiSettingsConfig > 0 then
       self.Settings:Show()
 
       -- Acquire pools using the correct Enums as defined in EditModeDialogs.lua
@@ -301,9 +302,15 @@ local function OnUpdateSettings(self, systemFrame)
       end
 
       self.Settings:Layout()
+      self.Buttons:ClearAllPoints()
       self.Buttons:SetPoint("TOPLEFT", self.Settings, "BOTTOMLEFT", 0, -12)
-      self:UpdateButtons(systemFrame)
+    else
+      self.Settings:Hide()
+      self.Buttons:ClearAllPoints()
+      self.Buttons:SetPoint("TOP", self.Title, "BOTTOM", 0, -12)
     end
+    self.Buttons:Layout()
+    self:UpdateButtons(systemFrame)
   end
 end
 
@@ -362,6 +369,10 @@ local function OnSettingValueChanged(self, setting, value)
 end
 
 function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settingsConfig, dbKey, callbacks)
+  if not systemEnum then
+    return
+  end
+
   if self.RegisteredSystems[systemEnum] then
     return
   end
@@ -532,32 +543,34 @@ function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settin
   end
 
   -- Hook Drag Stop to capture final snapped position
-  hooksecurefunc(frame, "OnDragStop", function(self)
-    -- Defer by one frame to let Blizzard's snap-to-guide logic complete
-    C_Timer.After(0, function()
-      local point, relativeTo, relativePoint, offsetX, offsetY = self:GetPoint()
+  if frame.OnDragStop then
+    hooksecurefunc(frame, "OnDragStop", function(self)
+      -- Defer by one frame to let Blizzard's snap-to-guide logic complete
+      C_Timer.After(0, function()
+        local point, relativeTo, relativePoint, offsetX, offsetY = self:GetPoint()
 
-      -- If Blizzard's snap reparented us to another frame, we need to convert back to UIParent coords
-      if relativeTo and relativeTo ~= UIParent then
-        -- Get absolute screen position (GetLeft/GetBottom already account for effective scale)
-        local left = self:GetLeft()
-        local bottom = self:GetBottom()
+        -- If Blizzard's snap reparented us to another frame, we need to convert back to UIParent coords
+        if relativeTo and relativeTo ~= UIParent then
+          -- Get absolute screen position (GetLeft/GetBottom already account for effective scale)
+          local left = self:GetLeft()
+          local bottom = self:GetBottom()
 
-        -- Reparent back to UIParent and calculate equivalent offsets
-        self:ClearAllPoints()
-        self:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", left, bottom)
+          -- Reparent back to UIParent and calculate equivalent offsets
+          self:ClearAllPoints()
+          self:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", left, bottom)
 
-        -- Now get the normalized position
-        point, relativeTo, relativePoint, offsetX, offsetY = self:GetPoint()
-      end
+          -- Now get the normalized position
+          point, relativeTo, relativePoint, offsetX, offsetY = self:GetPoint()
+        end
 
-      UpdatePending(self)
-      MarkLayoutDirty(self)
-      if EditModeSystemSettingsDialog then
-        EditModeSystemSettingsDialog:UpdateButtons(self)
-      end
+        UpdatePending(self)
+        MarkLayoutDirty(self)
+        if EditModeSystemSettingsDialog then
+          EditModeSystemSettingsDialog:UpdateButtons(self)
+        end
+      end)
     end)
-  end)
+  end
 
   -- Position Enforcement Loop
   frame:HookScript("OnUpdate", function(self)

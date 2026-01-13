@@ -1,6 +1,3 @@
-local queueStatusButtonOverlayFrame = nil
-local queueStatusButtonOverlayFrameHook = nil
-local queueStatusButtonOverlayFrameHookEnabled = false
 local editModeImprovedEnabled = false
 
 local VisibilityMode = {
@@ -151,130 +148,11 @@ local function addOptionToSettingsDialog(settingIndex, optionType, settingData)
   end
 end
 
-local function setupFrame(
-  frame,
-  frameName,
-  frameTemplate,
-  parent,
-  point,
-  overlayWidth,
-  overlayHeight,
-  onMouseDownFunc,
-  onMouseUpFunc,
-  label,
-  databaseName
-)
-  if not frame then
-    frame = CreateFrame("Frame", frameName, parent, frameTemplate)
-    frame:SetSize(overlayWidth, overlayHeight)
-    frame:SetPoint(point)
-    frame.Selection:SetScript("OnMouseDown", onMouseDownFunc)
-    frame.Selection:SetScript("OnMouseUp", onMouseUpFunc)
-    frame.Selection.Label:SetText(label)
-
-    -- Override EditModeSystemSelectionTemplate methods that rely on 'system' being set
-    frame.Selection.GetLabelText = function()
-      return label
-    end
-    frame.Selection.CheckShowInstructionalTooltip = function()
-      return false
-    end
-  end
-
-  -- TODO: Implement support for layouts
-  if BUIIDatabase[databaseName] then
-    frame:GetParent():ClearAllPoints()
-    frame:GetParent():SetPoint(
-      BUIIDatabase[databaseName]["point"],
-      UIParent,
-      BUIIDatabase[databaseName]["relativePoint"],
-      BUIIDatabase[databaseName]["xOffset"],
-      BUIIDatabase[databaseName]["yOffset"]
-    )
-  end
-
-  return frame
-end
-
-local function resetFrame(frame, pointDefault, parentDefault, relativeToDefault)
-  frame:GetParent():ClearAllPoints()
-  frame:GetParent():SetPoint(pointDefault, parentDefault, relativeToDefault, 0, 0)
-end
-
-local function restorePosition(frame, databaseName)
-  if BUIIDatabase[databaseName] then
-    local point, _, relativePoint, xOffset, yOffset = frame:GetPoint()
-
-    if
-      point ~= BUIIDatabase[databaseName]["point"]
-      or relativePoint ~= BUIIDatabase[databaseName]["relativePoint"]
-      or xOffset ~= BUIIDatabase[databaseName]["xOffset"]
-      or yOffset ~= BUIIDatabase[databaseName]["yOffset"]
-    then
-      frame:ClearAllPoints()
-      frame:SetPoint(
-        BUIIDatabase[databaseName]["point"],
-        UIParent,
-        BUIIDatabase[databaseName]["relativePoint"],
-        BUIIDatabase[databaseName]["xOffset"],
-        BUIIDatabase[databaseName]["yOffset"]
-      )
-    end
-  end
-end
-
-local function showFrameHighlight(frame)
-  frame:Show()
-  frame.Selection:ShowHighlighted()
-end
-
-local function hideFrameHighlight(frame)
-  frame.Selection:Hide()
-  frame.Selection.isSelected = false
-  frame.Selection.isHighlighted = false
-  frame:Hide()
-end
-
-local function onMouseDown(frame)
-  editModeManagerFrame:SelectSystem(frame:GetParent())
-  frame.Selection:ShowSelected()
-  frame:GetParent():SetMovable(true)
-  frame:GetParent():SetClampedToScreen(true)
-  frame:GetParent():StartMoving()
-end
-
-local function onMouseUp(frame, databaseName, pointDefault, relativeToDefault, relativePointDefault)
-  frame.Selection:ShowHighlighted()
-  frame:GetParent():StopMovingOrSizing()
-  frame:GetParent():SetMovable(false)
-  frame:GetParent():SetClampedToScreen(false)
-
-  local point, _, relativePoint, xOffset, yOffset = frame:GetParent():GetPoint()
-
-  if not BUIIDatabase[databaseName] then
-    BUIIDatabase[databaseName] = {
-      point = pointDefault,
-      relativeTo = relativeToDefault,
-      relativePoint = relativePointDefault,
-      xOffset = 0,
-      yOffset = 0,
-    }
-  end
-
-  BUIIDatabase[databaseName]["point"] = point
-  BUIIDatabase[databaseName]["relativeTo"] = nil
-  BUIIDatabase[databaseName]["relativePoint"] = relativePoint
-  BUIIDatabase[databaseName]["xOffset"] = xOffset
-  BUIIDatabase[databaseName]["yOffset"] = yOffset
-end
-
 --- Called when EditMode is enabled
 local function editMode_OnEnter()
   if InCombatLockdown() then
     return
   end
-
-  showFrameHighlight(queueStatusButtonOverlayFrame)
 
   -- In edit mode action bars should be shown even if normally hidden
   for frameName in pairs(FrameVisibility) do
@@ -290,7 +168,6 @@ local function editMode_OnExit()
   if InCombatLockdown() then
     return
   end
-  hideFrameHighlight(queueStatusButtonOverlayFrame)
 
   -- When exiting edit mode we need to hide aciton bars if they have VisibilityMode.ON_HOVER,
   -- VisibilityMode.IN_COMBAT or VisibilityMode.HIDDEN
@@ -326,66 +203,138 @@ local function combat_OnExit()
   end
 end
 
-local function queueStatusButtonOverlayFrame_OnMouseDown()
-  onMouseDown(queueStatusButtonOverlayFrame)
-end
-
-local function queueStatusButtonOverlayFrame_OnMouseUp()
-  onMouseUp(queueStatusButtonOverlayFrame, "queue_status_button_position", "BOTTOMRIGHT", nil, "BOTTOMRIGHT")
-end
-
+local queueStatusButtonOverlay = nil
 local queueStatusButtonHooksInstalled = false
 
-local function installQueueStatusButtonHooks()
-  if queueStatusButtonHooksInstalled then
+local function syncButtonToOverlay()
+  if not queueStatusButtonOverlay or not QueueStatusButton then
     return
   end
-  if not QueueStatusButton or not MicroMenuContainer then
-    return
+  local point, _, relPoint, x, y = queueStatusButtonOverlay:GetPoint()
+  if point then
+    QueueStatusButton:ClearAllPoints()
+    QueueStatusButton:SetPoint(point, UIParent, relPoint, x, y)
   end
-
-  hooksecurefunc(QueueStatusButton, "UpdatePosition", function(self)
-    if queueStatusButtonOverlayFrameHookEnabled and queueStatusButtonOverlayFrame then
-      restorePosition(QueueStatusButton, "queue_status_button_position")
-    end
-  end)
-
-  hooksecurefunc(MicroMenuContainer, "Layout", function(self)
-    if queueStatusButtonOverlayFrameHookEnabled and queueStatusButtonOverlayFrame then
-      restorePosition(QueueStatusButton, "queue_status_button_position")
-    end
-  end)
-
-  queueStatusButtonHooksInstalled = true
 end
 
 local function setupQueueStatusButton()
-  installQueueStatusButtonHooks()
+  if not QueueStatusButton or queueStatusButtonOverlay then
+    return
+  end
 
-  queueStatusButtonOverlayFrame = setupFrame(
-    queueStatusButtonOverlayFrame,
-    "BUIIQueueStatusButtonOverlay",
-    "BUIIQueueStatusButtonEditModeSystemTemplate",
-    QueueStatusButton,
-    "BOTTOMRIGHT",
-    QueueStatusButton:GetWidth(),
-    QueueStatusButton:GetHeight(),
-    queueStatusButtonOverlayFrame_OnMouseDown,
-    queueStatusButtonOverlayFrame_OnMouseUp,
-    "Queue Status Button",
-    "queue_status_button_position"
-  )
+  local systemEnum = Enum.EditModeSystem.BUIIQueueStatusButton or 111
+  local systemName = BUII_HUD_EDIT_MODE_QUEUE_STATUS_BUTTON_LABEL or "Queue Status Button"
+  local dbKey = "queue_status_button"
 
-  if not queueStatusButtonOverlayFrameHook then
-    queueStatusButtonOverlayFrameHook = true
-    queueStatusButtonOverlayFrameHookEnabled = true
-    restorePosition(QueueStatusButton, "queue_status_button_position")
+  -- Create a dedicated overlay frame instead of hooking the Blizzard frame directly
+  -- This makes it easier to grab and move without parent interference
+  queueStatusButtonOverlay =
+    CreateFrame("Frame", "BUIIQueueStatusButtonOverlay", UIParent, "BUIIQueueStatusButtonEditModeSystemTemplate")
+  queueStatusButtonOverlay:SetSize(QueueStatusButton:GetWidth(), QueueStatusButton:GetHeight())
+  queueStatusButtonOverlay:SetMovable(true)
+  queueStatusButtonOverlay:SetClampedToScreen(true)
+  queueStatusButtonOverlay:SetDontSavePosition(true)
+
+  BUII_EditModeUtils:RegisterSystem(queueStatusButtonOverlay, systemEnum, systemName, {}, dbKey, {
+    OnApplySettings = syncButtonToOverlay,
+    OnEditModeExit = syncButtonToOverlay,
+  })
+
+  -- Ensure the actual button follows the overlay
+  queueStatusButtonOverlay:HookScript("OnUpdate", function()
+    if EditModeManagerFrame and EditModeManagerFrame:IsShown() then
+      syncButtonToOverlay()
+    end
+  end)
+
+  if not queueStatusButtonHooksInstalled then
+    hooksecurefunc(QueueStatusButton, "UpdatePosition", function(self)
+      if editModeImprovedEnabled then
+        syncButtonToOverlay()
+      end
+    end)
+
+    if MicroMenuContainer then
+      hooksecurefunc(MicroMenuContainer, "Layout", function(self)
+        if editModeImprovedEnabled then
+          syncButtonToOverlay()
+
+          -- Force container size to only match MicroMenu
+          -- Blizzard's Layout includes QueueStatusButton by default
+          if MicroMenu then
+            local mmWidth = MicroMenu:GetWidth() * MicroMenu:GetScale()
+            local mmHeight = MicroMenu:GetHeight() * MicroMenu:GetScale()
+            self:SetSize(math.max(mmWidth, 1), math.max(mmHeight, 1))
+          end
+        end
+      end)
+    end
+    queueStatusButtonHooksInstalled = true
   end
 end
 
-local function resetQueueStatusButton()
-  resetFrame(queueStatusButtonOverlayFrame, "BOTTOMLEFT", MicroMenuContainer, "BOTTOMLEFT")
-  queueStatusButtonOverlayFrameHookEnabled = false
+function BUII_QueueStatusButton_Enable()
+  setupQueueStatusButton()
+  if queueStatusButtonOverlay then
+    -- Delay unparenting to ensure it happens after Blizzard's initial layout
+    C_Timer.After(0, function()
+      if QueueStatusButton:GetParent() ~= UIParent then
+        QueueStatusButton:SetParent(UIParent)
+      end
+
+      BUII_EditModeUtils:ApplySavedPosition(queueStatusButtonOverlay, "queue_status_button")
+      syncButtonToOverlay()
+
+      -- Force MicroMenuContainer to layout without us
+      if MicroMenuContainer and MicroMenuContainer.Layout then
+        MicroMenuContainer:Layout()
+      end
+    end)
+  end
+end
+
+function BUII_QueueStatusButton_Disable()
+  if queueStatusButtonOverlay then
+    queueStatusButtonOverlay:Hide()
+  end
+  if QueueStatusButton and MicroMenuContainer then
+    QueueStatusButton:SetParent(MicroMenuContainer)
+    if QueueStatusButton.UpdatePosition then
+      QueueStatusButton:UpdatePosition()
+    end
+    MicroMenuContainer:Layout()
+  end
+end
+
+function BUII_QueueStatusButton_InitDB()
+  -- Migrate old settings to new layout-based system
+  if BUIIDatabase["queue_status_button_position"] then
+    if not BUIIDatabase["queue_status_button_layouts"] then
+      local oldPos = BUIIDatabase["queue_status_button_position"]
+      BUIIDatabase["queue_status_button_layouts"] = {
+        Default = {
+          point = oldPos.point or "BOTTOMRIGHT",
+          relativePoint = oldPos.relativePoint or "BOTTOMRIGHT",
+          offsetX = oldPos.xOffset or 0,
+          offsetY = oldPos.yOffset or 0,
+          scale = 1.0,
+        },
+      }
+    end
+    BUIIDatabase["queue_status_button_position"] = nil
+  end
+
+  if BUIIDatabase["queue_status_button_layouts"] == nil then
+    BUIIDatabase["queue_status_button_layouts"] = {
+      Default = {
+        point = "BOTTOMRIGHT",
+        relativePoint = "BOTTOMRIGHT",
+        offsetX = 0,
+        offsetY = 0,
+        scale = 1.0,
+      },
+    }
+  end
 end
 
 --- Add the additional settings to MainMenuBar
@@ -887,7 +836,7 @@ end
 
 --- Enable Improved EditMode module
 function BUII_ImprovedEditModeEnable()
-  setupQueueStatusButton()
+  BUII_QueueStatusButton_Enable()
   setupEditModeSystemSettingsDialog()
 
   -- compatability with old database that only stored booleans for onHover setting
@@ -936,7 +885,7 @@ end
 
 --- Disable Improved EditMode module
 function BUII_ImprovedEditModeDisable()
-  resetQueueStatusButton()
+  BUII_QueueStatusButton_Disable()
 
   EventRegistry:UnregisterCallback("EditMode.Enter", "BUII_ImprovedEditMode_OnEnter")
   EventRegistry:UnregisterCallback("EditMode.Exit", "BUII_ImprovedEditMode_OnExit")
@@ -951,13 +900,5 @@ function BUII_ImprovedEditMode_InitDB()
   if BUIIDatabase["improved_edit_mode"] == nil then
     BUIIDatabase["improved_edit_mode"] = false
   end
-  if BUIIDatabase["queue_status_button_position"] == nil then
-    BUIIDatabase["queue_status_button_position"] = {
-      point = "BOTTOMRIGHT",
-      relativeTo = nil,
-      relativePoint = "BOTTOMRIGHT",
-      xOffset = 0,
-      yOffset = 0,
-    }
-  end
+  BUII_QueueStatusButton_InitDB()
 end
