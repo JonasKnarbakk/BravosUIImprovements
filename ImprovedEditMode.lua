@@ -205,16 +205,16 @@ end
 
 local queueStatusButtonOverlay = nil
 local queueStatusButtonHooksInstalled = false
+local originalQueueStatusButtonUpdatePosition = nil
+local enum_QueueStatusButtonSetting_Scale = 30
 
 local function syncButtonToOverlay()
   if not queueStatusButtonOverlay or not QueueStatusButton then
     return
   end
-  local point, _, relPoint, x, y = queueStatusButtonOverlay:GetPoint()
-  if point then
-    QueueStatusButton:ClearAllPoints()
-    QueueStatusButton:SetPoint(point, UIParent, relPoint, x, y)
-  end
+  -- Direct atomic anchor to prevent spazzing/jitter during resizing or moving
+  QueueStatusButton:ClearAllPoints()
+  QueueStatusButton:SetPoint("CENTER", queueStatusButtonOverlay, "CENTER", 0, 0)
 end
 
 local function setupQueueStatusButton()
@@ -230,12 +230,34 @@ local function setupQueueStatusButton()
   -- This makes it easier to grab and move without parent interference
   queueStatusButtonOverlay =
     CreateFrame("Frame", "BUIIQueueStatusButtonOverlay", UIParent, "BUIIQueueStatusButtonEditModeSystemTemplate")
-  queueStatusButtonOverlay:SetSize(QueueStatusButton:GetWidth(), QueueStatusButton:GetHeight())
+  queueStatusButtonOverlay:SetSize(32, 32) -- Force standard size
   queueStatusButtonOverlay:SetMovable(true)
   queueStatusButtonOverlay:SetClampedToScreen(true)
   queueStatusButtonOverlay:SetDontSavePosition(true)
 
-  BUII_EditModeUtils:RegisterSystem(queueStatusButtonOverlay, systemEnum, systemName, {}, dbKey, {
+  local settingsConfig = {
+    {
+      setting = enum_QueueStatusButtonSetting_Scale,
+      name = "Scale",
+      type = Enum.EditModeSettingDisplayType.Slider,
+      minValue = 0.5,
+      maxValue = 2.0,
+      stepSize = 0.05,
+      formatter = BUII_EditModeUtils.FormatPercentage,
+      getter = function(f)
+        return QueueStatusButton:GetScale()
+      end,
+      setter = function(f, val)
+        QueueStatusButton:SetScale(val)
+        queueStatusButtonOverlay:SetScale(val)
+        syncButtonToOverlay()
+      end,
+      key = "scale",
+      defaultValue = 1.0,
+    },
+  }
+
+  BUII_EditModeUtils:RegisterSystem(queueStatusButtonOverlay, systemEnum, systemName, settingsConfig, dbKey, {
     OnApplySettings = syncButtonToOverlay,
     OnEditModeExit = syncButtonToOverlay,
   })
@@ -248,11 +270,15 @@ local function setupQueueStatusButton()
   end)
 
   if not queueStatusButtonHooksInstalled then
-    hooksecurefunc(QueueStatusButton, "UpdatePosition", function(self)
+    -- Overwrite UpdatePosition to prevent Blizzard from snapping it back to MicroMenu
+    originalQueueStatusButtonUpdatePosition = QueueStatusButton.UpdatePosition
+    QueueStatusButton.UpdatePosition = function(self, ...)
       if editModeImprovedEnabled then
         syncButtonToOverlay()
+      else
+        return originalQueueStatusButtonUpdatePosition(self, ...)
       end
-    end)
+    end
 
     if MicroMenuContainer then
       hooksecurefunc(MicroMenuContainer, "Layout", function(self)
@@ -831,6 +857,30 @@ local function setupEditModeSystemSettingsDialog()
       text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_ON_HOVER,
     }
     table.insert(actionBarDropdownOptions, extraOption)
+
+    -- Hide Blizzard's "Eye Size" setting for MicroMenu since we manage it separately
+    local function applyShouldShowSettingHook(target)
+      if target and not target.BUII_ShouldShowSettingHooked then
+        local original = target.ShouldShowSetting or EditModeSystemMixin.ShouldShowSetting
+        target.ShouldShowSetting = function(self, setting)
+          if editModeImprovedEnabled and setting == Enum.EditModeMicroMenuSetting.EyeSize then
+            return false
+          end
+          if original then
+            return original(self, setting)
+          end
+          return true
+        end
+        target.BUII_ShouldShowSettingHooked = true
+      end
+    end
+
+    if EditModeMicroMenuSystemMixin then
+      applyShouldShowSettingHook(EditModeMicroMenuSystemMixin)
+    end
+    if MicroMenuContainer then
+      applyShouldShowSettingHook(MicroMenuContainer)
+    end
   end
 end
 
