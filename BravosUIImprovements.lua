@@ -341,7 +341,7 @@ local function BUII_InitializeDropdowns()
     end
   end)
 
-  local selectedFontName = BUIIDatabase["font_name"] or "Expressway"
+  local selectedFontName = BUIIDatabase["font_name"] or "Friz Quadrata TT"
   fontDropdown:SetText(selectedFontName)
   if fontDropdown.Text then
     fontDropdown.Text:SetFont(BUII_GetFontPath(), 12, BUIIDatabase["font_outline"] or "OUTLINE")
@@ -579,7 +579,7 @@ function BUII_OnEventHandler(self, event, arg1, ...)
         BUIIDatabase["sane_bag_sort"] = false
       end
       if BUIIDatabase["font_name"] == nil then
-        BUIIDatabase["font_name"] = "Expressway"
+        BUIIDatabase["font_name"] = "Friz Quadrata TT"
       end
       if BUIIDatabase["font_outline"] == nil then
         BUIIDatabase["font_outline"] = "OUTLINE"

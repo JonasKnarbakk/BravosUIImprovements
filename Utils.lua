@@ -162,7 +162,7 @@ function BUII_GetFontPath()
 
   local selectedFont = BUIIDatabase["font_name"]
   if not selectedFont then
-    selectedFont = "Expressway"
+    selectedFont = "Friz Quadrata TT"
   end
 
   local fontPath = nil
