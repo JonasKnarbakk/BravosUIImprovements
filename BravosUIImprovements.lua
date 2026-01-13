@@ -268,6 +268,17 @@ local function BUII_RefreshAllModuleTextures()
   end
 end
 
+local BUII_FontObjects = {}
+local function BUII_GetFontObject(fontName, fontPath)
+  if not BUII_FontObjects[fontName] then
+    local name = "BUII_FontObject_" .. fontName:gsub("%s", "")
+    local fontObj = CreateFont(name)
+    fontObj:SetFont(fontPath, 12, "OUTLINE")
+    BUII_FontObjects[fontName] = fontObj
+  end
+  return BUII_FontObjects[fontName]
+end
+
 function BUII_OptionsPanel_SelectTab(tabNum)
   local panel = BUIIOptionsPanel
   local scrollChild = panel.ScrollFrame.ScrollChild
@@ -293,46 +304,69 @@ local function BUII_InitializeDropdowns()
   local outlineDropdown = weakAura.OutlineDropdown
   local textureDropdown = weakAura.TextureDropdown
 
-  -- Set dropdown widths
-  UIDropDownMenu_SetWidth(fontDropdown, 150)
-  UIDropDownMenu_SetWidth(outlineDropdown, 150)
-  UIDropDownMenu_SetWidth(textureDropdown, 150)
+  -- Set dropdown sizes (using SetSize to avoid potential legacy SetWidth hooks)
+  fontDropdown:SetSize(150, 25)
+  outlineDropdown:SetSize(150, 25)
+  textureDropdown:SetSize(150, 25)
 
   -- Initialize Font Dropdown
-  UIDropDownMenu_Initialize(fontDropdown, function(self, level)
+  fontDropdown:SetupMenu(function(dropdown, rootDescription)
+    rootDescription:SetTag("MENU_FONT_DROPDOWN")
+    rootDescription:SetScrollMode(250)
+
     local fonts = BUII_GetAvailableFonts()
     for _, font in ipairs(fonts) do
-      local info = UIDropDownMenu_CreateInfo()
-      info.text = font.name
-      info.arg1 = font.name
-      info.func = function(self, fontName)
-        BUIIDatabase["font_name"] = fontName
-        UIDropDownMenu_SetText(fontDropdown, fontName)
-        CloseDropDownMenus()
+      local fontObj = BUII_GetFontObject(font.name, font.path)
+      
+      local isSelected = function()
+        return BUIIDatabase["font_name"] == font.name
+      end
+      
+      local setSelected = function()
+        BUIIDatabase["font_name"] = font.name
+        dropdown:SetText(font.name)
+        if dropdown.Text then
+          dropdown.Text:SetFont(font.path, 12, BUIIDatabase["font_outline"] or "OUTLINE")
+        end
         BUII_RefreshAllModuleFonts()
       end
-      info.checked = (BUIIDatabase["font_name"] == font.name)
-      UIDropDownMenu_AddButton(info, level)
+
+      local button = rootDescription:CreateRadio(font.name, isSelected, setSelected)
+
+      button:AddInitializer(function(btn, description, menu)
+        if btn.fontString then
+          btn.fontString:SetFontObject(fontObj)
+        end
+      end)
     end
   end)
 
-  UIDropDownMenu_SetText(fontDropdown, BUIIDatabase["font_name"] or "Expressway")
+  local selectedFontName = BUIIDatabase["font_name"] or "Expressway"
+  fontDropdown:SetText(selectedFontName)
+  if fontDropdown.Text then
+    fontDropdown.Text:SetFont(BUII_GetFontPath(), 12, BUIIDatabase["font_outline"] or "OUTLINE")
+  end
 
   -- Initialize Outline Dropdown
-  UIDropDownMenu_Initialize(outlineDropdown, function(self, level)
+  outlineDropdown:SetupMenu(function(dropdown, rootDescription)
+    rootDescription:SetTag("MENU_OUTLINE_DROPDOWN")
+    rootDescription:SetScrollMode(250)
+
     for _, option in ipairs(BUII_OUTLINE_OPTIONS) do
-      local info = UIDropDownMenu_CreateInfo()
-      info.text = option.name
-      info.arg1 = option.value
-      info.arg2 = option.name
-      info.func = function(self, outlineValue, outlineName)
-        BUIIDatabase["font_outline"] = outlineValue
-        UIDropDownMenu_SetText(outlineDropdown, outlineName)
-        CloseDropDownMenus()
+      local isSelected = function()
+        return BUIIDatabase["font_outline"] == option.value
+      end
+      
+      local setSelected = function()
+        BUIIDatabase["font_outline"] = option.value
+        dropdown:SetText(option.name)
+        if fontDropdown.Text then
+          fontDropdown.Text:SetFont(BUII_GetFontPath(), 12, option.value)
+        end
         BUII_RefreshAllModuleFonts()
       end
-      info.checked = (BUIIDatabase["font_outline"] == option.value)
-      UIDropDownMenu_AddButton(info, level)
+
+      rootDescription:CreateRadio(option.name, isSelected, setSelected)
     end
   end)
 
@@ -344,27 +378,96 @@ local function BUII_InitializeDropdowns()
       break
     end
   end
-  UIDropDownMenu_SetText(outlineDropdown, currentOutlineName)
+  outlineDropdown:SetText(currentOutlineName)
 
   -- Initialize Texture Dropdown
-  UIDropDownMenu_Initialize(textureDropdown, function(self, level)
+  textureDropdown:SetupMenu(function(dropdown, rootDescription)
+    rootDescription:SetTag("MENU_TEXTURE_DROPDOWN")
+    rootDescription:SetScrollMode(250)
+
     local textures = BUII_GetAvailableTextures()
-    for _, texture in ipairs(textures) do
-      local info = UIDropDownMenu_CreateInfo()
-      info.text = texture.name
-      info.arg1 = texture.name
-      info.func = function(self, textureName)
-        BUIIDatabase["texture_name"] = textureName
-        UIDropDownMenu_SetText(textureDropdown, textureName)
-        CloseDropDownMenus()
+    
+    local orderedClasses = {
+      "WARRIOR", "PALADIN", "HUNTER", "ROGUE", "PRIEST", "DEATHKNIGHT",
+      "SHAMAN", "MAGE", "WARLOCK", "MONK", "DRUID", "DEMONHUNTER", "EVOKER"
+    }
+
+    for i, texture in ipairs(textures) do
+      local classIndex = ((i - 1) % #orderedClasses) + 1
+      local className = orderedClasses[classIndex]
+      local color = RAID_CLASS_COLORS[className] or {r=1, g=1, b=1}
+
+      local isSelected = function()
+        return BUIIDatabase["texture_name"] == texture.name
+      end
+      
+      local setSelected = function()
+        BUIIDatabase["texture_name"] = texture.name
+        dropdown:SetText(texture.name)
+        if dropdown.PreviewTexture then
+          dropdown.PreviewTexture:SetTexture(texture.path)
+          dropdown.PreviewTexture:SetVertexColor(color.r, color.g, color.b)
+        end
         BUII_RefreshAllModuleTextures()
       end
-      info.checked = (BUIIDatabase["texture_name"] == texture.name)
-      UIDropDownMenu_AddButton(info, level)
+
+      local button = rootDescription:CreateRadio(texture.name, isSelected, setSelected)
+
+      button:AddInitializer(function(btn, description, menu)
+        local r, g, b = color.r, color.g, color.b
+        -- Create background texture if not exists
+        if not btn.TexturePreview then
+          btn.TexturePreview = btn:AttachTexture()
+          btn.TexturePreview:SetAllPoints()
+          btn.TexturePreview:SetAlpha(1.0)
+          
+          -- Ensure text is on top
+          if btn.fontString then
+             btn.fontString:SetDrawLayer("OVERLAY")
+          end
+        end
+        btn.TexturePreview:SetTexture(texture.path)
+        btn.TexturePreview:SetVertexColor(r, g, b)
+        btn.TexturePreview:SetDesaturated(false)
+        btn.TexturePreview:Show()
+      end)
     end
   end)
 
-  UIDropDownMenu_SetText(textureDropdown, BUIIDatabase["texture_name"] or "Solid")
+  textureDropdown:SetText(BUIIDatabase["texture_name"] or "Solid")
+  if not textureDropdown.PreviewTexture then
+    textureDropdown.PreviewTexture = textureDropdown:CreateTexture(nil, "ARTWORK")
+    textureDropdown.PreviewTexture:SetSize(140, 16)
+    textureDropdown.PreviewTexture:SetPoint("CENTER", textureDropdown, "CENTER", 0, 2)
+    textureDropdown.PreviewTexture:SetAlpha(1.0)
+
+    if textureDropdown.Text then
+      textureDropdown.Text:SetDrawLayer("OVERLAY")
+    end
+  end
+  textureDropdown.PreviewTexture:SetTexture(BUII_GetTexturePath())
+  
+  -- Calculate initial color based on selection index
+  local textures = BUII_GetAvailableTextures()
+  local selectedTextureName = BUIIDatabase["texture_name"] or "Solid"
+  local selectedIndex = 1
+  for i, texture in ipairs(textures) do
+    if texture.name == selectedTextureName then
+      selectedIndex = i
+      break
+    end
+  end
+  
+  local orderedClasses = {
+      "WARRIOR", "PALADIN", "HUNTER", "ROGUE", "PRIEST", "DEATHKNIGHT",
+      "SHAMAN", "MAGE", "WARLOCK", "MONK", "DRUID", "DEMONHUNTER", "EVOKER"
+  }
+  local classIndex = ((selectedIndex - 1) % #orderedClasses) + 1
+  local className = orderedClasses[classIndex]
+  local color = RAID_CLASS_COLORS[className] or {r=1, g=1, b=1}
+  
+  textureDropdown.PreviewTexture:SetVertexColor(color.r, color.g, color.b)
+  textureDropdown.PreviewTexture:SetDesaturated(false)
 end
 
 function BUII_OnLoadHandler(self)

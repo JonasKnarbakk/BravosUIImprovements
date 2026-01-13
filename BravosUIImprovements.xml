@@ -366,11 +366,11 @@
         </Layers>
       </Frame>
 
-      <Frame name="$parentFontDropdown" parentKey="FontDropdown" inherits="UIDropDownMenuTemplate">
+      <DropdownButton name="$parentFontDropdown" parentKey="FontDropdown" inherits="WowStyle1DropdownTemplate">
         <Anchors>
           <Anchor point="LEFT" relativeKey="$parent.FontLabel" relativePoint="RIGHT" x="0" y="0"/>
         </Anchors>
-      </Frame>
+      </DropdownButton>
 
       <CheckButton name="$parentFontShadow" parentKey="FontShadow" inherits="InterfaceOptionsCheckButtonTemplate">
         <Anchors>
@@ -407,11 +407,11 @@
         </Layers>
       </Frame>
 
-      <Frame name="$parentOutlineDropdown" parentKey="OutlineDropdown" inherits="UIDropDownMenuTemplate">
+      <DropdownButton name="$parentOutlineDropdown" parentKey="OutlineDropdown" inherits="WowStyle1DropdownTemplate">
         <Anchors>
           <Anchor point="LEFT" relativeKey="$parent.OutlineLabel" relativePoint="RIGHT" x="-10" y="0"/>
         </Anchors>
-      </Frame>
+      </DropdownButton>
 
       <!-- Texture Selection -->
       <Frame name="$parentTextureLabel" parentKey="TextureLabel">
@@ -430,11 +430,11 @@
         </Layers>
       </Frame>
 
-      <Frame name="$parentTextureDropdown" parentKey="TextureDropdown" inherits="UIDropDownMenuTemplate">
+      <DropdownButton name="$parentTextureDropdown" parentKey="TextureDropdown" inherits="WowStyle1DropdownTemplate">
         <Anchors>
           <Anchor point="LEFT" relativeKey="$parent.TextureLabel" relativePoint="RIGHT" x="-10" y="0"/>
         </Anchors>
-      </Frame>
+      </DropdownButton>
 
       <CheckButton name="$parentCallToArms" parentKey="CallToArms" inherits="InterfaceOptionsCheckButtonTemplate">
         <Anchors>
