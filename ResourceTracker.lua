@@ -23,7 +23,7 @@ local CONFIG = {
     spec = 581, -- Vengeance
     buffs = { 203981 }, -- Soul Fragments
     name = "Soul Fragments",
-    maxPoints = 5,
+    maxPoints = 6,
     color = { r = 0.8, g = 0.2, b = 0.8 }, -- Soul Purple
   },
   WARLOCK = {
