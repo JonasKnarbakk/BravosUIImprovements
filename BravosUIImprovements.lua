@@ -1,6 +1,5 @@
 local addonName, addon = ...
 local spellBarHookSet = false
-local stanceBarHookSet = false
 local castingBarHookSet = false
 
 local function handleTargetFrameSpellBar_OnUpdate(self, arg1, ...)
@@ -69,71 +68,27 @@ local function setSaneBagSorting(setSane)
   end
 end
 
-local function stanceBar_OnUpdate()
-  if InCombatLockdown() then
-    return
-  end
-
-  if BUIICharacterDatabase["hide_stance_bar"] then
-    local point, _, relativePoint, xOffset, yOffset = StanceBar:GetPoint()
-    if
-      point ~= "TOPLEFT"
-      or relativePoint ~= "TOPLEFT"
-      or math.ceil(xOffset) ~= math.ceil(0 - (StanceBar:GetWidth() + 100))
-      or yOffset ~= 0
-    then
-      StanceBar:ClearAllPoints()
-      StanceBar:SetClampedToScreen(false)
-      StanceBar:SetPoint("TOPLEFT", UIParent, "TOPLEFT", math.ceil(0 - (StanceBar:GetWidth() + 100)), 0)
+local function hideStanceButtons(shouldHide)
+  -- Use SetAlpha and EnableMouse instead of Hide/Show to avoid tainting secure frames
+  -- This works during combat and doesn't cause taint issues
+  if StanceBar and StanceBar.actionButtons then
+    for _, button in pairs(StanceBar.actionButtons) do
+      if button then
+        if shouldHide then
+          button:SetAlpha(0)
+          button:EnableMouse(false)
+        else
+          button:SetAlpha(1)
+          button:EnableMouse(true)
+        end
+      end
     end
   end
 end
 
 local function setHideStanceBar(shouldHide)
-  if InCombatLockdown() then
-    return
-  end
-
-  if shouldHide then
-    local point, _, relativePoint, xOffset, yOffset = StanceBar:GetPoint()
-    BUIICharacterDatabase["stance_bar_position"] = {
-      point = point,
-      relativeTo = nil,
-      relativePoint = relativePoint,
-      xOffset = xOffset,
-      yOffset = yOffset,
-    }
-
-    -- The StanceBar gets tainted if we just hide it (It also can't be hidden in combat)
-    -- so we just chuck it outside the screen to hide it
-    BUIICharacterDatabase["hide_stance_bar"] = shouldHide
-    StanceBar:ClearAllPoints()
-    StanceBar:SetClampedToScreen(false)
-    StanceBar:SetPoint("TOPLEFT", UIParent, "TOPLEFT", math.ceil(0 - (StanceBar:GetWidth() + 100)), 0)
-    if not stanceBarHookSet then
-      hooksecurefunc(StanceBar, "OnUpdate", stanceBar_OnUpdate)
-      stanceBarHookSet = true
-    end
-  else
-    BUIICharacterDatabase["hide_stance_bar"] = shouldHide
-    StanceBar:ClearAllPoints()
-    StanceBar:SetClampedToScreen(true)
-    StanceBar:SetPoint(
-      BUIICharacterDatabase["stance_bar_position"]["point"],
-      UIParent,
-      BUIICharacterDatabase["stance_bar_position"]["relativePoint"],
-      BUIICharacterDatabase["stance_bar_position"]["xOffset"],
-      BUIICharacterDatabase["stance_bar_position"]["yOffset"]
-    )
-  end
-end
-
-local function editMode_OnExit()
-  if BUIICharacterDatabase["hide_stance_bar"] then
-    StanceBar:ClearAllPoints()
-    StanceBar:SetClampedToScreen(false)
-    StanceBar:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 0 - (StanceBar:GetWidth() + 100), 0)
-  end
+  BUIICharacterDatabase["hide_stance_bar"] = shouldHide
+  hideStanceButtons(shouldHide)
 end
 
 local function showPlayerCastBarIcon(shouldShow)
@@ -496,7 +451,6 @@ function BUII_OnLoadHandler(self)
   self:RegisterEvent("ADDON_LOADED")
   self:RegisterEvent("PLAYER_ENTERING_WORLD")
   self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
-  EventRegistry:RegisterCallback("EditMode.Exit", editMode_OnExit, "BUII_Improvements_OnExit")
   hooksecurefunc("UnitFramePortrait_Update", handleUnitFramePortraitUpdate)
 
   -- Register with modern Settings API
