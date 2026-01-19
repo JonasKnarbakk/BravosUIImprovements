@@ -215,6 +215,9 @@ local function BUII_RefreshAllModuleFonts()
   if BUIIDatabase["loot_spec"] and BUII_LootSpec_Refresh then
     BUII_LootSpec_Refresh()
   end
+  if BUIIDatabase["pet_reminder"] and BUII_PetReminder_Refresh then
+    BUII_PetReminder_Refresh()
+  end
 end
 
 local function BUII_RefreshAllModuleTextures()
@@ -598,6 +601,7 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       BUII_StatPanel_InitDB()
       BUII_ResourceTracker_InitDB()
       BUII_LootSpec_InitDB()
+      BUII_PetReminder_InitDB()
 
       -- Initialize font, outline, and texture dropdowns
       BUII_InitializeDropdowns()
@@ -803,6 +807,13 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       weakAura.LootSpec:SetChecked(true)
     else
       weakAura.LootSpec:SetChecked(false)
+    end
+
+    if BUIIDatabase["pet_reminder"] then
+      BUII_PetReminder_Enable()
+      weakAura.PetReminder:SetChecked(true)
+    else
+      weakAura.PetReminder:SetChecked(false)
     end
 
     if BUIIDatabase["font_shadow"] then
@@ -1086,6 +1097,16 @@ function BUII_LootSpec_OnClick(self)
   else
     BUII_LootSpec_Disable()
     BUIIDatabase["loot_spec"] = false
+  end
+end
+
+function BUII_PetReminder_OnClick(self)
+  if self:GetChecked() then
+    BUII_PetReminder_Enable()
+    BUIIDatabase["pet_reminder"] = true
+  else
+    BUII_PetReminder_Disable()
+    BUIIDatabase["pet_reminder"] = false
   end
 end
 
