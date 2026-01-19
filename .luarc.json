@@ -1,0 +1,19 @@
+{
+    "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
+    "runtime.version": "Lua 5.1",
+    "runtime.path": [
+        "?.lua",
+        "?/init.lua",
+        "?/?.lua"
+    ],
+    "diagnostics.globals": [
+    ],
+    "workspace.library": [
+        "wow-ui-source",
+        "vscode-wow-api/Annotations"
+    ],
+    "workspace.checkThirdParty": false,
+    "diagnostics.disable": [
+        "lowercase-global"
+    ]
+}

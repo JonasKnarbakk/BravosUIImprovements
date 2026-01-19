@@ -1,3 +1,6 @@
 [submodule "wow-ui-source"]
 	path = wow-ui-source
 	url = git@github.com:Gethe/wow-ui-source.git
+[submodule "vscode-wow-api"]
+	path = vscode-wow-api
+	url = git@github.com:Ketho/vscode-wow-api.git
