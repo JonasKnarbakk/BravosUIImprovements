@@ -6,6 +6,7 @@
 ## SavedVariables: BUIIDatabase
 ## SavedVariablesPerCharacter: BUIICharacterDatabase
 ## IconTexture: Interface\AddOns\BravosUIImprovements\Media\Textures\icon
+## OptionalDeps: LibSharedMedia-3.0 SharedMedia !KMediaTags
 ## X-Curse-Project-ID: 701258
 
 ResourceTracker.xml
