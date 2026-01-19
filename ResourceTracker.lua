@@ -92,13 +92,14 @@ local enum_ResourceTrackerSetting_TotalWidth = 61
 local enum_ResourceTrackerSetting_Spacing = 62
 local enum_ResourceTrackerSetting_Height = 63
 local enum_ResourceTrackerSetting_ShowText = 64
-local enum_ResourceTrackerSetting_FontSize = 65
-local enum_ResourceTrackerSetting_ShowBorder = 66
-local enum_ResourceTrackerSetting_UseClassColor = 67
-local enum_ResourceTrackerSetting_ResourceOpacity = 68
-local enum_ResourceTrackerSetting_BackgroundOpacity = 69
-local enum_ResourceTrackerSetting_FrameStrata = 70
-local enum_ResourceTrackerSetting_HideNativeFrame = 71
+local enum_ResourceTrackerSetting_ShowDecimal = 65
+local enum_ResourceTrackerSetting_FontSize = 66
+local enum_ResourceTrackerSetting_ShowBorder = 68
+local enum_ResourceTrackerSetting_UseClassColor = 68
+local enum_ResourceTrackerSetting_ResourceOpacity = 69
+local enum_ResourceTrackerSetting_BackgroundOpacity = 70
+local enum_ResourceTrackerSetting_FrameStrata = 71
+local enum_ResourceTrackerSetting_HideNativeFrame = 72
 
 -- Frame Strata Options
 local FRAME_STRATA_OPTIONS = {
@@ -627,7 +628,29 @@ local function UpdatePoints()
   -- Update Counter Text
   if db.showText then
     counterText:Show()
-    counterText:SetText(currentStacks)
+    local displayText = tostring(currentStacks)
+    if db.resource_tracker_show_decimal then
+      -- Calculate decimal value from partial fill
+      local decimalPart = 0
+      if type(partialFill) == "number" then
+        decimalPart = partialFill
+      elseif type(partialFill) == "table" and partialFill[1] then
+        -- For table-based partials (DK Runes, Evoker), get the first entry's progress
+        if type(partialFill[1]) == "table" and partialFill[1].progress then
+          decimalPart = partialFill[1].progress
+        elseif type(partialFill[1]) == "number" then
+          decimalPart = partialFill[1]
+        end
+      end
+      
+      -- Midnight: Check for secret values before adding
+      if issecretvalue(currentStacks) or issecretvalue(decimalPart) then
+        displayText = tostring(currentStacks)
+      else
+        displayText = string.format("%.1f", currentStacks + decimalPart)
+      end
+    end
+    counterText:SetText(displayText)
     counterText:SetFont(BUII_GetFontPath(), db.currentFontSize or 12, BUII_GetFontFlags())
     counterText:SetShadowOffset(BUII_GetFontShadow())
   else
@@ -811,6 +834,22 @@ local function BUII_ResourceTracker_Initialize()
       setter = function(f, val)
         local db = GetResourceTrackerDB()
         db.currentFontSize = val
+        UpdatePoints()
+      end,
+    },
+    {
+      setting = enum_ResourceTrackerSetting_ShowDecimal,
+      name = "Show Decimal",
+      key = "resource_tracker_show_decimal",
+      type = Enum.EditModeSettingDisplayType.Checkbox,
+      defaultValue = false,
+      getter = function(f)
+        local db = GetResourceTrackerDB()
+        return db.resource_tracker_show_decimal and 1 or 0
+      end,
+      setter = function(f, val)
+        local db = GetResourceTrackerDB()
+        db.resource_tracker_show_decimal = (val == 1)
         UpdatePoints()
       end,
     },
