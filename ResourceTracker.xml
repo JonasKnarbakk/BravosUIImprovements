@@ -45,6 +45,55 @@
         </Animations>
     </Frame>
 
+    <Frame name="BUII_PowerBarTemplate" inherits="BackdropTemplate" virtual="true">
+        <Scripts>
+            <OnLoad>
+                self:SetBackdrop({
+                    edgeFile = "Interface\\Buttons\\WHITE8X8",
+                    edgeSize = 1,
+                    tile = false,
+                })
+                self:SetBackdropBorderColor(0, 0, 0, 1)
+                -- Alias PowerText for easy access
+                self.PowerText = self.ProgressBar.PowerText
+            </OnLoad>
+        </Scripts>
+        <Layers>
+            <Layer level="BACKGROUND">
+                <Texture parentKey="Background">
+                    <Anchors>
+                        <Anchor point="TOPLEFT" x="1" y="-1"/>
+                        <Anchor point="BOTTOMRIGHT" x="-1" y="1"/>
+                    </Anchors>
+                    <Color r="0.1" g="0.1" b="0.1" a="0.8"/>
+                </Texture>
+            </Layer>
+        </Layers>
+        <Frames>
+            <StatusBar parentKey="ProgressBar">
+                <Anchors>
+                    <Anchor point="TOPLEFT" x="1" y="-1"/>
+                    <Anchor point="BOTTOMRIGHT" x="-1" y="1"/>
+                </Anchors>
+                <Scripts>
+                    <OnLoad>
+                        Mixin(self, SmoothStatusBarMixin)
+                        self:SetMinMaxValues(0, 1)
+                    </OnLoad>
+                </Scripts>
+                <Layers>
+                    <Layer level="OVERLAY">
+                        <FontString parentKey="PowerText" inherits="GameFontHighlight" justifyH="CENTER">
+                            <Anchors>
+                                <Anchor point="CENTER"/>
+                            </Anchors>
+                        </FontString>
+                    </Layer>
+                </Layers>
+            </StatusBar>
+        </Frames>
+    </Frame>
+
     <Frame name="BUII_ResourceTrackerEditModeTemplate" inherits="EditModeSystemTemplate" virtual="true">
         <KeyValues>
             <KeyValue key="system" value="Enum.EditModeSystem.BUII_ResourceTracker" type="global"/>

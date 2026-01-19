@@ -23,7 +23,7 @@ local CONFIG = {
     spec = 581, -- Vengeance
     buffs = { 203981 }, -- Soul Fragments
     name = "Soul Fragments",
-    maxPoints = 6,
+    maxPoints = (select(4, GetBuildInfo()) == 110207) and 5 or 6, -- Goes to 6 stacks in Midnight prepatch
     color = { r = 0.8, g = 0.2, b = 0.8 }, -- Soul Purple
   },
   WARLOCK = {
@@ -100,6 +100,11 @@ local enum_ResourceTrackerSetting_ResourceOpacity = 69
 local enum_ResourceTrackerSetting_BackgroundOpacity = 70
 local enum_ResourceTrackerSetting_FrameStrata = 71
 local enum_ResourceTrackerSetting_HideNativeFrame = 72
+local enum_ResourceTrackerSetting_ShowPowerBar = 73
+local enum_ResourceTrackerSetting_PowerBarHeight = 74
+local enum_ResourceTrackerSetting_PowerBarPadding = 75
+local enum_ResourceTrackerSetting_PowerBarShowText = 76
+local enum_ResourceTrackerSetting_PowerBarFontSize = 77
 
 -- Frame Strata Options
 local FRAME_STRATA_OPTIONS = {
@@ -405,7 +410,7 @@ local function UpdatePoints()
 
   -- Update Points Visibility and Color
   local spacing = db.currentSpacing or 2
-  local totalWidth = db.currentTotalWidth or 170
+  local totalWidth = db.currentTotalWidth or 174
   local height = db.currentHeight or 12
   local showBorder = db.resource_tracker_show_border or false
   local useClassColor = db.resource_tracker_use_class_color or false
@@ -421,11 +426,16 @@ local function UpdatePoints()
     end
   end
 
-  -- Calculate dynamic width for each point
-  local pointWidth = (totalWidth - (spacing * (maxPoints - 1))) / maxPoints
+  local pointWidth = math.floor((totalWidth - (spacing * (maxPoints - 1))) / maxPoints)
   if pointWidth < 1 then
     pointWidth = 1
   end
+
+  --  Calculate the total width based on the floored points
+  -- This ensures the PowerBar matches the points exactly, even if we lost a few pixels to rounding.
+  totalWidth = (pointWidth * maxPoints) + (spacing * (maxPoints - 1))
+
+  local showPowerBar = db.resource_tracker_show_power_bar
 
   for i = 1, #points do
     local point = points[i]
@@ -436,7 +446,11 @@ local function UpdatePoints()
 
       -- Simple horizontal layout
       if i == 1 then
-        point:SetPoint("LEFT", frame, "LEFT", 0, 0)
+        if showPowerBar then
+          point:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0)
+        else
+          point:SetPoint("LEFT", frame, "LEFT", 0, 0)
+        end
       else
         point:SetPoint("LEFT", points[i - 1], "RIGHT", spacing, 0)
       end
@@ -623,11 +637,77 @@ local function UpdatePoints()
     end
   end
 
-  frame:SetSize(totalWidth, height)
+  if showPowerBar then
+    local powerBarHeight = db.resource_tracker_power_bar_height or 4
+    local padding = db.resource_tracker_power_bar_padding or 2
+    local totalFrameHeight = height + padding + powerBarHeight
+
+    frame.PowerBar:ClearAllPoints()
+    frame.PowerBar:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, -(height + padding))
+
+    if frame.PowerBar:GetWidth() ~= totalWidth or frame.PowerBar:GetHeight() ~= powerBarHeight then
+      frame.PowerBar:SetSize(totalWidth, powerBarHeight)
+    end
+
+    frame.PowerBar:Show()
+
+    -- Apply border color to Power Bar
+
+    local borderColor = { r = 0, g = 0, b = 0, a = 0 }
+    if showBorder then
+      borderColor = { r = 0, g = 0, b = 0, a = 1 }
+    end
+    frame.PowerBar:SetBackdropBorderColor(borderColor.r, borderColor.g, borderColor.b, borderColor.a)
+
+    -- Update Textures
+    frame.PowerBar.Background:SetTexture(BUII_GetTexturePath())
+    frame.PowerBar.Background:SetVertexColor(0.1, 0.1, 0.1, bgOpacity)
+    frame.PowerBar.ProgressBar:SetStatusBarTexture(BUII_GetTexturePath())
+
+    local powerType, powerToken = UnitPowerType("player")
+    local powerColor = PowerBarColor[powerToken] or PowerBarColor[powerType] or { r = 1, g = 1, b = 1 }
+    frame.PowerBar.ProgressBar:SetStatusBarColor(powerColor.r, powerColor.g, powerColor.b)
+
+    local current = UnitPower("player", powerType)
+    local max = UnitPowerMax("player", powerType)
+
+    if UnitPowerPercent then
+      frame.PowerBar.ProgressBar:SetMinMaxValues(0, 1)
+      frame.PowerBar.ProgressBar:SetValue(UnitPowerPercent("player"))
+    else
+      frame.PowerBar.ProgressBar:SetMinMaxValues(0, max)
+      frame.PowerBar.ProgressBar:SetValue(current)
+    end
+
+    if db.resource_tracker_power_bar_show_text then
+      frame.PowerBar.PowerText:Show()
+      frame.PowerBar.PowerText:SetText(current)
+      frame.PowerBar.PowerText:SetFont(
+        BUII_GetFontPath(),
+        db.resource_tracker_power_bar_font_size or 12,
+        BUII_GetFontFlags()
+      )
+    else
+      frame.PowerBar.PowerText:Hide()
+    end
+
+    if frame:GetWidth() ~= totalWidth or frame:GetHeight() ~= totalFrameHeight then
+      frame:SetSize(totalWidth, totalFrameHeight)
+    end
+  else
+    frame.PowerBar:Hide()
+    if frame:GetWidth() ~= totalWidth or frame:GetHeight() ~= height then
+      frame:SetSize(totalWidth, height)
+    end
+  end
 
   -- Update Counter Text
   if db.showText then
     counterText:Show()
+    counterText:ClearAllPoints()
+    -- Center the text based on the total width and the height of the resource points (excluding power bar)
+    counterText:SetPoint("CENTER", frame, "TOPLEFT", totalWidth / 2, -height / 2)
+
     local displayText = tostring(currentStacks)
     if db.resource_tracker_show_decimal then
       -- Calculate decimal value from partial fill
@@ -658,6 +738,17 @@ local function UpdatePoints()
   end
 end
 
+local updateTimer = nil
+local function RequestUpdatePoints()
+  if updateTimer then
+    return
+  end
+  updateTimer = C_Timer.After(0, function()
+    updateTimer = nil
+    UpdatePoints()
+  end)
+end
+
 local function onEvent(self, event, ...)
   UpdatePoints()
 end
@@ -668,7 +759,7 @@ local function BUII_ResourceTracker_Initialize()
   end
 
   frame = CreateFrame("Frame", "BUII_ResourceTrackerFrame", UIParent, "BUII_ResourceTrackerEditModeTemplate")
-  frame:SetSize(170, 20)
+  frame:SetSize(174, 20)
   frame:SetMovable(true)
   frame:SetClampedToScreen(true)
   frame:SetDontSavePosition(true)
@@ -678,13 +769,19 @@ local function BUII_ResourceTracker_Initialize()
   -- Expose DB selector for EditModeUtils
   frame.GetSettingsDB = GetResourceTrackerDB
 
+  -- Create Power Bar
+  frame.PowerBar = CreateFrame("Frame", nil, frame, "BUII_PowerBarTemplate")
+  frame.PowerBar:SetHeight(4)
+  frame.PowerBar.ProgressBar:SetStatusBarTexture(BUII_GetTexturePath())
+  frame.PowerBar:Hide()
+
   -- Create a container frame for text to ensure it stays on top of points
   local textFrame = CreateFrame("Frame", nil, frame)
   textFrame:SetAllPoints(frame)
   textFrame:SetFrameLevel(frame:GetFrameLevel() + 10)
 
   counterText = textFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-  counterText:SetPoint("CENTER", textFrame, "CENTER", 0, 0)
+  counterText:SetPoint("CENTER", textFrame, "TOPLEFT", 85, -10)
   counterText:SetText("0")
 
   -- Register System
@@ -713,10 +810,10 @@ local function BUII_ResourceTracker_Initialize()
       minValue = 50,
       maxValue = 500,
       stepSize = 1,
-      defaultValue = 170,
+      defaultValue = 174,
       getter = function(f)
         local db = GetResourceTrackerDB()
-        return db.currentTotalWidth or 170
+        return db.currentTotalWidth or 174
       end,
       setter = function(f, val)
         local db = GetResourceTrackerDB()
@@ -903,6 +1000,105 @@ local function BUII_ResourceTracker_Initialize()
       end,
     },
     {
+      setting = enum_ResourceTrackerSetting_ShowPowerBar,
+      name = "Show Power Bar",
+      key = "resource_tracker_show_power_bar",
+      type = Enum.EditModeSettingDisplayType.Checkbox,
+      defaultValue = false,
+      getter = function(f)
+        local db = GetResourceTrackerDB()
+        return db.resource_tracker_show_power_bar and 1 or 0
+      end,
+      setter = function(f, val)
+        local db = GetResourceTrackerDB()
+        db.resource_tracker_show_power_bar = (val == 1)
+        if not f.isApplyingSettings then
+          RequestUpdatePoints()
+        end
+      end,
+    },
+    {
+      setting = enum_ResourceTrackerSetting_PowerBarHeight,
+      name = "Power Bar Height",
+      key = "resource_tracker_power_bar_height",
+      type = Enum.EditModeSettingDisplayType.Slider,
+      minValue = 2,
+      maxValue = 20,
+      stepSize = 1,
+      defaultValue = 4,
+      getter = function(f)
+        local db = GetResourceTrackerDB()
+        return db.resource_tracker_power_bar_height or 4
+      end,
+      setter = function(f, val)
+        local db = GetResourceTrackerDB()
+        db.resource_tracker_power_bar_height = val
+        if not f.isApplyingSettings then
+          RequestUpdatePoints()
+        end
+      end,
+    },
+    {
+      setting = enum_ResourceTrackerSetting_PowerBarPadding,
+      name = "Power Bar Padding",
+      key = "resource_tracker_power_bar_padding",
+      type = Enum.EditModeSettingDisplayType.Slider,
+      minValue = 0,
+      maxValue = 20,
+      stepSize = 1,
+      defaultValue = 2,
+      getter = function(f)
+        local db = GetResourceTrackerDB()
+        return db.resource_tracker_power_bar_padding or 2
+      end,
+      setter = function(f, val)
+        local db = GetResourceTrackerDB()
+        db.resource_tracker_power_bar_padding = val
+        if not f.isApplyingSettings then
+          RequestUpdatePoints()
+        end
+      end,
+    },
+    {
+      setting = enum_ResourceTrackerSetting_PowerBarShowText,
+      name = "Power Bar Show Text",
+      key = "resource_tracker_power_bar_show_text",
+      type = Enum.EditModeSettingDisplayType.Checkbox,
+      defaultValue = false,
+      getter = function(f)
+        local db = GetResourceTrackerDB()
+        return db.resource_tracker_power_bar_show_text and 1 or 0
+      end,
+      setter = function(f, val)
+        local db = GetResourceTrackerDB()
+        db.resource_tracker_power_bar_show_text = (val == 1)
+        if not f.isApplyingSettings then
+          RequestUpdatePoints()
+        end
+      end,
+    },
+    {
+      setting = enum_ResourceTrackerSetting_PowerBarFontSize,
+      name = "Power Bar Font Size",
+      key = "resource_tracker_power_bar_font_size",
+      type = Enum.EditModeSettingDisplayType.Slider,
+      minValue = 8,
+      maxValue = 32,
+      stepSize = 1,
+      defaultValue = 12,
+      getter = function(f)
+        local db = GetResourceTrackerDB()
+        return db.resource_tracker_power_bar_font_size or 12
+      end,
+      setter = function(f, val)
+        local db = GetResourceTrackerDB()
+        db.resource_tracker_power_bar_font_size = val
+        if not f.isApplyingSettings then
+          RequestUpdatePoints()
+        end
+      end,
+    },
+    {
       setting = enum_ResourceTrackerSetting_FrameStrata,
       name = "Frame Strata",
       key = "resource_tracker_frame_strata",
@@ -934,7 +1130,7 @@ local function BUII_ResourceTracker_Initialize()
         local db = GetResourceTrackerDB()
         db.currentSpacing = 2
         db.currentOpacity = 1.0
-        db.currentTotalWidth = 170
+        db.currentTotalWidth = 174
         db.currentHeight = 12
         db.showText = false
         db.currentFontSize = 12
@@ -942,6 +1138,11 @@ local function BUII_ResourceTracker_Initialize()
         db.resource_tracker_use_class_color = false
         db.resource_tracker_frame_strata = 2 -- LOW
         db.resource_tracker_background_opacity = 0.5
+        db.resource_tracker_show_power_bar = false
+        db.resource_tracker_power_bar_height = 4
+        db.resource_tracker_power_bar_padding = 2
+        db.resource_tracker_power_bar_show_text = false
+        db.resource_tracker_power_bar_font_size = 12
         UpdatePoints()
       end,
 
@@ -1046,6 +1247,21 @@ function BUII_ResourceTracker_InitDB()
   if BUIIDatabase["resource_tracker_hide_native"] == nil then
     BUIIDatabase["resource_tracker_hide_native"] = false
   end
+  if BUIIDatabase["resource_tracker_show_power_bar"] == nil then
+    BUIIDatabase["resource_tracker_show_power_bar"] = false
+  end
+  if BUIIDatabase["resource_tracker_power_bar_height"] == nil then
+    BUIIDatabase["resource_tracker_power_bar_height"] = 4
+  end
+  if BUIIDatabase["resource_tracker_power_bar_padding"] == nil then
+    BUIIDatabase["resource_tracker_power_bar_padding"] = 2
+  end
+  if BUIIDatabase["resource_tracker_power_bar_show_text"] == nil then
+    BUIIDatabase["resource_tracker_power_bar_show_text"] = false
+  end
+  if BUIIDatabase["resource_tracker_power_bar_font_size"] == nil then
+    BUIIDatabase["resource_tracker_power_bar_font_size"] = 12
+  end
   if BUIIDatabase["resource_tracker_frame_strata"] == nil then
     BUIIDatabase["resource_tracker_frame_strata"] = 2 -- LOW
   end
@@ -1062,6 +1278,21 @@ function BUII_ResourceTracker_InitDB()
   end
   if BUIICharacterDatabase["resource_tracker_hide_native"] == nil then
     BUIICharacterDatabase["resource_tracker_hide_native"] = false
+  end
+  if BUIICharacterDatabase["resource_tracker_show_power_bar"] == nil then
+    BUIICharacterDatabase["resource_tracker_show_power_bar"] = false
+  end
+  if BUIICharacterDatabase["resource_tracker_power_bar_height"] == nil then
+    BUIICharacterDatabase["resource_tracker_power_bar_height"] = 4
+  end
+  if BUIICharacterDatabase["resource_tracker_power_bar_padding"] == nil then
+    BUIICharacterDatabase["resource_tracker_power_bar_padding"] = 2
+  end
+  if BUIICharacterDatabase["resource_tracker_power_bar_show_text"] == nil then
+    BUIICharacterDatabase["resource_tracker_power_bar_show_text"] = false
+  end
+  if BUIICharacterDatabase["resource_tracker_power_bar_font_size"] == nil then
+    BUIICharacterDatabase["resource_tracker_power_bar_font_size"] = 12
   end
   if BUIICharacterDatabase["resource_tracker_frame_strata"] == nil then
     BUIICharacterDatabase["resource_tracker_frame_strata"] = 2 -- LOW

@@ -246,6 +246,9 @@ local function UpdatePending(frame)
 end
 
 local function MarkLayoutDirty(frame)
+  if frame.hasActiveChanges then
+    return
+  end
   frame.hasActiveChanges = true
   if EditModeManagerFrame then
     EditModeManagerFrame:SetHasActiveChanges(true)
@@ -576,7 +579,35 @@ function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settin
   frame:HookScript("OnUpdate", function(self)
     if EditModeManagerFrame and EditModeManagerFrame:IsShown() then
       if not self.isSelected and not self.hasActiveChanges and not self.isRestoringPosition then
-        BUII_EditModeUtils:ApplySavedPosition(self, self.buiiDbKey)
+        -- Check if we really need to apply position
+        local db = BUII_EditModeUtils:GetDB(self.buiiDbKey)
+        local layoutKey = BUII_EditModeUtils:GetActiveLayoutKey()
+        local layouts = db[self.buiiDbKey .. "_layouts"] or {}
+        local pos = layouts[layoutKey]
+        
+        -- Fallbacks matching ApplySavedPosition logic
+        if not pos then
+          if layouts["Default"] then pos = layouts["Default"]
+          elseif next(layouts) then for _, p in pairs(layouts) do pos = p break end
+          elseif db[self.buiiDbKey .. "_pos"] then pos = db[self.buiiDbKey .. "_pos"] end
+        end
+
+        if pos then
+          local currentPoint, _, currentRel, currentX, currentY = self:GetPoint()
+          local savedPoint = pos.point or "CENTER"
+          local savedRel = pos.relativePoint or "CENTER"
+          local savedX = pos.offsetX or pos.x or 0
+          local savedY = pos.offsetY or pos.y or 0
+          
+          if currentPoint ~= savedPoint
+            or currentRel ~= savedRel
+            or math.abs((currentX or 0) - savedX) > 0.1
+            or math.abs((currentY or 0) - savedY) > 0.1 then
+             BUII_EditModeUtils:ApplySavedPosition(self, self.buiiDbKey)
+          end
+        else
+           -- No saved pos, try to enforce default if needed or just do nothing
+        end
       elseif self.isSelected then
         -- Detect position changes from arrow keys or manual dragging
         local point, _, relativePoint, offsetX, offsetY = self:GetPoint()
