@@ -94,7 +94,7 @@ local enum_ResourceTrackerSetting_Height = 63
 local enum_ResourceTrackerSetting_ShowText = 64
 local enum_ResourceTrackerSetting_ShowDecimal = 65
 local enum_ResourceTrackerSetting_FontSize = 66
-local enum_ResourceTrackerSetting_ShowBorder = 68
+local enum_ResourceTrackerSetting_ShowBorder = 67
 local enum_ResourceTrackerSetting_UseClassColor = 68
 local enum_ResourceTrackerSetting_ResourceOpacity = 69
 local enum_ResourceTrackerSetting_BackgroundOpacity = 70
@@ -299,7 +299,7 @@ end
 
 -- Main update function
 local function UpdatePoints()
-  if not frame then
+  if not frame or frame.isApplyingSettings then
     return
   end
 
@@ -642,7 +642,7 @@ local function UpdatePoints()
           decimalPart = partialFill[1]
         end
       end
-      
+
       -- Midnight: Check for secret values before adding
       if issecretvalue(currentStacks) or issecretvalue(decimalPart) then
         displayText = tostring(currentStacks)
