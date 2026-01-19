@@ -22,7 +22,16 @@ local enum_PetReminderSetting_OnlyInCombat = 65
 -- Check if player's class can have a permanent pet
 local function isPetClass()
   local _, classFilename = UnitClass("player")
-  return classFilename == "HUNTER" or classFilename == "WARLOCK"
+  if classFilename == "HUNTER" or classFilename == "WARLOCK" then
+    return true
+  end
+  if classFilename == "DEATHKNIGHT" then
+    local specId = PlayerUtil.GetCurrentSpecID()
+    if specId == 252 then -- Unholy
+      return true
+    end
+  end
+  return false
 end
 
 -- Check if player has a pet summoned
@@ -222,6 +231,11 @@ local function onEvent(self, event, ...)
       startCombatTicker()
     end
     updateDisplay()
+  elseif event == "PLAYER_SPECIALIZATION_CHANGED" then
+    local unit = ...
+    if unit == "player" then
+      updateDisplay()
+    end
   end
 end
 
@@ -352,11 +366,6 @@ local function BUII_PetReminder_Initialize()
 end
 
 function BUII_PetReminder_Enable()
-  -- Only initialize for pet classes (Hunter, Warlock)
-  if not isPetClass() then
-    return
-  end
-
   BUII_PetReminder_Initialize()
 
   frame:RegisterEvent("UNIT_PET")
@@ -366,6 +375,7 @@ function BUII_PetReminder_Enable()
   frame:RegisterEvent("PET_ATTACK_STOP")
   frame:RegisterUnitEvent("UNIT_TARGET", "pet")
   frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+  frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
   frame:SetScript("OnEvent", onEvent)
 
   BUII_EditModeUtils:ApplySavedPosition(frame, "pet_reminder")
