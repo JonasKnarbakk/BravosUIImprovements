@@ -8,43 +8,14 @@ local VisibilityMode = {
   ON_HOVER = 4,
 }
 
-local FrameVisibility = {
-  MainMenuBar = VisibilityMode.ALWAYS_VISIBLE,
-  MultiBarLeft = VisibilityMode.ALWAYS_VISIBLE,
-  MultiBarRight = VisibilityMode.ALWAYS_VISIBLE,
-  MultiBarBottomLeft = VisibilityMode.ALWAYS_VISIBLE,
-  MultiBarBottomRight = VisibilityMode.ALWAYS_VISIBLE,
-  MultiBar5 = VisibilityMode.ALWAYS_VISIBLE,
-  MultiBar6 = VisibilityMode.ALWAYS_VISIBLE,
-  MultiBar7 = VisibilityMode.ALWAYS_VISIBLE,
-  BagsBar = VisibilityMode.ALWAYS_VISIBLE,
-  MicroMenu = VisibilityMode.ALWAYS_VISIBLE,
-}
-
-local hideMacroTextEnabled = {
-  MainMenuBar = false,
-  MultiBarLeft = false,
-  MultiBarRight = false,
-  MultiBarBottomLeft = false,
-  MultiBarBottomRight = false,
-  MultiBar5 = false,
-  MultiBar6 = false,
-  MultiBar7 = false,
-}
-
-local abbreviatedKeybindingsEnabled = {
-  MainMenuBar = false,
-  MultiBarLeft = false,
-  MultiBarRight = false,
-  MultiBarBottomLeft = false,
-  MultiBarBottomRight = false,
-  MultiBar5 = false,
-  MultiBar6 = false,
-  MultiBar7 = false,
-}
+-- Active settings tables (populated by loadActionBarSettingsForLayout)
+local FrameVisibility = {}
+local hideMacroTextEnabled = {}
+local abbreviatedKeybindingsEnabled = {}
 
 local frameHookSet = {
   MainMenuBar = false,
+  MainActionBar = false,
   MultiBarLeft = false,
   MultiBarRight = false,
   MultiBarBottomLeft = false,
@@ -124,6 +95,145 @@ local enum_MicroMenuSetting_BarVisibility = 3
 local HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_ON_HOVER = "On Hover"
 local HUD_EDIT_MODE_SETTING_ACTION_BAR_HIDE_MACRO_TEXT = "Hide Macro Text"
 local HUD_EDIT_MODE_SETTING_ACTION_BAR_ABBREVIATE_KEYBINDINGS = "Abbreviate Keybindings"
+
+-- Action bar settings per-layout system
+local actionBarSettingsHasChanges = false
+local actionBarSettingsHooksInitialized = false
+
+-- Default settings template (used for new layouts or missing values)
+local defaultActionBarSettings = {
+  visibility = {
+    MainMenuBar = VisibilityMode.ALWAYS_VISIBLE,
+    MainActionBar = VisibilityMode.ALWAYS_VISIBLE,
+    MultiBarLeft = VisibilityMode.ALWAYS_VISIBLE,
+    MultiBarRight = VisibilityMode.ALWAYS_VISIBLE,
+    MultiBarBottomLeft = VisibilityMode.ALWAYS_VISIBLE,
+    MultiBarBottomRight = VisibilityMode.ALWAYS_VISIBLE,
+    MultiBar5 = VisibilityMode.ALWAYS_VISIBLE,
+    MultiBar6 = VisibilityMode.ALWAYS_VISIBLE,
+    MultiBar7 = VisibilityMode.ALWAYS_VISIBLE,
+    BagsBar = VisibilityMode.ALWAYS_VISIBLE,
+    MicroMenu = VisibilityMode.ALWAYS_VISIBLE,
+  },
+  hideMacroText = {
+    MainMenuBar = false,
+    MainActionBar = false,
+    MultiBarLeft = false,
+    MultiBarRight = false,
+    MultiBarBottomLeft = false,
+    MultiBarBottomRight = false,
+    MultiBar5 = false,
+    MultiBar6 = false,
+    MultiBar7 = false,
+  },
+  abbreviateKeybindings = {
+    MainMenuBar = false,
+    MainActionBar = false,
+    MultiBarLeft = false,
+    MultiBarRight = false,
+    MultiBarBottomLeft = false,
+    MultiBarBottomRight = false,
+    MultiBar5 = false,
+    MultiBar6 = false,
+    MultiBar7 = false,
+  },
+}
+
+-- Helper to get active layout name
+local function getActiveLayoutKey()
+  local layoutName = "Default"
+  pcall(function()
+    if C_EditMode and C_EditMode.GetActiveLayoutInfo then
+      local layoutInfo = C_EditMode.GetActiveLayoutInfo()
+      if layoutInfo and layoutInfo.layoutName then
+        layoutName = layoutInfo.layoutName
+      end
+    elseif EditModeManagerFrame then
+      local layoutInfo = EditModeManagerFrame:GetActiveLayoutInfo()
+      if layoutInfo and layoutInfo.layoutName then
+        layoutName = layoutInfo.layoutName
+      end
+    end
+  end)
+  return layoutName
+end
+
+-- Helper to ensure a layout has all required settings with defaults
+local function ensureLayoutDefaults(layoutSettings)
+  if not layoutSettings then
+    layoutSettings = {}
+  end
+  if not layoutSettings.visibility then
+    layoutSettings.visibility = {}
+  end
+  if not layoutSettings.hideMacroText then
+    layoutSettings.hideMacroText = {}
+  end
+  if not layoutSettings.abbreviateKeybindings then
+    layoutSettings.abbreviateKeybindings = {}
+  end
+  -- Fill in missing values with defaults
+  for frameName, defaultVal in pairs(defaultActionBarSettings.visibility) do
+    if layoutSettings.visibility[frameName] == nil then
+      layoutSettings.visibility[frameName] = defaultVal
+    end
+  end
+  for frameName, defaultVal in pairs(defaultActionBarSettings.hideMacroText) do
+    if layoutSettings.hideMacroText[frameName] == nil then
+      layoutSettings.hideMacroText[frameName] = defaultVal
+    end
+  end
+  for frameName, defaultVal in pairs(defaultActionBarSettings.abbreviateKeybindings) do
+    if layoutSettings.abbreviateKeybindings[frameName] == nil then
+      layoutSettings.abbreviateKeybindings[frameName] = defaultVal
+    end
+  end
+  return layoutSettings
+end
+
+-- Load settings from a specific layout and apply them
+local function loadActionBarSettingsForLayout(layoutName)
+  BUIIDatabase["actionbar_settings_layouts"] = BUIIDatabase["actionbar_settings_layouts"] or {}
+  local layoutSettings = BUIIDatabase["actionbar_settings_layouts"][layoutName]
+  layoutSettings = ensureLayoutDefaults(layoutSettings)
+
+  -- Apply to active tables
+  FrameVisibility = CopyTable(layoutSettings.visibility)
+  hideMacroTextEnabled = CopyTable(layoutSettings.hideMacroText)
+  abbreviatedKeybindingsEnabled = CopyTable(layoutSettings.abbreviateKeybindings)
+
+  -- Store back with defaults filled in
+  BUIIDatabase["actionbar_settings_layouts"][layoutName] = layoutSettings
+end
+
+-- Save current settings to the specified layout
+local function saveActionBarSettingsForLayout(layoutName)
+  BUIIDatabase["actionbar_settings_layouts"] = BUIIDatabase["actionbar_settings_layouts"] or {}
+  BUIIDatabase["actionbar_settings_layouts"][layoutName] = {
+    visibility = CopyTable(FrameVisibility),
+    hideMacroText = CopyTable(hideMacroTextEnabled),
+    abbreviateKeybindings = CopyTable(abbreviatedKeybindingsEnabled),
+  }
+  actionBarSettingsHasChanges = false
+end
+
+-- Mark action bar settings as having unsaved changes
+local function markActionBarSettingsDirty()
+  if actionBarSettingsHasChanges then
+    return
+  end
+  actionBarSettingsHasChanges = true
+  if EditModeManagerFrame then
+    EditModeManagerFrame:SetHasActiveChanges(true)
+  end
+end
+
+-- Revert action bar settings to saved values for current layout
+local function revertActionBarSettings()
+  local layoutName = getActiveLayoutKey()
+  loadActionBarSettingsForLayout(layoutName)
+  actionBarSettingsHasChanges = false
+end
 
 --- Add a setting type to the EditModeSystemSettingsDialog for the given Frame
 ---@param settingIndex number index value of added setting, passed back in editModeSystemSettingsDialog_OnSettingValueChanged
@@ -434,6 +544,85 @@ local function settingsDialogMainMenuBarAddOptions()
   )
 end
 
+--- Add the additional settings to MainActionBar (similar to MainMenuBar but with separate tracking)
+local function settingsDialogMainActionBarAddOptions()
+  local hideMacroText = {
+    setting = enum_EditModeActionBarSetting_HideMacroText,
+    name = HUD_EDIT_MODE_SETTING_ACTION_BAR_HIDE_MACRO_TEXT,
+    type = Enum.EditModeSettingDisplayType.Checkbox,
+  }
+
+  local hideMacroTextData = {
+    displayInfo = hideMacroText,
+    currentValue = hideMacroTextEnabled["MainActionBar"] == true and 1 or 0,
+    settingName = HUD_EDIT_MODE_SETTING_ACTION_BAR_HIDE_MACRO_TEXT,
+  }
+
+  addOptionToSettingsDialog(
+    enum_EditModeActionBarSetting_HideMacroText,
+    Enum.ChrCustomizationOptionType.Checkbox,
+    hideMacroTextData
+  )
+
+  local abbreviateKeybindings = {
+    setting = enum_EditModeActionBarSetting_AbbreviateKeybindings,
+    name = HUD_EDIT_MODE_SETTING_ACTION_BAR_ABBREVIATE_KEYBINDINGS,
+    type = Enum.EditModeSettingDisplayType.Checkbox,
+  }
+
+  local abbreviateKeybindingsData = {
+    displayInfo = abbreviateKeybindings,
+    currentValue = abbreviatedKeybindingsEnabled["MainActionBar"] == true and 1 or 0,
+    settingName = HUD_EDIT_MODE_SETTING_ACTION_BAR_ABBREVIATE_KEYBINDINGS,
+  }
+
+  addOptionToSettingsDialog(
+    enum_EditModeActionBarSetting_AbbreviateKeybindings,
+    Enum.ChrCustomizationOptionType.Checkbox,
+    abbreviateKeybindingsData
+  )
+
+  local barVisibility = {
+    setting = enum_EditModeActionBarSetting_BarVisibility,
+    name = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING,
+    type = Enum.EditModeSettingDisplayType.Dropdown,
+    options = {
+      {
+        value = Enum.ActionBarVisibleSetting.Always,
+        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_ALWAYS,
+      },
+      {
+        value = Enum.ActionBarVisibleSetting.InCombat,
+        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_IN_COMBAT,
+      },
+      {
+        value = Enum.ActionBarVisibleSetting.OutOfCombat,
+        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_OUT_OF_COMBAT,
+      },
+      {
+        value = Enum.ActionBarVisibleSetting.Hidden,
+        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_HIDDEN,
+      },
+      {
+        value = enum_ActionBarVisibleSetting_OnHover,
+        text = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_ON_HOVER,
+      },
+    },
+  }
+
+  local barVisibilityData = {
+    displayInfo = barVisibility,
+    currentValue = FrameVisibility["MainActionBar"],
+    settingName = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING,
+  }
+
+  addOptionToSettingsDialog(
+    enum_EditModeActionBarSetting_BarVisibility,
+    Enum.ChrCustomizationOptionType.Dropdown,
+    barVisibilityData
+  )
+end
+
 --- Add the additional settings to MultiBar e.g any action bar that isn't the main one
 ---@param frameName table name of the MultiBar frame being edited
 local function settingsDialogMultiBarAddOptions(frameName)
@@ -571,6 +760,8 @@ local function editModeSystemSettingsDialog_OnUpdateSettings(self, systemFrame)
 
     if currentFrameName == "MainMenuBar" then
       settingsDialogMainMenuBarAddOptions()
+    elseif currentFrameName == "MainActionBar" then
+      settingsDialogMainActionBarAddOptions()
     elseif strfind(currentFrameName, "MultiBar") then
       settingsDialogMultiBarAddOptions(currentFrameName)
     elseif currentFrameName == "BagsBar" then
@@ -585,10 +776,16 @@ end
 ---@param self table Frame that triggered the OnEnter event
 local function actionBar_OnEnter(self)
   if strfind(self:GetName(), "ActionButton") then
-    if FrameVisibility["MainMenuBar"] ~= VisibilityMode.ON_HOVER then
-      return
+    if FrameVisibility["MainMenuBar"] == VisibilityMode.ON_HOVER then
+      mainMenuBar:SetAlpha(1)
     end
-    mainMenuBar:SetAlpha(1)
+    if FrameVisibility["MainActionBar"] == VisibilityMode.ON_HOVER then
+      local mainActionBar = _G["MainActionBar"]
+      if mainActionBar then
+        mainActionBar:SetAlpha(1)
+      end
+    end
+    return
   elseif bagFrames[self:GetName()] then
     if FrameVisibility["BagsBar"] ~= VisibilityMode.ON_HOVER then
       return
@@ -612,10 +809,16 @@ end
 ---@param self table Frame that triggered the OnLeave event
 local function actionBar_OnLeave(self)
   if strfind(self:GetName(), "ActionButton") then
-    if FrameVisibility["MainMenuBar"] ~= VisibilityMode.ON_HOVER then
-      return
+    if FrameVisibility["MainMenuBar"] == VisibilityMode.ON_HOVER then
+      mainMenuBar:SetAlpha(0)
     end
-    mainMenuBar:SetAlpha(0)
+    if FrameVisibility["MainActionBar"] == VisibilityMode.ON_HOVER then
+      local mainActionBar = _G["MainActionBar"]
+      if mainActionBar then
+        mainActionBar:SetAlpha(0)
+      end
+    end
+    return
   elseif bagFrames[self:GetName()] then
     if FrameVisibility["BagsBar"] ~= VisibilityMode.ON_HOVER then
       return
@@ -657,7 +860,7 @@ end
 ---@param self table Frame the action bar button that is updating its text
 local function keybind_OnUpdateHotkey(self)
   if strfind(self:GetName(), "ActionButton") then
-    if not abbreviatedKeybindingsEnabled["MainMenuBar"] then
+    if not abbreviatedKeybindingsEnabled["MainMenuBar"] and not abbreviatedKeybindingsEnabled["MainActionBar"] then
       return
     end
     frameSetAbbreviatedText(self, true)
@@ -679,7 +882,7 @@ local function hookActionBarOnHoverEvent(frame)
 
   -- Need to add OnEnter/OnLeave hooks on each button otherwise we only
   -- hover the action bar when the mouse is between buttons..
-  if frame:GetName() == "MainMenuBar" then
+  if frame:GetName() == "MainMenuBar" or frame:GetName() == "MainActionBar" then
     for i = 12, 1, -1 do
       _G["ActionButton" .. i]:HookScript("OnEnter", actionBar_OnEnter)
       _G["ActionButton" .. i]:HookScript("OnLeave", actionBar_OnLeave)
@@ -736,7 +939,7 @@ end
 local function hideMacroTextSettings_OnUpdate()
   for frameName, enabled in pairs(hideMacroTextEnabled) do
     for i = 12, 1, -1 do
-      if frameName == "MainMenuBar" then
+      if frameName == "MainMenuBar" or frameName == "MainActionBar" then
         frameName = "Action"
       end
       local button = _G[frameName .. "Button" .. i .. "Name"]
@@ -756,7 +959,7 @@ end
 local function abbreviatedKeybinginsSettings_OnUpdate()
   for frameName, enabled in pairs(abbreviatedKeybindingsEnabled) do
     for i = 12, 1, -1 do
-      if frameName == "MainMenuBar" then
+      if frameName == "MainMenuBar" or frameName == "MainActionBar" then
         frameName = "Action"
       end
       local button = _G[frameName .. "Button" .. i]
@@ -788,7 +991,7 @@ local function editModeSystemSettingsDialog_OnSettingValueChanged(self, setting,
   -- small hack to align setting value with action bars enum
   if
     ((currentFrameName == "BagsBar" or currentFrameName == "MicroMenu") and setting == 3)
-    or (currentFrameName == "MainMenuBar" and setting == enum_EditModeActionBarSetting_BarVisibility)
+    or ((currentFrameName == "MainMenuBar" or currentFrameName == "MainActionBar") and setting == enum_EditModeActionBarSetting_BarVisibility)
   then
     setting = Enum.EditModeActionBarSetting.VisibleSetting
   end
@@ -827,11 +1030,61 @@ local function editModeSystemSettingsDialog_OnSettingValueChanged(self, setting,
       frameVisibilitySettings_OnUpdate()
       editModeSettingsDialog:UpdateSettings(currentFrame)
     end
+    -- Mark as having unsaved changes instead of saving immediately
+    markActionBarSettingsDirty()
+  end
+end
+
+--- Initialize hooks for action bar settings save/revert/layout events
+local function setupActionBarSettingsHooks()
+  if actionBarSettingsHooksInitialized then
+    return
   end
 
-  BUIIDatabase["frame_visibility_mode"] = FrameVisibility
-  BUIIDatabase["edit_mode_hide_macro_text_enabled"] = hideMacroTextEnabled
-  BUIIDatabase["edit_mode_abbreviate_keybindings_enabled"] = abbreviatedKeybindingsEnabled
+  if EditModeManagerFrame then
+    -- Hook SaveLayouts to commit action bar settings
+    hooksecurefunc(EditModeManagerFrame, "SaveLayouts", function()
+      if editModeImprovedEnabled then
+        local layoutName = getActiveLayoutKey()
+        saveActionBarSettingsForLayout(layoutName)
+      end
+    end)
+
+    -- Hook RevertAllChanges to revert action bar settings
+    hooksecurefunc(EditModeManagerFrame, "RevertAllChanges", function()
+      if editModeImprovedEnabled then
+        revertActionBarSettings()
+        frameVisibilitySettings_OnUpdate()
+        hideMacroTextSettings_OnUpdate()
+        abbreviatedKeybinginsSettings_OnUpdate()
+      end
+    end)
+
+    -- Hook SelectLayout to load settings for the new layout
+    hooksecurefunc(EditModeManagerFrame, "SelectLayout", function()
+      if editModeImprovedEnabled then
+        -- Delay slightly to ensure layout info is updated
+        C_Timer.After(0, function()
+          local layoutName = getActiveLayoutKey()
+          loadActionBarSettingsForLayout(layoutName)
+          frameVisibilitySettings_OnUpdate()
+          hideMacroTextSettings_OnUpdate()
+          abbreviatedKeybinginsSettings_OnUpdate()
+          actionBarSettingsHasChanges = false
+        end)
+      end
+    end)
+  end
+
+  -- Also hook the SavedLayouts event as backup
+  EventRegistry:RegisterCallback("EditMode.SavedLayouts", function()
+    if editModeImprovedEnabled then
+      local layoutName = getActiveLayoutKey()
+      saveActionBarSettingsForLayout(layoutName)
+    end
+  end, "BUII_ActionBarSettings_OnSave")
+
+  actionBarSettingsHooksInitialized = true
 end
 
 --- Register nessecary hooks for Edit Mode Setttings
@@ -880,33 +1133,69 @@ end
 function BUII_ImprovedEditModeEnable()
   BUII_QueueStatusButton_Enable()
   setupEditModeSystemSettingsDialog()
+  setupActionBarSettingsHooks()
 
-  -- compatability with old database that only stored booleans for onHover setting
-  if BUIIDatabase["edit_mode_on_hover_enabled"] then
-    local onHoverEnabled = BUIIDatabase["edit_mode_on_hover_enabled"]
-    for frameName, enabled in pairs(onHoverEnabled) do
-      if enabled then
-        VisibilityMode[frameName] = VisibilityMode.ON_HOVER
+  -- Migrate old settings to new per-layout system
+  local needsMigration = BUIIDatabase["frame_visibility_mode"]
+    or BUIIDatabase["edit_mode_hide_macro_text_enabled"]
+    or BUIIDatabase["edit_mode_abbreviate_keybindings_enabled"]
+    or BUIIDatabase["edit_mode_on_hover_enabled"]
+
+  if needsMigration and not BUIIDatabase["actionbar_settings_layouts"] then
+    local migratedSettings = {
+      visibility = {},
+      hideMacroText = {},
+      abbreviateKeybindings = {},
+    }
+
+    -- Migrate old on_hover setting (very old format)
+    if BUIIDatabase["edit_mode_on_hover_enabled"] then
+      for frameName, enabled in pairs(BUIIDatabase["edit_mode_on_hover_enabled"]) do
+        if enabled then
+          migratedSettings.visibility[frameName] = VisibilityMode.ON_HOVER
+        end
       end
+      BUIIDatabase["edit_mode_on_hover_enabled"] = nil
     end
-    frameVisibilitySettings_OnUpdate()
-    BUIIDatabase["edit_mode_on_hover_enabled"] = nil
+
+    -- Migrate frame_visibility_mode
+    if BUIIDatabase["frame_visibility_mode"] then
+      for frameName, mode in pairs(BUIIDatabase["frame_visibility_mode"]) do
+        migratedSettings.visibility[frameName] = mode
+      end
+      BUIIDatabase["frame_visibility_mode"] = nil
+    end
+
+    -- Migrate hide_macro_text
+    if BUIIDatabase["edit_mode_hide_macro_text_enabled"] then
+      for frameName, enabled in pairs(BUIIDatabase["edit_mode_hide_macro_text_enabled"]) do
+        migratedSettings.hideMacroText[frameName] = enabled
+      end
+      BUIIDatabase["edit_mode_hide_macro_text_enabled"] = nil
+    end
+
+    -- Migrate abbreviate_keybindings
+    if BUIIDatabase["edit_mode_abbreviate_keybindings_enabled"] then
+      for frameName, enabled in pairs(BUIIDatabase["edit_mode_abbreviate_keybindings_enabled"]) do
+        migratedSettings.abbreviateKeybindings[frameName] = enabled
+      end
+      BUIIDatabase["edit_mode_abbreviate_keybindings_enabled"] = nil
+    end
+
+    -- Store migrated settings in all existing layouts (or Default if none)
+    BUIIDatabase["actionbar_settings_layouts"] = {}
+    local layoutName = getActiveLayoutKey()
+    BUIIDatabase["actionbar_settings_layouts"][layoutName] = ensureLayoutDefaults(migratedSettings)
   end
 
-  if BUIIDatabase["frame_visibility_mode"] then
-    FrameVisibility = BUIIDatabase["frame_visibility_mode"]
-    frameVisibilitySettings_OnUpdate()
-  end
+  -- Load settings for current layout
+  local layoutName = getActiveLayoutKey()
+  loadActionBarSettingsForLayout(layoutName)
 
-  if BUIIDatabase["edit_mode_hide_macro_text_enabled"] then
-    hideMacroTextEnabled = BUIIDatabase["edit_mode_hide_macro_text_enabled"]
-    hideMacroTextSettings_OnUpdate()
-  end
-
-  if BUIIDatabase["edit_mode_abbreviate_keybindings_enabled"] then
-    abbreviatedKeybindingsEnabled = BUIIDatabase["edit_mode_abbreviate_keybindings_enabled"]
-    abbreviatedKeybinginsSettings_OnUpdate()
-  end
+  -- Apply settings
+  frameVisibilitySettings_OnUpdate()
+  hideMacroTextSettings_OnUpdate()
+  abbreviatedKeybinginsSettings_OnUpdate()
 
   EventRegistry:RegisterCallback("EditMode.Enter", editMode_OnEnter, "BUII_ImprovedEditMode_OnEnter")
   EventRegistry:RegisterCallback("EditMode.Exit", editMode_OnExit, "BUII_ImprovedEditMode_OnExit")
