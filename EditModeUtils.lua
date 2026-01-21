@@ -584,12 +584,19 @@ function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settin
         local layoutKey = BUII_EditModeUtils:GetActiveLayoutKey()
         local layouts = db[self.buiiDbKey .. "_layouts"] or {}
         local pos = layouts[layoutKey]
-        
+
         -- Fallbacks matching ApplySavedPosition logic
         if not pos then
-          if layouts["Default"] then pos = layouts["Default"]
-          elseif next(layouts) then for _, p in pairs(layouts) do pos = p break end
-          elseif db[self.buiiDbKey .. "_pos"] then pos = db[self.buiiDbKey .. "_pos"] end
+          if layouts["Default"] then
+            pos = layouts["Default"]
+          elseif next(layouts) then
+            for _, p in pairs(layouts) do
+              pos = p
+              break
+            end
+          elseif db[self.buiiDbKey .. "_pos"] then
+            pos = db[self.buiiDbKey .. "_pos"]
+          end
         end
 
         if pos then
@@ -598,15 +605,17 @@ function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settin
           local savedRel = pos.relativePoint or "CENTER"
           local savedX = pos.offsetX or pos.x or 0
           local savedY = pos.offsetY or pos.y or 0
-          
-          if currentPoint ~= savedPoint
+
+          if
+            currentPoint ~= savedPoint
             or currentRel ~= savedRel
             or math.abs((currentX or 0) - savedX) > 0.1
-            or math.abs((currentY or 0) - savedY) > 0.1 then
-             BUII_EditModeUtils:ApplySavedPosition(self, self.buiiDbKey)
+            or math.abs((currentY or 0) - savedY) > 0.1
+          then
+            BUII_EditModeUtils:ApplySavedPosition(self, self.buiiDbKey)
           end
         else
-           -- No saved pos, try to enforce default if needed or just do nothing
+          -- No saved pos, try to enforce default if needed or just do nothing
         end
       elseif self.isSelected then
         -- Detect position changes from arrow keys or manual dragging

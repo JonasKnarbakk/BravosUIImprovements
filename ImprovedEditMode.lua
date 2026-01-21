@@ -991,7 +991,10 @@ local function editModeSystemSettingsDialog_OnSettingValueChanged(self, setting,
   -- small hack to align setting value with action bars enum
   if
     ((currentFrameName == "BagsBar" or currentFrameName == "MicroMenu") and setting == 3)
-    or ((currentFrameName == "MainMenuBar" or currentFrameName == "MainActionBar") and setting == enum_EditModeActionBarSetting_BarVisibility)
+    or (
+      (currentFrameName == "MainMenuBar" or currentFrameName == "MainActionBar")
+      and setting == enum_EditModeActionBarSetting_BarVisibility
+    )
   then
     setting = Enum.EditModeActionBarSetting.VisibleSetting
   end
