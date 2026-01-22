@@ -95,6 +95,11 @@ end
 
 -- Show/hide preview frames
 local function setPreviewVisible(visible)
+  -- Don't modify protected frames during combat lockdown
+  if InCombatLockdown() then
+    return
+  end
+
   for _, frame in ipairs(previewFrames) do
     if visible then
       frame:Show()
