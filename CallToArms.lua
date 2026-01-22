@@ -273,7 +273,7 @@ local function checkTypes(instanceTypes, optionsKey, ilReq, isRaidCheck)
 end
 
 local function getDungeonType(dName, isTimeWalker)
-  if isTimeWalker then
+  if dName and dName:find("Timewalking") then
     return "timewalking"
   elseif dName and dName:find("Heroic") then
     return "heroic"
