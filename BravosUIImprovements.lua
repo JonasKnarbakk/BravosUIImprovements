@@ -602,6 +602,7 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       BUII_ResourceTracker_InitDB()
       BUII_LootSpec_InitDB()
       BUII_PetReminder_InitDB()
+      BUII_MoveableArenaEnemyFrames_InitDB()
 
       -- Initialize font, outline, and texture dropdowns
       BUII_InitializeDropdowns()
@@ -816,6 +817,11 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       weakAura.PetReminder:SetChecked(false)
     end
 
+    if BUIIDatabase["moveable_arena_frames"] then
+      BUII_MoveableArenaEnemyFrames_Enable()
+      defaultUI.MoveableArenaFrames:SetChecked(true)
+    end
+
     if BUIIDatabase["font_shadow"] then
       weakAura.FontShadow:SetChecked(true)
     else
@@ -889,6 +895,16 @@ function BUII_TooltipExpansion_OnClick(self)
   else
     BUII_TooltipImprovements_Disable()
     BUIIDatabase["tooltip_expansion"] = false
+  end
+end
+
+function BUII_MoveableArenaFrames_OnClick(self)
+  if self:GetChecked() then
+    BUII_MoveableArenaEnemyFrames_Enable()
+    BUIIDatabase["moveable_arena_frames"] = true
+  else
+    BUII_MoveableArenaEnemyFrames_Disable()
+    BUIIDatabase["moveable_arena_frames"] = false
   end
 end
 

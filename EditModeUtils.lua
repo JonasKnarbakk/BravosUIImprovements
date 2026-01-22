@@ -14,6 +14,7 @@ _G["BUII_HUD_EDIT_MODE_STAT_PANEL_LABEL"] = "Stat Panel"
 _G["BUII_HUD_EDIT_MODE_LOOT_SPEC_LABEL"] = "Loot Specialization"
 _G["BUII_HUD_EDIT_MODE_TANK_SHIELD_WARNING_LABEL"] = "Tank Shield Warning"
 _G["BUII_HUD_EDIT_MODE_QUEUE_STATUS_BUTTON_LABEL"] = "Queue Status Button"
+_G["BUII_HUD_EDIT_MODE_ARENA_ENEMY_FRAMES_LABEL"] = "Arena Enemy Frames"
 
 -- Helper to get appropriate DB (Global or Character)
 function BUII_EditModeUtils:GetDB(dbKey)

@@ -11,6 +11,7 @@ Enum.EditModeSystem.BUII_LootSpec = 109
 Enum.EditModeSystem.BUII_TankShieldWarning = 110
 Enum.EditModeSystem.BUIIQueueStatusButton = 111
 Enum.EditModeSystem.BUII_PetReminder = 112
+Enum.EditModeSystem.BUII_ArenaEnemyFrames = 113
 
 -- Default WoW fonts
 local DEFAULT_FONTS = {
