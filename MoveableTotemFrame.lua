@@ -3,10 +3,6 @@ local moveableTotemFrameEnabled = false
 local originalParent = nil
 local totemFrameOverlay = nil
 
-if not Enum.EditModeSystem.BUII_TotemFrame then
-  Enum.EditModeSystem.BUII_TotemFrame = 115
-end
-
 local enum_MoveableTotemFrameSetting_Scale = 1
 
 local function syncTotemFrameToOverlay()
@@ -23,7 +19,7 @@ local function setupTotemFrameOverlay()
     return
   end
 
-  totemFrameOverlay = CreateFrame("Frame", "BUIITotemFrameOverlay", UIParent, "BUII_TotemFrameEditModeTemplate")
+  totemFrameOverlay = CreateFrame("Frame", nil, UIParent, "BUII_TotemFrameEditModeTemplate")
   totemFrameOverlay:SetSize(120, 40)
   totemFrameOverlay:SetMovable(true)
   totemFrameOverlay:SetClampedToScreen(true)
@@ -33,6 +29,7 @@ local function setupTotemFrameOverlay()
     {
       setting = enum_MoveableTotemFrameSetting_Scale,
       name = "Scale",
+      key = "scale",
       type = Enum.EditModeSettingDisplayType.Slider,
       minValue = 0.5,
       maxValue = 3.0,

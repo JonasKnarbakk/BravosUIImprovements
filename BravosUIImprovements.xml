@@ -17,7 +17,6 @@
   <Script file="MoveableArenaEnemyFrames.lua"/>
   <Script file="MoveableTotemFrame.lua"/>
   <Script file="IconSearch.lua"/>
-  <Script file="EditModeUtils.lua"/>
   <Script file="GroupTools.lua"/>
   <Script file="BravosUIImprovements.lua"/>
 
@@ -27,7 +26,7 @@
       <KeyValue key="systemNameString" value="BUII_HUD_EDIT_MODE_STANCE_TRACKER_LABEL" type="global"/>
     </KeyValues>
     <Frames>
-      <Frame inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
+      <Frame parentKey="Selection" inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
     </Frames>
   </Frame>
 
@@ -37,7 +36,7 @@
       <KeyValue key="systemNameString" value="BUII_HUD_EDIT_MODE_TOTEM_FRAME_LABEL" type="global"/>
     </KeyValues>
     <Frames>
-      <Frame inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
+      <Frame parentKey="Selection" inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
     </Frames>
   </Frame>
 
@@ -47,7 +46,7 @@
       <KeyValue key="systemNameString" value="BUII_HUD_EDIT_MODE_GROUP_TOOLS_LABEL" type="global"/>
     </KeyValues>
     <Frames>
-      <Frame inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
+      <Frame parentKey="Selection" inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
     </Frames>
   </Frame>
 
@@ -57,7 +56,7 @@
       <KeyValue key="systemNameString" value="BUII_HUD_EDIT_MODE_CALL_TO_ARMS_LABEL" type="global"/>
     </KeyValues>
     <Frames>
-      <Frame inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
+      <Frame parentKey="Selection" inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
     </Frames>
   </Frame>
 
@@ -67,7 +66,7 @@
       <KeyValue key="systemNameString" value="BUII_HUD_EDIT_MODE_COMBAT_STATE_LABEL" type="global"/>
     </KeyValues>
     <Frames>
-      <Frame inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
+      <Frame parentKey="Selection" inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
     </Frames>
   </Frame>
 
@@ -77,7 +76,7 @@
       <KeyValue key="systemNameString" value="BUII_HUD_EDIT_MODE_GEAR_AND_TALENT_LOADOUT_LABEL" type="global"/>
     </KeyValues>
     <Frames>
-      <Frame inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
+      <Frame parentKey="Selection" inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
     </Frames>
   </Frame>
 
@@ -87,7 +86,7 @@
       <KeyValue key="systemNameString" value="BUII_HUD_EDIT_MODE_READY_CHECK_LABEL" type="global"/>
     </KeyValues>
     <Frames>
-      <Frame inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
+      <Frame parentKey="Selection" inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
     </Frames>
   </Frame>
 
@@ -97,7 +96,7 @@
       <KeyValue key="systemNameString" value="BUII_HUD_EDIT_MODE_LOOT_SPEC_LABEL" type="global"/>
     </KeyValues>
     <Frames>
-      <Frame inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
+      <Frame parentKey="Selection" inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
     </Frames>
   </Frame>
 
@@ -107,7 +106,7 @@
       <KeyValue key="systemNameString" value="BUII_HUD_EDIT_MODE_TANK_SHIELD_WARNING_LABEL" type="global"/>
     </KeyValues>
     <Frames>
-      <Frame inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
+      <Frame parentKey="Selection" inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
     </Frames>
   </Frame>
 
@@ -117,7 +116,7 @@
       <KeyValue key="systemNameString" value="BUII_HUD_EDIT_MODE_STAT_PANEL_LABEL" type="global"/>
     </KeyValues>
     <Frames>
-      <Frame inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
+      <Frame parentKey="Selection" inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
     </Frames>
   </Frame>
 
@@ -127,7 +126,7 @@
       <KeyValue key="systemNameString" value="BUII_HUD_EDIT_MODE_PET_REMINDER_LABEL" type="global"/>
     </KeyValues>
     <Frames>
-      <Frame inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
+      <Frame parentKey="Selection" inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
     </Frames>
   </Frame>
 
@@ -137,7 +136,7 @@
       <KeyValue key="systemNameString" value="BUII_HUD_EDIT_MODE_MISSING_BUFF_REMINDER_LABEL" type="global"/>
     </KeyValues>
     <Frames>
-      <Frame inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
+      <Frame parentKey="Selection" inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
     </Frames>
   </Frame>
 
@@ -147,7 +146,7 @@
       <KeyValue key="systemNameString" value="BUII_HUD_EDIT_MODE_ARENA_ENEMY_FRAMES_LABEL" type="global"/>
     </KeyValues>
     <Frames>
-      <Frame inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
+      <Frame parentKey="Selection" inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
     </Frames>
   </Frame>
 

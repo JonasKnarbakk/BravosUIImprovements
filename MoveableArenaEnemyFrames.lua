@@ -204,13 +204,12 @@ local function setupArenaEnemyFrameOverlay()
     return
   end
 
-  local systemEnum = Enum.EditModeSystem.BUII_ArenaEnemyFrames or 113
+  local systemEnum = Enum.EditModeSystem.BUII_ArenaEnemyFrames
   local systemName = BUII_HUD_EDIT_MODE_ARENA_ENEMY_FRAMES_LABEL or "Arena Enemy Frames"
   local dbKey = "arena_enemy_frames"
 
   -- Create overlay frame for Edit Mode
-  arenaEnemyFrameOverlay =
-    CreateFrame("Frame", "BUIIArenaEnemyFramesOverlay", UIParent, "BUII_ArenaEnemyFramesEditModeTemplate")
+  arenaEnemyFrameOverlay = CreateFrame("Frame", nil, UIParent, "BUII_ArenaEnemyFramesEditModeTemplate")
   arenaEnemyFrameOverlay:SetSize(
     PREVIEW_FRAME_WIDTH,
     (PREVIEW_FRAME_HEIGHT * PREVIEW_FRAME_COUNT) + (PREVIEW_FRAME_SPACING * (PREVIEW_FRAME_COUNT - 1))
@@ -262,6 +261,7 @@ local function setupArenaEnemyFrameOverlay()
       setPreviewVisible(not hasVisibleArenaFrames())
     end,
     OnEditModeExit = function()
+      arenaEnemyFrameOverlay:Hide()
       setPreviewVisible(false)
       syncContainerToOverlay()
     end,

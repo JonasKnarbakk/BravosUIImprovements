@@ -100,7 +100,7 @@
             <KeyValue key="systemNameString" value="BUII_HUD_EDIT_MODE_RESOURCE_TRACKER_LABEL" type="global"/>
         </KeyValues>
         <Frames>
-            <Frame inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
+            <Frame parentKey="Selection" inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
         </Frames>
     </Frame>
 </Ui>

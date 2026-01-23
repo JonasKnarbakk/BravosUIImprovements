@@ -331,7 +331,7 @@ local function setupQueueStatusButton()
     return
   end
 
-  local systemEnum = Enum.EditModeSystem.BUIIQueueStatusButton or 111
+  local systemEnum = Enum.EditModeSystem.BUIIQueueStatusButton
   local systemName = BUII_HUD_EDIT_MODE_QUEUE_STATUS_BUTTON_LABEL or "Queue Status Button"
   local dbKey = "queue_status_button"
 
@@ -368,7 +368,10 @@ local function setupQueueStatusButton()
 
   BUII_EditModeUtils:RegisterSystem(queueStatusButtonOverlay, systemEnum, systemName, settingsConfig, dbKey, {
     OnApplySettings = syncButtonToOverlay,
-    OnEditModeExit = syncButtonToOverlay,
+    OnEditModeExit = function()
+      queueStatusButtonOverlay:Hide()
+      syncButtonToOverlay()
+    end,
   })
 
   -- Ensure the actual button follows the overlay
@@ -758,6 +761,10 @@ local function editModeSystemSettingsDialog_OnUpdateSettings(self, systemFrame)
   if systemFrame == self.attachedToSystem then
     local currentFrameName = systemFrame:GetName()
 
+    if not currentFrameName then
+      return
+    end
+
     if currentFrameName == "MainMenuBar" then
       settingsDialogMainMenuBarAddOptions()
     elseif currentFrameName == "MainActionBar" then
@@ -983,6 +990,10 @@ local function editModeSystemSettingsDialog_OnSettingValueChanged(self, setting,
   --   setting, " value: ", value)
   local currentFrame = self.attachedToSystem
   local currentFrameName = currentFrame:GetName()
+
+  if not currentFrameName then
+    return
+  end
 
   if currentFrameName == "MicroMenuContainer" then
     currentFrameName = "MicroMenu"

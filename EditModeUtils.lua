@@ -2,6 +2,23 @@ BUII_EditModeUtils = {}
 BUII_EditModeUtils.RegisteredSystems = {}
 BUII_EditModeUtils.HooksInitialized = false
 
+-- Define custom Edit Mode System Enums
+Enum.EditModeSystem.BUII_GroupTools = 110
+Enum.EditModeSystem.BUIIQueueStatusButton = 111
+Enum.EditModeSystem.BUII_PetReminder = 112
+Enum.EditModeSystem.BUII_ArenaEnemyFrames = 113
+Enum.EditModeSystem.BUII_StanceTracker = 114
+Enum.EditModeSystem.BUII_TotemFrame = 115
+Enum.EditModeSystem.BUII_CallToArms = 116
+Enum.EditModeSystem.BUII_CombatState = 117
+Enum.EditModeSystem.BUII_GearAndTalentLoadout = 118
+Enum.EditModeSystem.BUII_ReadyCheck = 119
+Enum.EditModeSystem.BUII_LootSpec = 120
+Enum.EditModeSystem.BUII_TankShieldWarning = 121
+Enum.EditModeSystem.BUII_StatPanel = 122
+Enum.EditModeSystem.BUII_MissingBuffReminder = 123
+Enum.EditModeSystem.BUII_ResourceTracker = 124
+
 -- Centralized Edit Mode Labels
 _G["BUII_HUD_EDIT_MODE_GROUP_TOOLS_LABEL"] = "Group Tools"
 _G["BUII_HUD_EDIT_MODE_CALL_TO_ARMS_LABEL"] = "Call to Arms"
@@ -81,6 +98,7 @@ function BUII_EditModeUtils:ApplySavedPosition(frame, dbKey, force)
 
   -- Prevent execution on protected frames during combat
   if InCombatLockdown() and frame:IsProtected() then
+    frame.buiiPendingPositionUpdate = true
     return
   end
 
@@ -271,7 +289,10 @@ end
 -- Hook Handlers
 local function OnUpdateSettings(self, systemFrame)
   if systemFrame and BUII_EditModeUtils.RegisteredSystems[systemFrame.system] then
-    local frame = systemFrame -- It is the same frame
+    local frame = systemFrame
+
+    -- Force show the settings panel since Blizzard's code hidden it for our 'unregistered' frame
+    self.Settings:Show()
 
     -- If we have registered settings
     if frame.buiiSettingsConfig and #frame.buiiSettingsConfig > 0 then
@@ -383,6 +404,26 @@ local function OnSettingValueChanged(self, setting, value)
   end
 end
 
+local function InitializeBlizzardEditModeIntegration()
+  if not EditModeSettingDisplayInfoManager then
+    return
+  end
+
+  -- Patch the global settings info table so Blizzard's ipairs doesn't crash on our custom IDs
+  for systemEnum, _ in pairs(BUII_EditModeUtils.RegisteredSystems) do
+    if not EditModeSettingDisplayInfoManager.systemSettingDisplayInfo[systemEnum] then
+      EditModeSettingDisplayInfoManager.systemSettingDisplayInfo[systemEnum] = {}
+    end
+  end
+
+  -- Apply Dialog Hooks if not already done
+  if EditModeSystemSettingsDialog and not BUII_EditModeUtils.DialogHooksApplied then
+    hooksecurefunc(EditModeSystemSettingsDialog, "UpdateSettings", OnUpdateSettings)
+    hooksecurefunc(EditModeSystemSettingsDialog, "OnSettingValueChanged", OnSettingValueChanged)
+    BUII_EditModeUtils.DialogHooksApplied = true
+  end
+end
+
 function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settingsConfig, dbKey, callbacks)
   if not systemEnum then
     return
@@ -390,20 +431,56 @@ function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settin
 
   self.RegisteredSystems[systemEnum] = frame
 
-  -- Ensure EditModeSettingDisplayInfoManager has an entry for this system
-  -- This prevents a crash in EditModeSystemSettingsDialogMixin:UpdateSettings where it iterates over this table.
-  if
-    EditModeSettingDisplayInfoManager and not EditModeSettingDisplayInfoManager.systemSettingDisplayInfo[systemEnum]
-  then
-    EditModeSettingDisplayInfoManager.systemSettingDisplayInfo[systemEnum] = {}
-  end
-
   frame.system = systemEnum
-  frame.systemIndex = 0 -- Default
+  frame.systemIndex = 0
   frame.isSelected = false
   frame.isManagedFrame = false
   frame.buiiSettingsConfig = settingsConfig
   frame.buiiDbKey = dbKey
+
+  -- Full integration with Blizzard's EditModeManager
+  if EditModeManagerFrame and EditModeManagerFrame.RegisterSystemFrame then
+    EditModeManagerFrame:RegisterSystemFrame(frame)
+  end
+
+  -- Secure guards to prevent ADDON_ACTION_BLOCKED during combat lockdown.
+  -- We override the EditModeSystemMixin overrides to inject our combat check.
+  local function SafeCall(self, method, ...)
+    if InCombatLockdown() and self:IsProtected() then
+      if method == "Hide" or method == "SetShown" then
+        self.buiiPendingExit = true
+      end
+      return
+    end
+
+    local baseMethod = self[method .. "Base"]
+    if baseMethod then
+      baseMethod(self, ...)
+    end
+  end
+
+  frame.ClearAllPoints = function(self)
+    SafeCall(self, "ClearAllPoints")
+  end
+  frame.SetPoint = function(self, ...)
+    SafeCall(self, "SetPoint", ...)
+  end
+  frame.SetScale = function(self, ...)
+    SafeCall(self, "SetScale", ...)
+  end
+  frame.SetShown = function(self, ...)
+    SafeCall(self, "SetShown", ...)
+  end
+  frame.Hide = function(self)
+    SafeCall(self, "Hide")
+  end
+
+  -- Patch Blizzard's settings map immediately if possible
+  if EditModeSettingDisplayInfoManager and EditModeSettingDisplayInfoManager.systemSettingDisplayInfo then
+    if not EditModeSettingDisplayInfoManager.systemSettingDisplayInfo[systemEnum] then
+      EditModeSettingDisplayInfoManager.systemSettingDisplayInfo[systemEnum] = {}
+    end
+  end
 
   -- Assign Callbacks (using buii prefix to avoid clashing with Blizzard methods)
   frame.buiiOnReset = callbacks and callbacks.OnReset
@@ -481,7 +558,7 @@ function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settin
 
   -- Blizzard-expected methods
   function frame:OnEditModeEnter()
-    if InCombatLockdown() then
+    if InCombatLockdown() and self:IsProtected() then
       return
     end
     self.pendingSettings = nil
@@ -500,7 +577,8 @@ function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settin
   end
 
   function frame:OnEditModeExit()
-    if InCombatLockdown() then
+    if InCombatLockdown() and self:IsProtected() then
+      self.buiiPendingExit = true
       return
     end
     self:EnableMouse(false)
@@ -705,26 +783,42 @@ function BUII_EditModeUtils:InitHooks()
     return
   end
 
-  -- Register global event handler for layout updates
+  -- Register global event handler for layout updates and combat cleanup
   local layoutUpdateFrame = CreateFrame("Frame")
   layoutUpdateFrame:RegisterEvent("EDIT_MODE_LAYOUTS_UPDATED")
-  layoutUpdateFrame:SetScript("OnEvent", function(_, event)
-    if event == "EDIT_MODE_LAYOUTS_UPDATED" then
+  layoutUpdateFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
+  layoutUpdateFrame:RegisterEvent("ADDON_LOADED")
+  layoutUpdateFrame:SetScript("OnEvent", function(_, event, arg1)
+    if event == "ADDON_LOADED" and arg1 == "Blizzard_EditMode" then
+      InitializeBlizzardEditModeIntegration()
+    elseif event == "EDIT_MODE_LAYOUTS_UPDATED" then
       -- Delay by one frame to ensure Blizzard's code finishes first
       C_Timer.After(0, function()
-        for _, frame in pairs(self.RegisteredSystems) do
+        for _, frame in pairs(BUII_EditModeUtils.RegisteredSystems) do
           if frame.buiiDbKey then
-            self:ApplySavedPosition(frame, frame.buiiDbKey, true)
+            BUII_EditModeUtils:ApplySavedPosition(frame, frame.buiiDbKey, true)
           end
         end
       end)
+    elseif event == "PLAYER_REGEN_ENABLED" then
+      -- Finish any pending tasks that were skipped due to combat lockdown
+      for _, frame in pairs(BUII_EditModeUtils.RegisteredSystems) do
+        if frame.buiiPendingExit then
+          frame.buiiPendingExit = false
+          frame:OnEditModeExit()
+        end
+        if frame.buiiPendingPositionUpdate then
+          frame.buiiPendingPositionUpdate = false
+          if frame.buiiDbKey then
+            BUII_EditModeUtils:ApplySavedPosition(frame, frame.buiiDbKey, true)
+          end
+        end
+      end
     end
   end)
 
-  if EditModeSystemSettingsDialog then
-    hooksecurefunc(EditModeSystemSettingsDialog, "UpdateSettings", OnUpdateSettings)
-    hooksecurefunc(EditModeSystemSettingsDialog, "OnSettingValueChanged", OnSettingValueChanged)
-  end
+  -- Initial check if already loaded
+  InitializeBlizzardEditModeIntegration()
 
   if EditModeManagerFrame then
     hooksecurefunc(EditModeManagerFrame, "RevertAllChanges", function()

@@ -964,12 +964,12 @@ function BUII_IconTooltips_OnClick(self)
   if self:GetChecked() then
     BUIIDatabase["icon_tooltips"] = true
     if BUII_IconSearch_UpdateTooltips then
-        BUII_IconSearch_UpdateTooltips(true)
+      BUII_IconSearch_UpdateTooltips(true)
     end
   else
     BUIIDatabase["icon_tooltips"] = false
     if BUII_IconSearch_UpdateTooltips then
-        BUII_IconSearch_UpdateTooltips(false)
+      BUII_IconSearch_UpdateTooltips(false)
     end
   end
 end

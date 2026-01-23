@@ -5,11 +5,6 @@ local petIdleStartTime = 0
 local wasPetAttacking = false
 local combatTicker = nil
 
--- Ensure Enum exists
-if not Enum.EditModeSystem.BUII_PetReminder then
-  Enum.EditModeSystem.BUII_PetReminder = 112
-end
-
 -- Define the global string for Edit Mode tooltip
 BUII_HUD_EDIT_MODE_PET_REMINDER_LABEL = "Pet Reminder"
 
