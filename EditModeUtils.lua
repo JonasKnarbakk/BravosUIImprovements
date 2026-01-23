@@ -545,6 +545,9 @@ function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settin
 
   -- Selection Interaction
   if frame.Selection then
+    if frame.Selection.SetSystem then
+        frame.Selection:SetSystem(frame)
+    end
     frame.Selection.Label:SetText(systemName)
     frame.Selection.GetLabelText = function()
       return systemName

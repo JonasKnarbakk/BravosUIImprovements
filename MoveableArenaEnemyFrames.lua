@@ -238,7 +238,7 @@ local function setupArenaEnemyFrameOverlay()
         return f:GetScale()
       end,
       setter = function(f, val)
-        if ArenaEnemyFramesContainer then
+        if ArenaEnemyFramesContainer and not InCombatLockdown() then
           ArenaEnemyFramesContainer:SetScale(val)
         end
         arenaEnemyFrameOverlay:SetScale(val)
