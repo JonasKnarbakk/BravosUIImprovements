@@ -15,6 +15,7 @@ _G["BUII_HUD_EDIT_MODE_LOOT_SPEC_LABEL"] = "Loot Specialization"
 _G["BUII_HUD_EDIT_MODE_TANK_SHIELD_WARNING_LABEL"] = "Tank Shield Warning"
 _G["BUII_HUD_EDIT_MODE_QUEUE_STATUS_BUTTON_LABEL"] = "Queue Status Button"
 _G["BUII_HUD_EDIT_MODE_ARENA_ENEMY_FRAMES_LABEL"] = "Arena Enemy Frames"
+_G["BUII_HUD_EDIT_MODE_TOTEM_FRAME_LABEL"] = "Totem Frame"
 
 -- Helper to get appropriate DB (Global or Character)
 function BUII_EditModeUtils:GetDB(dbKey)
@@ -75,6 +76,11 @@ end
 -- Helper to apply position
 function BUII_EditModeUtils:ApplySavedPosition(frame, dbKey, force)
   if not frame then
+    return
+  end
+
+  -- Prevent execution on protected frames during combat
+  if InCombatLockdown() and frame:IsProtected() then
     return
   end
 
@@ -382,10 +388,6 @@ function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settin
     return
   end
 
-  if self.RegisteredSystems[systemEnum] then
-    return
-  end
-
   self.RegisteredSystems[systemEnum] = frame
 
   -- Ensure EditModeSettingDisplayInfoManager has an entry for this system
@@ -479,6 +481,9 @@ function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settin
 
   -- Blizzard-expected methods
   function frame:OnEditModeEnter()
+    if InCombatLockdown() then
+      return
+    end
     self.pendingSettings = nil
     self.hasActiveChanges = false
     self.isSelected = false
@@ -495,6 +500,9 @@ function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settin
   end
 
   function frame:OnEditModeExit()
+    if InCombatLockdown() then
+      return
+    end
     self:EnableMouse(false)
     self.isSelected = false
     self.lastKnownPosition = nil
@@ -514,6 +522,12 @@ function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settin
         return -- Prevent infinite loop
       end
       capturedFrame.isRestoringPosition = true
+
+      -- Ensure Selection is hidden again, just in case
+      if capturedFrame.Selection then
+        capturedFrame.Selection:Hide()
+      end
+
       BUII_EditModeUtils:ApplySavedPosition(capturedFrame, capturedDbKey, true)
       capturedFrame.hasActiveChanges = false
       capturedFrame.pendingSettings = nil
@@ -546,7 +560,7 @@ function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settin
   -- Selection Interaction
   if frame.Selection then
     if frame.Selection.SetSystem then
-        frame.Selection:SetSystem(frame)
+      frame.Selection:SetSystem(frame)
     end
     frame.Selection.Label:SetText(systemName)
     frame.Selection.GetLabelText = function()
@@ -790,6 +804,23 @@ function BUII_EditModeUtils:InitHooks()
       self:CommitPendingChanges(frame, frame.buiiDbKey)
     end
   end, "BUII_EditModeUtils_OnSave")
+
+  -- Manually drive OnEditModeEnter and OnEditModeExit for our custom systems since we don't register them with EditModeManager
+  EventRegistry:RegisterCallback("EditMode.Enter", function()
+    for _, frame in pairs(self.RegisteredSystems) do
+      if frame.OnEditModeEnter then
+        frame:OnEditModeEnter()
+      end
+    end
+  end, "BUII_EditModeUtils_OnEnter")
+
+  EventRegistry:RegisterCallback("EditMode.Exit", function()
+    for _, frame in pairs(self.RegisteredSystems) do
+      if frame.OnEditModeExit then
+        frame:OnEditModeExit()
+      end
+    end
+  end, "BUII_EditModeUtils_OnExit")
 
   self.HooksInitialized = true
 end
