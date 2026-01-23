@@ -15,6 +15,7 @@
   <Script file="PetReminder.lua"/>
   <Script file="MissingBuffReminder.lua"/>
   <Script file="MoveableArenaEnemyFrames.lua"/>
+  <Script file="IconSearch.lua"/>
   <Script file="EditModeUtils.lua"/>
   <Script file="GroupTools.lua"/>
   <Script file="BravosUIImprovements.lua"/>
@@ -383,6 +384,42 @@
         </Layers>
         <Scripts>
           <OnClick function="BUII_MoveableArenaFrames_OnClick"/>
+        </Scripts>
+      </CheckButton>
+
+      <CheckButton name="$parentIconSearch" parentKey="IconSearch" inherits="InterfaceOptionsCheckButtonTemplate">
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeKey="$parent.MoveableArenaFrames" relativePoint="BOTTOMLEFT" x="0" y="0"/>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString name="$parentLabel" text="Searchable Icons in Macro/Outfit Popup" inherits="GameFontNormalSmall">
+              <Anchors>
+                <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnClick function="BUII_IconSearch_OnClick"/>
+        </Scripts>
+      </CheckButton>
+
+      <CheckButton name="$parentIconTooltips" parentKey="IconTooltips" inherits="InterfaceOptionsCheckButtonTemplate">
+        <Anchors>
+          <Anchor point="LEFT" relativeTo="$parentIconSearchLabel" relativePoint="RIGHT" x="15" y="0"/>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString name="$parentLabel" text="Show Icon Tooltips" inherits="GameFontNormalSmall">
+              <Anchors>
+                <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnClick function="BUII_IconTooltips_OnClick"/>
         </Scripts>
       </CheckButton>
 

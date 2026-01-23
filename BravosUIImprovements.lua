@@ -607,6 +607,12 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       BUII_PetReminder_InitDB()
       BUII_MissingBuffReminder_InitDB()
       BUII_MoveableArenaEnemyFrames_InitDB()
+      if BUIIDatabase["icon_search"] == nil then
+        BUIIDatabase["icon_search"] = true
+      end
+      if BUIIDatabase["icon_tooltips"] == nil then
+        BUIIDatabase["icon_tooltips"] = true
+      end
 
       -- Initialize font, outline, and texture dropdowns
       BUII_InitializeDropdowns()
@@ -833,6 +839,15 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       defaultUI.MoveableArenaFrames:SetChecked(true)
     end
 
+    if BUIIDatabase["icon_search"] then
+      BUII_IconSearch_Enable()
+      defaultUI.IconSearch:SetChecked(true)
+    end
+
+    if BUIIDatabase["icon_tooltips"] then
+      defaultUI.IconTooltips:SetChecked(true)
+    end
+
     if BUIIDatabase["font_shadow"] then
       weakAura.FontShadow:SetChecked(true)
     else
@@ -916,6 +931,30 @@ function BUII_MoveableArenaFrames_OnClick(self)
   else
     BUII_MoveableArenaEnemyFrames_Disable()
     BUIIDatabase["moveable_arena_frames"] = false
+  end
+end
+
+function BUII_IconSearch_OnClick(self)
+  if self:GetChecked() then
+    BUII_IconSearch_Enable()
+    BUIIDatabase["icon_search"] = true
+  else
+    BUII_IconSearch_Disable()
+    BUIIDatabase["icon_search"] = false
+  end
+end
+
+function BUII_IconTooltips_OnClick(self)
+  if self:GetChecked() then
+    BUIIDatabase["icon_tooltips"] = true
+    if BUII_IconSearch_UpdateTooltips then
+        BUII_IconSearch_UpdateTooltips(true)
+    end
+  else
+    BUIIDatabase["icon_tooltips"] = false
+    if BUII_IconSearch_UpdateTooltips then
+        BUII_IconSearch_UpdateTooltips(false)
+    end
   end
 end
 
