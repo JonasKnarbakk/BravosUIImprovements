@@ -218,6 +218,9 @@ local function BUII_RefreshAllModuleFonts()
   if BUIIDatabase["pet_reminder"] and BUII_PetReminder_Refresh then
     BUII_PetReminder_Refresh()
   end
+  if BUIIDatabase["missing_buff_reminder"] and BUII_MissingBuffReminder_Refresh then
+    BUII_MissingBuffReminder_Refresh()
+  end
 end
 
 local function BUII_RefreshAllModuleTextures()
@@ -602,6 +605,7 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       BUII_ResourceTracker_InitDB()
       BUII_LootSpec_InitDB()
       BUII_PetReminder_InitDB()
+      BUII_MissingBuffReminder_InitDB()
       BUII_MoveableArenaEnemyFrames_InitDB()
 
       -- Initialize font, outline, and texture dropdowns
@@ -815,6 +819,13 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       weakAura.PetReminder:SetChecked(true)
     else
       weakAura.PetReminder:SetChecked(false)
+    end
+
+    if BUIIDatabase["missing_buff_reminder"] then
+      BUII_MissingBuffReminder_Enable()
+      weakAura.MissingBuffReminder:SetChecked(true)
+    else
+      weakAura.MissingBuffReminder:SetChecked(false)
     end
 
     if BUIIDatabase["moveable_arena_frames"] then
@@ -1123,6 +1134,16 @@ function BUII_PetReminder_OnClick(self)
   else
     BUII_PetReminder_Disable()
     BUIIDatabase["pet_reminder"] = false
+  end
+end
+
+function BUII_MissingBuffReminder_OnClick(self)
+  if self:GetChecked() then
+    BUII_MissingBuffReminder_Enable()
+    BUIIDatabase["missing_buff_reminder"] = true
+  else
+    BUII_MissingBuffReminder_Disable()
+    BUIIDatabase["missing_buff_reminder"] = false
   end
 end
 

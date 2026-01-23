@@ -227,7 +227,12 @@ function BUII_EditModeUtils:CommitPendingChanges(frame, dbKey)
 end
 
 local function UpdatePending(frame)
-  local point, _, relativePoint, offsetX, offsetY = frame:GetPoint()
+  local point, relativeTo, relativePoint, offsetX, offsetY = frame:GetPoint()
+
+  -- Robustness check: if frame is not anchored, don't save
+  if not point then
+    return
+  end
 
   frame.pendingSettings = {
     point = point,
