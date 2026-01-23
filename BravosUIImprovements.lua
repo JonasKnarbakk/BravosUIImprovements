@@ -607,6 +607,7 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       BUII_PetReminder_InitDB()
       BUII_MissingBuffReminder_InitDB()
       BUII_MoveableArenaEnemyFrames_InitDB()
+      BUII_MoveableTotemFrame_InitDB()
       if BUIIDatabase["icon_search"] == nil then
         BUIIDatabase["icon_search"] = true
       end
@@ -839,6 +840,11 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       defaultUI.MoveableArenaFrames:SetChecked(true)
     end
 
+    if BUIIDatabase["moveable_totem_frame"] then
+      BUII_MoveableTotemFrame_Enable()
+      defaultUI.MoveableTotemFrame:SetChecked(true)
+    end
+
     if BUIIDatabase["icon_search"] then
       BUII_IconSearch_Enable()
       defaultUI.IconSearch:SetChecked(true)
@@ -931,6 +937,16 @@ function BUII_MoveableArenaFrames_OnClick(self)
   else
     BUII_MoveableArenaEnemyFrames_Disable()
     BUIIDatabase["moveable_arena_frames"] = false
+  end
+end
+
+function BUII_MoveableTotemFrame_OnClick(self)
+  if self:GetChecked() then
+    BUII_MoveableTotemFrame_Enable()
+    BUIIDatabase["moveable_totem_frame"] = true
+  else
+    BUII_MoveableTotemFrame_Disable()
+    BUIIDatabase["moveable_totem_frame"] = false
   end
 end
 

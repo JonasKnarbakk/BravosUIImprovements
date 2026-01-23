@@ -15,6 +15,7 @@
   <Script file="PetReminder.lua"/>
   <Script file="MissingBuffReminder.lua"/>
   <Script file="MoveableArenaEnemyFrames.lua"/>
+  <Script file="MoveableTotemFrame.lua"/>
   <Script file="IconSearch.lua"/>
   <Script file="EditModeUtils.lua"/>
   <Script file="GroupTools.lua"/>
@@ -24,6 +25,16 @@
     <KeyValues>
       <KeyValue key="system" value="Enum.EditModeSystem.BUII_StanceTracker" type="global"/>
       <KeyValue key="systemNameString" value="BUII_HUD_EDIT_MODE_STANCE_TRACKER_LABEL" type="global"/>
+    </KeyValues>
+    <Frames>
+      <Frame inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
+    </Frames>
+  </Frame>
+
+  <Frame name="BUII_TotemFrameEditModeTemplate" inherits="EditModeSystemTemplate" virtual="true">
+    <KeyValues>
+      <KeyValue key="system" value="Enum.EditModeSystem.BUII_TotemFrame" type="global"/>
+      <KeyValue key="systemNameString" value="BUII_HUD_EDIT_MODE_TOTEM_FRAME_LABEL" type="global"/>
     </KeyValues>
     <Frames>
       <Frame inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
@@ -387,9 +398,27 @@
         </Scripts>
       </CheckButton>
 
-      <CheckButton name="$parentIconSearch" parentKey="IconSearch" inherits="InterfaceOptionsCheckButtonTemplate">
+      <CheckButton name="$parentMoveableTotemFrame" parentKey="MoveableTotemFrame" inherits="InterfaceOptionsCheckButtonTemplate">
         <Anchors>
           <Anchor point="TOPLEFT" relativeKey="$parent.MoveableArenaFrames" relativePoint="BOTTOMLEFT" x="0" y="0"/>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString name="$parentLabel" text="Moveable Totem Frame" inherits="GameFontNormalSmall">
+              <Anchors>
+                <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnClick function="BUII_MoveableTotemFrame_OnClick"/>
+        </Scripts>
+      </CheckButton>
+
+      <CheckButton name="$parentIconSearch" parentKey="IconSearch" inherits="InterfaceOptionsCheckButtonTemplate">
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeKey="$parent.MoveableTotemFrame" relativePoint="BOTTOMLEFT" x="0" y="0"/>
         </Anchors>
         <Layers>
           <Layer level="ARTWORK">
