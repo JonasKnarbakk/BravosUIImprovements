@@ -784,10 +784,7 @@ function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settin
             if savedPos then
               local normalizedX = (savedPos.offsetX or 0) / scale
               local normalizedY = (savedPos.offsetY or 0) / scale
-              if
-                math.abs(normalizedX - (offsetX or 0)) < 0.1
-                and math.abs(normalizedY - (offsetY or 0)) < 0.1
-              then
+              if math.abs(normalizedX - (offsetX or 0)) < 0.1 and math.abs(normalizedY - (offsetY or 0)) < 0.1 then
                 isResetToSaved = true
               end
             end

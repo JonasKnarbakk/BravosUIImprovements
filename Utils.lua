@@ -225,3 +225,21 @@ function BUII_GetFontShadow()
 
   return 1, -1
 end
+
+function BUII_FormatNumber(number)
+  if not number then
+    return "0"
+  end
+
+  if issecretvalue(number) then
+    return "???"
+  end
+
+  if number >= 1000000 then
+    return string.format("%.1fM", number / 1000000)
+  elseif number >= 1000 then
+    return string.format("%.1fK", number / 1000)
+  else
+    return tostring(math.floor(number))
+  end
+end

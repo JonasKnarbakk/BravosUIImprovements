@@ -336,8 +336,7 @@ local function setupQueueStatusButton()
   local dbKey = "queue_status_button"
 
   -- Create dedicated overlay frame for Edit Mode
-  queueStatusButtonOverlay =
-    CreateFrame("Frame", nil, UIParent, "BUIIQueueStatusButtonEditModeSystemTemplate")
+  queueStatusButtonOverlay = CreateFrame("Frame", nil, UIParent, "BUIIQueueStatusButtonEditModeSystemTemplate")
   queueStatusButtonOverlay:SetSize(32, 32) -- Force standard size
   queueStatusButtonOverlay:SetMovable(true)
   queueStatusButtonOverlay:SetClampedToScreen(true)
