@@ -335,36 +335,22 @@ local function setupQueueStatusButton()
   local systemName = BUII_HUD_EDIT_MODE_QUEUE_STATUS_BUTTON_LABEL or "Queue Status Button"
   local dbKey = "queue_status_button"
 
-  -- Create a dedicated overlay frame instead of hooking the Blizzard frame directly
-  -- This makes it easier to grab and move without parent interference
+  -- Create dedicated overlay frame for Edit Mode
   queueStatusButtonOverlay =
-    CreateFrame("Frame", "BUIIQueueStatusButtonOverlay", UIParent, "BUIIQueueStatusButtonEditModeSystemTemplate")
+    CreateFrame("Frame", nil, UIParent, "BUIIQueueStatusButtonEditModeSystemTemplate")
   queueStatusButtonOverlay:SetSize(32, 32) -- Force standard size
   queueStatusButtonOverlay:SetMovable(true)
   queueStatusButtonOverlay:SetClampedToScreen(true)
   queueStatusButtonOverlay:SetDontSavePosition(true)
+  queueStatusButtonOverlay.defaultPoint = "CENTER"
 
-  local settingsConfig = {
-    {
-      setting = enum_QueueStatusButtonSetting_Scale,
-      name = "Scale",
-      type = Enum.EditModeSettingDisplayType.Slider,
-      minValue = 0.5,
-      maxValue = 2.0,
-      stepSize = 0.05,
-      formatter = BUII_EditModeUtils.FormatPercentage,
-      getter = function(f)
-        return QueueStatusButton:GetScale()
-      end,
-      setter = function(f, val)
-        QueueStatusButton:SetScale(val)
-        queueStatusButtonOverlay:SetScale(val)
-        syncButtonToOverlay()
-      end,
-      key = "scale",
-      defaultValue = 1.0,
-    },
-  }
+  local settingsConfig = {}
+  BUII_EditModeUtils:AddScaleSetting(settingsConfig, enum_QueueStatusButtonSetting_Scale, "scale", function(f, val)
+    if QueueStatusButton then
+      QueueStatusButton:SetScale(val)
+    end
+    syncButtonToOverlay()
+  end)
 
   BUII_EditModeUtils:RegisterSystem(queueStatusButtonOverlay, systemEnum, systemName, settingsConfig, dbKey, {
     OnApplySettings = syncButtonToOverlay,
@@ -458,8 +444,8 @@ function BUII_QueueStatusButton_InitDB()
   if BUIIDatabase["queue_status_button_layouts"] == nil then
     BUIIDatabase["queue_status_button_layouts"] = {
       Default = {
-        point = "BOTTOMRIGHT",
-        relativePoint = "BOTTOMRIGHT",
+        point = "CENTER",
+        relativePoint = "CENTER",
         offsetX = 0,
         offsetY = 0,
         scale = 1.0,

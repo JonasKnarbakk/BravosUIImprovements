@@ -61,23 +61,8 @@ local function BUII_CombatState_Initialize()
   fadeOut:SetOrder(3)
 
   -- Register System
-  local settingsConfig = {
-    {
-      setting = enum_CombatStateSetting_Scale,
-      name = "Scale",
-      type = Enum.EditModeSettingDisplayType.Slider,
-      minValue = 0.5,
-      maxValue = 2.0,
-      stepSize = 0.05,
-      formatter = BUII_EditModeUtils.FormatPercentage,
-      getter = function(f)
-        return f:GetScale()
-      end,
-      setter = function(f, val)
-        f:SetScale(val)
-      end,
-    },
-  }
+  local settingsConfig = {}
+  BUII_EditModeUtils:AddScaleSetting(settingsConfig, enum_CombatStateSetting_Scale, "scale")
 
   BUII_EditModeUtils:RegisterSystem(
     frame,

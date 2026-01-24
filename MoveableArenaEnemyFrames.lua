@@ -166,7 +166,7 @@ local function syncContainerToOverlay()
   isSyncing = true
   reparentContainerIfNeeded()
   ArenaEnemyFramesContainer:ClearAllPoints()
-  ArenaEnemyFramesContainer:SetPoint("TOPLEFT", arenaEnemyFrameOverlay, "TOPLEFT", 0, 0)
+  ArenaEnemyFramesContainer:SetPoint("CENTER", arenaEnemyFrameOverlay, "CENTER", 0, 0)
   isSyncing = false
 end
 
@@ -221,32 +221,13 @@ local function setupArenaEnemyFrameOverlay()
   -- Create preview frames
   createPreviewFrames(arenaEnemyFrameOverlay)
 
-  local settingsConfig = {
-    {
-      setting = enum_ArenaEnemyFramesSetting_Scale,
-      name = "Scale",
-      type = Enum.EditModeSettingDisplayType.Slider,
-      minValue = 0.5,
-      maxValue = 2.0,
-      stepSize = 0.05,
-      formatter = BUII_EditModeUtils.FormatPercentage,
-      getter = function(f)
-        if ArenaEnemyFramesContainer then
-          return ArenaEnemyFramesContainer:GetScale()
-        end
-        return f:GetScale()
-      end,
-      setter = function(f, val)
-        if ArenaEnemyFramesContainer and not InCombatLockdown() then
-          ArenaEnemyFramesContainer:SetScale(val)
-        end
-        arenaEnemyFrameOverlay:SetScale(val)
-        syncContainerToOverlay()
-      end,
-      key = "scale",
-      defaultValue = 1.0,
-    },
-  }
+  local settingsConfig = {}
+  BUII_EditModeUtils:AddScaleSetting(settingsConfig, enum_ArenaEnemyFramesSetting_Scale, "scale", function(f, val)
+    if ArenaEnemyFramesContainer and not InCombatLockdown() then
+      ArenaEnemyFramesContainer:SetScale(val)
+    end
+    syncContainerToOverlay()
+  end)
 
   BUII_EditModeUtils:RegisterSystem(arenaEnemyFrameOverlay, systemEnum, systemName, settingsConfig, dbKey, {
     OnApplySettings = function()

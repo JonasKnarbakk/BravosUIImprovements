@@ -262,32 +262,10 @@ local function BUII_PetReminder_Initialize()
 
   local bounceDown = animGroup:CreateAnimation("Translation")
   bounceDown:SetDuration(0.3)
-  bounceDown:SetOrder(2)
   bounceDown:SetSmoothing("IN_OUT")
-
-  -- Initialize with default intensity
-  local defaultIntensity = BUIIDatabase["pet_reminder_intensity"] or 20
-  text:SetPoint("CENTER", frame, "CENTER", 0, -defaultIntensity)
-  bounceUp:SetOffset(0, defaultIntensity * 2)
-  bounceDown:SetOffset(0, -defaultIntensity * 2)
 
   -- Register System
   local settingsConfig = {
-    {
-      setting = enum_PetReminderSetting_Scale,
-      name = "Scale",
-      type = Enum.EditModeSettingDisplayType.Slider,
-      minValue = 0.5,
-      maxValue = 3.0,
-      stepSize = 0.1,
-      formatter = BUII_EditModeUtils.FormatPercentage,
-      getter = function(f)
-        return f:GetScale()
-      end,
-      setter = function(f, val)
-        f:SetScale(val)
-      end,
-    },
     {
       setting = enum_PetReminderSetting_BounceIntensity,
       name = "Bounce Intensity",
@@ -336,6 +314,8 @@ local function BUII_PetReminder_Initialize()
       end,
     },
   }
+
+  BUII_EditModeUtils:AddScaleSetting(settingsConfig, enum_PetReminderSetting_Scale, "scale")
 
   BUII_EditModeUtils:RegisterSystem(
     frame,

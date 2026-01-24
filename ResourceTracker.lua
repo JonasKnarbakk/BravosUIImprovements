@@ -787,22 +787,6 @@ local function BUII_ResourceTracker_Initialize()
   -- Register System
   local settingsConfig = {
     {
-      setting = enum_ResourceTrackerSetting_Scale,
-      name = "Scale",
-      key = "resource_tracker_scale",
-      type = Enum.EditModeSettingDisplayType.Slider,
-      minValue = 0.5,
-      maxValue = 2.0,
-      stepSize = 0.05,
-      formatter = BUII_EditModeUtils.FormatPercentage,
-      getter = function(f)
-        return f:GetScale()
-      end,
-      setter = function(f, val)
-        f:SetScale(val)
-      end,
-    },
-    {
       setting = enum_ResourceTrackerSetting_TotalWidth,
       name = "Total Width",
       key = "resource_tracker_total_width",
@@ -1116,6 +1100,10 @@ local function BUII_ResourceTracker_Initialize()
       end,
     },
   }
+
+  BUII_EditModeUtils:AddScaleSetting(settingsConfig, enum_ResourceTrackerSetting_Scale, "resource_tracker_scale")
+
+  BUII_EditModeUtils:AddCharacterSpecificSetting(settingsConfig, "resource_tracker", UpdatePoints)
 
   BUII_EditModeUtils:AddCharacterSpecificSetting(settingsConfig, "resource_tracker", UpdatePoints)
 

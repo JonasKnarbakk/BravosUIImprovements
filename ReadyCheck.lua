@@ -153,21 +153,6 @@ local function BUII_ReadyCheck_Initialize()
   -- Register System
   local settingsConfig = {
     {
-      setting = enum_ReadyCheckSetting_Scale,
-      name = "Scale",
-      type = Enum.EditModeSettingDisplayType.Slider,
-      minValue = 0.5,
-      maxValue = 2.0,
-      stepSize = 0.05,
-      formatter = BUII_EditModeUtils.FormatPercentage,
-      getter = function(f)
-        return f:GetScale()
-      end,
-      setter = function(f, val)
-        f:SetScale(val)
-      end,
-    },
-    {
       setting = enum_ReadyCheckSetting_ShowRepairWarning,
       name = "Show Repair Warning",
       type = Enum.EditModeSettingDisplayType.Checkbox,
@@ -214,6 +199,8 @@ local function BUII_ReadyCheck_Initialize()
       end,
     },
   }
+
+  BUII_EditModeUtils:AddScaleSetting(settingsConfig, enum_ReadyCheckSetting_Scale, "scale")
 
   BUII_EditModeUtils:RegisterSystem(
     frame,

@@ -66,6 +66,46 @@ function BUII_EditModeUtils:AddCharacterSpecificSetting(settingsConfig, dbKey, o
   })
 end
 
+-- Centralized Scale setting helper
+function BUII_EditModeUtils:AddScaleSetting(settingsConfig, settingIndex, key, onUpdateFunc)
+  table.insert(settingsConfig, {
+    setting = settingIndex or 100,
+    name = "Scale",
+    key = key or "scale",
+    type = Enum.EditModeSettingDisplayType.Slider,
+    minValue = 0.5,
+    maxValue = 3.0,
+    stepSize = 0.05,
+    formatter = BUII_EditModeUtils.FormatPercentage,
+    defaultValue = 1.0,
+    getter = function(f)
+      return f:GetScale()
+    end,
+    setter = function(f, val)
+      local oldScale = f:GetScale()
+      if oldScale == val or oldScale <= 0 then
+        return
+      end
+
+      local point, relTo, relPoint, x, y = f:GetPoint()
+      if point then
+        -- Calculate new logical offset to maintain current visual position
+        local newX = (x * oldScale) / val
+        local newY = (y * oldScale) / val
+        f:SetScale(val)
+        f:ClearAllPoints()
+        f:SetPoint(point, relTo or UIParent, relPoint, newX, newY)
+      else
+        f:SetScale(val)
+      end
+
+      if onUpdateFunc then
+        onUpdateFunc(f, val)
+      end
+    end,
+  })
+end
+
 -- Generic Formatters
 function BUII_EditModeUtils.FormatPercentage(value)
   return math.floor(value * 100 + 0.5) .. "%"
@@ -145,6 +185,11 @@ function BUII_EditModeUtils:ApplySavedPosition(frame, dbKey, force)
     x = pos.offsetX or pos.x or 0
     y = pos.offsetY or pos.y or 0
     scale = pos.scale or 1.0
+
+    -- Normalized offsets: Blizzard stores offsets * scale
+    -- We divide by scale to get the logical coordinates for SetPoint
+    x = x / scale
+    y = y / scale
   else
     -- No settings found anywhere.
     -- If frame is already positioned, keep current position (inherit from previous spec/layout)
@@ -177,12 +222,13 @@ function BUII_EditModeUtils:ApplySavedPosition(frame, dbKey, force)
   end
 
   -- Update System Info for Edit Mode
+  -- Store normalized offsets in systemInfo
   frame.systemInfo.anchorInfo = {
     point = point,
     relativeTo = "UIParent",
     relativePoint = relPoint,
-    offsetX = x,
-    offsetY = y,
+    offsetX = x * scale,
+    offsetY = y * scale,
   }
 
   -- Update Settings in System Info
@@ -258,12 +304,14 @@ local function UpdatePending(frame)
     return
   end
 
+  local scale = frame:GetScale()
+
   frame.pendingSettings = {
     point = point,
     relativePoint = relativePoint,
-    offsetX = offsetX,
-    offsetY = offsetY,
-    scale = frame:GetScale(),
+    offsetX = offsetX * scale,
+    offsetY = offsetY * scale,
+    scale = scale,
     custom = {},
   }
 
@@ -651,20 +699,12 @@ function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settin
     hooksecurefunc(frame, "OnDragStop", function(self)
       -- Defer by one frame to let Blizzard's snap-to-guide logic complete
       C_Timer.After(0, function()
-        local point, relativeTo, relativePoint, offsetX, offsetY = self:GetPoint()
-
-        -- If Blizzard's snap reparented us to another frame, we need to convert back to UIParent coords
-        if relativeTo and relativeTo ~= UIParent then
-          -- Get absolute screen position (GetLeft/GetBottom already account for effective scale)
-          local left = self:GetLeft()
-          local bottom = self:GetBottom()
-
-          -- Reparent back to UIParent and calculate equivalent offsets
+        -- Normalize anchor to CENTER for visual stability during scaling
+        local centerX, centerY = self:GetCenter()
+        local scale = self:GetScale()
+        if centerX and centerY then
           self:ClearAllPoints()
-          self:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", left, bottom)
-
-          -- Now get the normalized position
-          point, relativeTo, relativePoint, offsetX, offsetY = self:GetPoint()
+          self:SetPoint("CENTER", UIParent, "BOTTOMLEFT", centerX, centerY)
         end
 
         UpdatePending(self)
@@ -702,10 +742,11 @@ function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settin
 
         if pos then
           local currentPoint, _, currentRel, currentX, currentY = self:GetPoint()
+          local scale = self:GetScale()
           local savedPoint = pos.point or "CENTER"
           local savedRel = pos.relativePoint or "CENTER"
-          local savedX = pos.offsetX or pos.x or 0
-          local savedY = pos.offsetY or pos.y or 0
+          local savedX = (pos.offsetX or pos.x or 0) / scale
+          local savedY = (pos.offsetY or pos.y or 0) / scale
 
           if
             currentPoint ~= savedPoint
@@ -721,6 +762,7 @@ function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settin
       elseif self.isSelected then
         -- Detect position changes from arrow keys or manual dragging
         local point, _, relativePoint, offsetX, offsetY = self:GetPoint()
+        local scale = self:GetScale()
         local lastPos = self.lastKnownPosition
 
         if
@@ -740,9 +782,11 @@ function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settin
             local layoutKey = BUII_EditModeUtils:GetActiveLayoutKey()
             local savedPos = db[self.buiiDbKey .. "_layouts"] and db[self.buiiDbKey .. "_layouts"][layoutKey]
             if savedPos then
+              local normalizedX = (savedPos.offsetX or 0) / scale
+              local normalizedY = (savedPos.offsetY or 0) / scale
               if
-                math.abs((savedPos.offsetX or 0) - (offsetX or 0)) < 0.1
-                and math.abs((savedPos.offsetY or 0) - (offsetY or 0)) < 0.1
+                math.abs(normalizedX - (offsetX or 0)) < 0.1
+                and math.abs(normalizedY - (offsetY or 0)) < 0.1
               then
                 isResetToSaved = true
               end

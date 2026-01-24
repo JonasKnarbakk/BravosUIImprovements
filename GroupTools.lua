@@ -207,21 +207,6 @@ local function BUII_GroupTools_Initialize()
   -- Register with EditModeUtils
   local settingsConfig = {
     {
-      setting = enum_GroupToolsSetting_Scale,
-      name = "Scale",
-      type = Enum.EditModeSettingDisplayType.Slider,
-      minValue = 0.5,
-      maxValue = 2.0,
-      stepSize = 0.05,
-      formatter = BUII_EditModeUtils.FormatPercentage,
-      getter = function(f)
-        return f:GetScale()
-      end,
-      setter = function(f, val)
-        f:SetScale(val)
-      end,
-    },
-    {
       setting = enum_GroupToolsSetting_FontSize,
       name = "BR Font Size",
       type = Enum.EditModeSettingDisplayType.Slider,
@@ -239,6 +224,8 @@ local function BUII_GroupTools_Initialize()
       defaultValue = 12,
     },
   }
+
+  BUII_EditModeUtils:AddScaleSetting(settingsConfig, enum_GroupToolsSetting_Scale, "scale")
 
   BUII_EditModeUtils:RegisterSystem(
     frame,

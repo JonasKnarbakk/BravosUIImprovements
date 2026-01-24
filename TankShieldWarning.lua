@@ -208,21 +208,6 @@ local function BUII_TankShieldWarning_Initialize()
   -- Register System
   local settingsConfig = {
     {
-      setting = enum_TankShieldWarningSetting_Scale,
-      name = "Scale",
-      type = Enum.EditModeSettingDisplayType.Slider,
-      minValue = 0.5,
-      maxValue = 3.0,
-      stepSize = 0.1,
-      formatter = BUII_EditModeUtils.FormatPercentage,
-      getter = function(f)
-        return f:GetScale()
-      end,
-      setter = function(f, val)
-        f:SetScale(val)
-      end,
-    },
-    {
       setting = enum_TankShieldWarningSetting_Threshold,
       name = "Durability Threshold",
       type = Enum.EditModeSettingDisplayType.Slider,
@@ -294,6 +279,8 @@ local function BUII_TankShieldWarning_Initialize()
       end,
     },
   }
+
+  BUII_EditModeUtils:AddScaleSetting(settingsConfig, enum_TankShieldWarningSetting_Scale, "scale")
 
   BUII_EditModeUtils:RegisterSystem(
     frame,

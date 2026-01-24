@@ -11,7 +11,7 @@ local function syncTotemFrameToOverlay()
   end
   -- Direct atomic anchor to prevent spazzing/jitter during resizing or moving
   TotemFrame:ClearAllPoints()
-  TotemFrame:SetPoint("TOPLEFT", totemFrameOverlay, "TOPLEFT", 0, 0)
+  TotemFrame:SetPoint("CENTER", totemFrameOverlay, "CENTER", 0, 0)
 end
 
 local function setupTotemFrameOverlay()
@@ -25,27 +25,12 @@ local function setupTotemFrameOverlay()
   totemFrameOverlay:SetClampedToScreen(true)
   totemFrameOverlay:SetDontSavePosition(true)
 
-  local settingsConfig = {
-    {
-      setting = enum_MoveableTotemFrameSetting_Scale,
-      name = "Scale",
-      key = "scale",
-      type = Enum.EditModeSettingDisplayType.Slider,
-      minValue = 0.5,
-      maxValue = 3.0,
-      stepSize = 0.1,
-      formatter = BUII_EditModeUtils.FormatPercentage,
-      getter = function(f)
-        return f:GetScale()
-      end,
-      setter = function(f, val)
-        f:SetScale(val)
-        if TotemFrame then
-          TotemFrame:SetScale(val)
-        end
-      end,
-    },
-  }
+  local settingsConfig = {}
+  BUII_EditModeUtils:AddScaleSetting(settingsConfig, enum_MoveableTotemFrameSetting_Scale, "scale", function(f, val)
+    if TotemFrame then
+      TotemFrame:SetScale(val)
+    end
+  end)
 
   BUII_EditModeUtils:RegisterSystem(
     totemFrameOverlay,

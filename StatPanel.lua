@@ -203,22 +203,6 @@ local function BUII_StatPanel_Initialize()
   -- Edit Mode Configuration
   local settingsConfig = {
     {
-      setting = enum_StatPanelSetting_Scale,
-      name = "Scale",
-      key = "stat_panel_scale",
-      type = Enum.EditModeSettingDisplayType.Slider,
-      minValue = 0.5,
-      maxValue = 2.0,
-      stepSize = 0.05,
-      formatter = BUII_EditModeUtils.FormatPercentage,
-      getter = function(f)
-        return f:GetScale()
-      end,
-      setter = function(f, val)
-        f:SetScale(val)
-      end,
-    },
-    {
       setting = enum_StatPanelSetting_Width,
       name = "Width",
       key = "stat_panel_width",
@@ -302,6 +286,8 @@ local function BUII_StatPanel_Initialize()
       end,
     },
   }
+
+  BUII_EditModeUtils:AddScaleSetting(settingsConfig, enum_StatPanelSetting_Scale, "stat_panel_scale")
 
   -- Add stats checkboxes
   for i, statDef in ipairs(STATS) do
