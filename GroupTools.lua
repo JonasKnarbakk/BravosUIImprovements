@@ -1,6 +1,7 @@
 local frame = nil
 local bRezText = nil
 local timerFrame = nil
+local isEditing = false
 
 -- Settings Constants
 local enum_GroupToolsSetting_Scale = 20
@@ -119,13 +120,18 @@ local function UpdateVisibility()
     return
   end
   -- If Edit Mode is open, show the frame
-  if EditModeManagerFrame and EditModeManagerFrame:IsShown() then
+  if isEditing then
     frame:Show()
     return
   end
 
   local inInstance, instanceType = IsInInstance()
-  if inInstance and (instanceType == "party" or instanceType == "raid") then
+  local inGroup = IsInGroup() or IsInRaid()
+
+  -- Show only if in a group or in a party/raid instance
+  local shouldShow = inGroup or (inInstance and (instanceType == "party" or instanceType == "raid"))
+
+  if shouldShow then
     frame:Show()
   else
     frame:Hide()
@@ -242,6 +248,14 @@ local function BUII_GroupTools_Initialize()
         UpdateBattleRez()
         UpdateVisibility()
       end,
+      OnEditModeEnter = function(f)
+        isEditing = true
+        UpdateVisibility()
+      end,
+      OnEditModeExit = function(f)
+        isEditing = false
+        UpdateVisibility()
+      end,
     }
   )
 
@@ -261,6 +275,8 @@ function BUII_GroupTools_Enable()
   BUII_GroupTools_Initialize()
 
   frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+  frame:RegisterEvent("GROUP_ROSTER_UPDATE")
+  frame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
   frame:RegisterEvent("ENCOUNTER_START")
   frame:RegisterEvent("ENCOUNTER_END")
   frame:RegisterEvent("SPELL_UPDATE_CHARGES")
