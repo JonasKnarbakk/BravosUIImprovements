@@ -11,7 +11,7 @@
   <Script file="TankShieldWarning.lua"/>
   <Script file="StanceTracker.lua"/>
   <Script file="ResourceTracker.lua"/>
-  <Script file="LootSpec.lua"/>
+  <Include file="Modules\WeakAura-like\LootSpec\LootSpec.xml"/>
   <Script file="PetReminder.lua"/>
   <Script file="MissingBuffReminder.lua"/>
   <Script file="MoveableArenaEnemyFrames.lua"/>
@@ -90,15 +90,6 @@
     </Frames>
   </Frame>
 
-  <Frame name="BUII_LootSpecEditModeTemplate" inherits="EditModeSystemTemplate" virtual="true">
-    <KeyValues>
-      <KeyValue key="system" value="Enum.EditModeSystem.BUII_LootSpec" type="global"/>
-      <KeyValue key="systemNameString" value="BUII_HUD_EDIT_MODE_LOOT_SPEC_LABEL" type="global"/>
-    </KeyValues>
-    <Frames>
-      <Frame parentKey="Selection" inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
-    </Frames>
-  </Frame>
 
   <Frame name="BUII_TankShieldWarningEditModeTemplate" inherits="EditModeSystemTemplate" virtual="true">
     <KeyValues>
