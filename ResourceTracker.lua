@@ -22,9 +22,9 @@ local CONFIG = {
   DEMONHUNTER = {
     {
       spec = 581, -- Vengeance
-      buffs = { 203981 }, -- Soul Fragments
+      abilityStacks = 228477, -- Soul Cleave
       name = "Soul Fragments",
-      maxPoints = (select(4, GetBuildInfo()) == 110207) and 5 or 6, -- Goes to 6 stacks in Midnight prepatch
+      maxPoints = 6, -- Goes to 6 stacks in Midnight prepatch
       color = { r = 0.8, g = 0.2, b = 0.8 }, -- Soul Purple
     },
     {
@@ -321,9 +321,10 @@ local function GetResourceState(config)
     end
     return current, percent, nil
 
-    -- Buff Tracking (Shaman, DH Vengeance)
+    -- Buff/Stack Tracking (Shaman, DH Vengeance)
   elseif config.buffs then
     local count = 0
+
     for _, buffId in ipairs(config.buffs) do
       local aura = C_UnitAuras.GetPlayerAuraBySpellID(buffId)
       if aura then
@@ -331,6 +332,13 @@ local function GetResourceState(config)
         break
       end
     end
+    return count, 0, nil
+  elseif config.abilityStacks then
+    local count = 0
+    if config.abilityStacks then
+      count = C_Spell.GetSpellCastCount(config.abilityStacks) or 0
+    end
+
     return count, 0, nil
   end
 
@@ -496,7 +504,8 @@ local function UpdatePoints()
       chargedPoints = extraData
     end
 
-    -- Ensure currentStacks is a number for display    local currentStacksIsSecret = issecretvalue(currentStacks)
+    -- Ensure currentStacks is a number for display
+    local currentStacksIsSecret = issecretvalue(currentStacks)
     if not currentStacksIsSecret and type(currentStacks) ~= "number" then
       currentStacks = 0
     end
@@ -566,8 +575,15 @@ local function UpdatePoints()
     end
 
     frame.ResourceBar.ProgressBar:SetStatusBarColor(drawColor.r, drawColor.g, drawColor.b, db.currentOpacity or 1)
-    frame.ResourceBar.ProgressBar:SetMinMaxValues(0, 1)
-    frame.ResourceBar.ProgressBar:SetValue(partialFill)
+
+    -- Midnight: Use UnitPowerPercent for secret-safe filling if it's a standard power type
+    if UnitPowerPercent and config.powerType then
+      frame.ResourceBar.ProgressBar:SetMinMaxValues(0, 1)
+      frame.ResourceBar.ProgressBar:SetValue(UnitPowerPercent("player", config.powerType))
+    else
+      frame.ResourceBar.ProgressBar:SetMinMaxValues(0, 1)
+      frame.ResourceBar.ProgressBar:SetValue(partialFill)
+    end
 
     -- Apply border color to Resource Bar
     local borderColor = { r = 0, g = 0, b = 0, a = 0 }
@@ -670,8 +686,21 @@ local function UpdatePoints()
           isFull = (i <= currentStacks)
         end
 
-        if isFull then
+        if currentStacksIsSecret then
+          -- Midnight Secret-safe: set range to [i-1, i].
+          -- If currentStacks >= i, bar is full. If currentStacks <= i-1, bar is empty.
+          point.ProgressBar:SetMinMaxValues(i - 1, i)
+          point.ProgressBar:SetValue(currentStacks)
+          point.ProgressBar:SetStatusBarColor(drawColor.r, drawColor.g, drawColor.b, db.currentOpacity or 1)
+          point.ProgressBar:Show()
+
+          point.AnimGroup:Stop()
+          point.AnimTexture:Hide()
+          point.lastStart = nil
+          point.lastDuration = nil
+        elseif isFull then
           -- Full point
+          point.ProgressBar:SetMinMaxValues(0, 1)
           if point.ProgressBar.ResetSmoothedValue then
             point.ProgressBar:ResetSmoothedValue(1)
           else
