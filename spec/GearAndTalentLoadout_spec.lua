@@ -20,7 +20,7 @@ _G.BUII_GetFontShadow = function()
 end
 
 -- Load Module (using pcall because we might be missing some edge case WoW globals, but we want to load functions)
-pcall(dofile, "GearAndTalentLoadout.lua")
+pcall(dofile, "Modules/WeakAura-like/GearAndTalentLoadout.lua")
 
 describe("BravosUIImprovements GearAndTalentLoadout", function()
   -- reset state

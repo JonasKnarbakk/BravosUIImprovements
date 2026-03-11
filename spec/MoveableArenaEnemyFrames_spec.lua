@@ -4,7 +4,7 @@ require("spec.setup")
 _G.BUIIDatabase = {}
 _G.BUIICharacterDatabase = {}
 
-pcall(dofile, "MoveableArenaEnemyFrames.lua")
+pcall(dofile, "Modules/DefaultUI/MoveableArenaEnemyFrames.lua")
 
 describe("BravosUIImprovements MoveableArenaEnemyFrames", function()
   -- reset state

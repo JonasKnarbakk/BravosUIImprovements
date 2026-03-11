@@ -37,7 +37,7 @@ for i = 1, 12 do
   _G["MultiBarLeftButton" .. i].HotKey = _G["MultiBarLeftButton" .. i]:CreateFontString()
 end
 
-pcall(dofile, "ImprovedEditMode.lua")
+pcall(dofile, "Modules/DefaultUI/ImprovedEditMode.lua")
 
 describe("BravosUIImprovements ImprovedEditMode", function()
   -- reset state

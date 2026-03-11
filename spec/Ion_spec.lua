@@ -3,7 +3,7 @@ require("spec.setup")
 
 _G.BUIIDatabase = {}
 
-pcall(dofile, "Ion.lua")
+pcall(dofile, "Modules/WeakAura-like/Ion.lua")
 
 describe("BravosUIImprovements Ion", function()
   -- reset state

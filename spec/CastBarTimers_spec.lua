@@ -25,7 +25,7 @@ _G.BUIIDatabase = {
 }
 
 -- Load module
-dofile("CastBarTimers.lua")
+dofile("Modules/DefaultUI/CastBarTimers.lua")
 
 describe("BravosUIImprovements CastBarTimers", function()
   -- reset state before testing

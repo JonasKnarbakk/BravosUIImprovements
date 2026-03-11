@@ -4,7 +4,7 @@ require("spec.setup")
 _G.BUIIDatabase = {}
 _G.BUIICharacterDatabase = {}
 
-pcall(dofile, "MoveableTotemFrame.lua")
+pcall(dofile, "Modules/DefaultUI/MoveableTotemFrame.lua")
 
 describe("BravosUIImprovements MoveableTotemFrame", function()
   -- reset state

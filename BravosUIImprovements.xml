@@ -1,23 +1,27 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/..\FrameXML\UI.xsd">
 
-  <Script file="Utils.lua"/>
-  <Script file="CastBarTimers.lua"/>
-  <Script file="QuickKeybindModeShortcut.lua"/>
-  <Script file="CallToArms.lua"/>
-  <Script file="Ion.lua"/>
-  <Script file="GearAndTalentLoadout.lua"/>
-  <Script file="CombatState.lua"/>
-  <Script file="ReadyCheck.lua"/>
-  <Script file="TankShieldWarning.lua"/>
-  <Script file="StanceTracker.lua"/>
-  <Script file="ResourceTracker.lua"/>
+  <Script file="Modules\DefaultUI\ActionBarsImproved.lua"/>
+  <Script file="Modules\DefaultUI\CastBarTimers.lua"/>
+  <Script file="Modules\DefaultUI\IconSearch.lua"/>
+  <Include file="Modules\DefaultUI\ImprovedEditMode.xml"/>
+  <Script file="Modules\DefaultUI\MoveableArenaEnemyFrames.lua"/>
+  <Script file="Modules\DefaultUI\MoveableTotemFrame.lua"/>
+  <Script file="Modules\DefaultUI\QuickKeybindModeShortcut.lua"/>
+  <Script file="Modules\DefaultUI\TooltipImprovements.lua"/>
   <Include file="Modules\WeakAura-like\LootSpec\LootSpec.xml"/>
-  <Script file="PetReminder.lua"/>
-  <Script file="MissingBuffReminder.lua"/>
-  <Script file="MoveableArenaEnemyFrames.lua"/>
-  <Script file="MoveableTotemFrame.lua"/>
-  <Script file="IconSearch.lua"/>
-  <Script file="GroupTools.lua"/>
+  <Include file="Modules\WeakAura-like\ResourceTracker.xml"/>
+  <Script file="Modules\WeakAura-like\CallToArms.lua"/>
+  <Script file="Modules\WeakAura-like\CombatState.lua"/>
+  <Script file="Modules\WeakAura-like\GearAndTalentLoadout.lua"/>
+  <Script file="Modules\WeakAura-like\GroupTools.lua"/>
+  <Script file="Modules\WeakAura-like\Ion.lua"/>
+  <Script file="Modules\WeakAura-like\MissingBuffReminder.lua"/>
+  <Script file="Modules\WeakAura-like\PetReminder.lua"/>
+  <Script file="Modules\WeakAura-like\ReadyCheck.lua"/>
+  <Script file="Modules\WeakAura-like\ResourceTracker.lua"/>
+  <Script file="Modules\WeakAura-like\StanceTracker.lua"/>
+  <Script file="Modules\WeakAura-like\StatPanel.lua"/>
+  <Script file="Modules\WeakAura-like\TankShieldWarning.lua"/>
   <Script file="BravosUIImprovements.lua"/>
 
   <Frame name="BUII_StanceTrackerEditModeTemplate" inherits="EditModeSystemTemplate" virtual="true">

@@ -13,7 +13,7 @@ _G.BUII_GetFontShadow = function()
   return 1, -1
 end
 
-pcall(dofile, "StatPanel.lua")
+pcall(dofile, "Modules/WeakAura-like/StatPanel.lua")
 
 describe("BravosUIImprovements StatPanel", function()
   -- reset state

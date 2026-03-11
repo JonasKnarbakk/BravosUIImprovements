@@ -13,7 +13,7 @@ _G.BUII_GetFontShadow = function()
   return 1, -1
 end
 
-pcall(dofile, "MissingBuffReminder.lua")
+pcall(dofile, "Modules/WeakAura-like/MissingBuffReminder.lua")
 
 describe("BravosUIImprovements MissingBuffReminder", function()
   -- reset state

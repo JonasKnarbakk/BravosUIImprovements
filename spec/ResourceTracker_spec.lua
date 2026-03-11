@@ -16,7 +16,7 @@ _G.BUII_GetFontShadow = function()
   return 1, -1
 end
 
-pcall(dofile, "ResourceTracker.lua")
+pcall(dofile, "Modules/WeakAura-like/ResourceTracker.lua")
 
 describe("BravosUIImprovements ResourceTracker", function()
   -- reset state

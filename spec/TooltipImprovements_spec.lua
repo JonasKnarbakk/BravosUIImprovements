@@ -7,7 +7,7 @@ _G.ItemRefTooltip = { GetItem = function() end, AddLine = function() end }
 _G.TooltipDataProcessor = { AddTooltipPostCall = function() end }
 _G.C_Item = { GetItemInfo = function() end }
 
-pcall(dofile, "TooltipImprovements.lua")
+pcall(dofile, "Modules/DefaultUI/TooltipImprovements.lua")
 
 describe("BravosUIImprovements TooltipImprovements", function()
   before_each(function()

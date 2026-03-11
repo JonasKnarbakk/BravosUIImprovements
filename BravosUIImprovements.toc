@@ -9,10 +9,6 @@
 ## OptionalDeps: LibSharedMedia-3.0 SharedMedia !KMediaTags
 ## X-Curse-Project-ID: 701258
 
+Utils.lua
 EditModeUtils.lua
-ResourceTracker.xml
-StatPanel.lua
 BravosUIImprovements.xml
-ImprovedEditMode.xml
-ActionBarsImproved.lua
-TooltipImprovements.lua

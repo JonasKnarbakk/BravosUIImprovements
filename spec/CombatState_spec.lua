@@ -12,7 +12,7 @@ _G.BUII_GetFontShadow = function()
   return 1, -1
 end
 
-pcall(dofile, "CombatState.lua")
+pcall(dofile, "Modules/WeakAura-like/CombatState.lua")
 
 describe("BravosUIImprovements CombatState", function()
   -- reset state

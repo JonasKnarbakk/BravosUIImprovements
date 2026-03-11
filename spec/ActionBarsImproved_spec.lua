@@ -7,7 +7,7 @@ _G.BUIIDatabase = {
 }
 
 -- Load module
-dofile("ActionBarsImproved.lua")
+dofile("Modules/DefaultUI/ActionBarsImproved.lua")
 
 describe("BravosUIImprovements ActionBarsImproved", function()
   before_each(function()

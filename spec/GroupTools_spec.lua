@@ -12,7 +12,7 @@ _G.BUII_GetFontShadow = function()
   return 1, -1
 end
 
-pcall(dofile, "GroupTools.lua")
+pcall(dofile, "Modules/WeakAura-like/GroupTools.lua")
 
 describe("BravosUIImprovements GroupTools", function()
   -- reset state

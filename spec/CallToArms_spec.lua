@@ -24,7 +24,7 @@ _G.BUII_GetFontFlags = function()
 end
 
 -- Load Module (using pcall because we might be missing some edge case WoW globals, but we want to load functions)
-pcall(dofile, "CallToArms.lua")
+pcall(dofile, "Modules/WeakAura-like/CallToArms.lua")
 
 describe("BravosUIImprovements CallToArms", function()
   -- reset state

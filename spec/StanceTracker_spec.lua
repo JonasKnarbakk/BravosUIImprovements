@@ -13,7 +13,7 @@ _G.BUII_GetFontShadow = function()
   return 1, -1
 end
 
-pcall(dofile, "StanceTracker.lua")
+pcall(dofile, "Modules/WeakAura-like/StanceTracker.lua")
 
 describe("BravosUIImprovements StanceTracker", function()
   -- reset state

@@ -12,7 +12,7 @@ _G.BUII_GetFontShadow = function()
   return 1, -1
 end
 
-pcall(dofile, "ReadyCheck.lua")
+pcall(dofile, "Modules/WeakAura-like/ReadyCheck.lua")
 
 describe("BravosUIImprovements ReadyCheck", function()
   -- reset state
