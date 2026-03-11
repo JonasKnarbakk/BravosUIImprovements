@@ -1,7 +1,13 @@
+---@class BUII_ArenaEnemyFramesEditModeTemplate : BUII_ManagedFrame
+---@type Frame|BUII_ArenaEnemyFramesEditModeTemplate|any|nil
 local arenaEnemyFrameOverlay = nil
+---@type boolean
 local arenaEnemyFrameHooksInstalled = false
+---@type boolean
 local moveableArenaEnemyFramesEnabled = false
+---@type Frame[]
 local previewFrames = {}
+---@type boolean
 local isSyncing = false -- Prevent recursion when syncing position
 
 -- Settings Constants
@@ -20,7 +26,10 @@ local CLASS_ICON_COORDS = {
   { 0.5, 0.75, 0, 0.25 }, -- Rogue
 }
 
--- Create a single preview frame that mimics an arena enemy frame
+--- Create a single preview frame that mimics an arena enemy frame
+---@param parent Frame
+---@param index number
+---@return Frame
 local function createPreviewFrame(parent, index)
   local frame = CreateFrame("Frame", nil, parent)
   frame:SetSize(PREVIEW_FRAME_WIDTH, PREVIEW_FRAME_HEIGHT)
@@ -83,7 +92,9 @@ local function createPreviewFrame(parent, index)
   return frame
 end
 
--- Create all preview frames
+--- Create all preview frames
+---@param parent Frame|any
+---@return nil
 local function createPreviewFrames(parent)
   for i = 1, PREVIEW_FRAME_COUNT do
     local preview = createPreviewFrame(parent, i)
@@ -93,7 +104,9 @@ local function createPreviewFrames(parent)
   end
 end
 
--- Show/hide preview frames
+--- Show/hide preview frames
+---@param visible boolean
+---@return nil
 local function setPreviewVisible(visible)
   -- Don't modify protected frames during combat lockdown
   if InCombatLockdown() then
@@ -109,7 +122,8 @@ local function setPreviewVisible(visible)
   end
 end
 
--- Check if there are actual visible arena frames (not just the container)
+--- Check if there are actual visible arena frames (not just the container)
+---@return boolean
 local function hasVisibleArenaFrames()
   if not ArenaEnemyFramesContainer or not ArenaEnemyFramesContainer:IsShown() then
     return false
@@ -127,7 +141,8 @@ local function hasVisibleArenaFrames()
   return false
 end
 
--- Reparent the container out of the managed frame system to prevent Blizzard from repositioning it
+--- Reparent the container out of the managed frame system to prevent Blizzard from repositioning it
+---@return boolean
 local function reparentContainerIfNeeded()
   if not ArenaEnemyFramesContainer then
     return false
@@ -148,7 +163,8 @@ local function reparentContainerIfNeeded()
   return true
 end
 
--- Sync the ArenaEnemyFrameContainer to follow our overlay position
+--- Sync the ArenaEnemyFrameContainer to follow our overlay position
+---@return nil
 local function syncContainerToOverlay()
   if not arenaEnemyFrameOverlay or not ArenaEnemyFramesContainer then
     return
@@ -170,7 +186,8 @@ local function syncContainerToOverlay()
   isSyncing = false
 end
 
--- Update overlay size based on preview or actual container
+--- Update overlay size based on preview or actual container
+---@return nil
 local function updateOverlaySize()
   if not arenaEnemyFrameOverlay then
     return
@@ -199,6 +216,8 @@ local function updateOverlaySize()
   arenaEnemyFrameOverlay:SetSize(width, height)
 end
 
+--- Sets up the overlay used for Edit Mode positioning of Arena Enemy Frames
+---@return nil
 local function setupArenaEnemyFrameOverlay()
   if arenaEnemyFrameOverlay then
     return
@@ -249,7 +268,8 @@ local function setupArenaEnemyFrameOverlay()
   })
 end
 
--- Hook the container when it becomes available
+--- Hook the container when it becomes available
+---@return nil
 local function hookContainerIfExists()
   if arenaEnemyFrameHooksInstalled or not ArenaEnemyFramesContainer then
     return
@@ -311,6 +331,8 @@ local function hookContainerIfExists()
   arenaEnemyFrameHooksInstalled = true
 end
 
+--- Enables the Moveable Arena Enemy Frames feature
+---@return nil
 function BUII_MoveableArenaEnemyFrames_Enable()
   moveableArenaEnemyFramesEnabled = true
 
@@ -343,6 +365,8 @@ function BUII_MoveableArenaEnemyFrames_Enable()
   end)
 end
 
+--- Disables the Moveable Arena Enemy Frames feature
+---@return nil
 function BUII_MoveableArenaEnemyFrames_Disable()
   moveableArenaEnemyFramesEnabled = false
 
@@ -358,6 +382,8 @@ function BUII_MoveableArenaEnemyFrames_Disable()
   end
 end
 
+--- Initializes default DB values for Moveable Arena Enemy Frames
+---@return nil
 function BUII_MoveableArenaEnemyFrames_InitDB()
   if BUIIDatabase["moveable_arena_frames"] == nil then
     BUIIDatabase["moveable_arena_frames"] = false

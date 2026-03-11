@@ -1,8 +1,15 @@
+---@class BUII_PetReminderEditModeTemplate : BUII_ManagedFrame
+---@type Frame|BUII_PetReminderEditModeTemplate|any|nil
 local frame = nil
+---@type FontString|nil
 local text = nil
+---@type AnimationGroup|nil
 local animGroup = nil
+---@type number
 local petIdleStartTime = 0
+---@type boolean
 local wasPetAttacking = false
+---@type table|nil
 local combatTicker = nil
 
 -- Define the global string for Edit Mode tooltip
@@ -14,7 +21,8 @@ local enum_PetReminderSetting_BounceIntensity = 61
 local enum_PetReminderSetting_IdleDelay = 64
 local enum_PetReminderSetting_OnlyInCombat = 65
 
--- Check if player's class can have a permanent pet
+--- Check if player's class can have a permanent pet
+---@return boolean
 local function isPetClass()
   local _, classFilename = UnitClass("player")
   if classFilename == "HUNTER" or classFilename == "WARLOCK" then
@@ -29,12 +37,14 @@ local function isPetClass()
   return false
 end
 
--- Check if player has a pet summoned
+--- Check if player has a pet summoned
+---@return boolean
 local function hasPetSummoned()
   return UnitExists("pet") and not UnitIsDead("pet")
 end
 
--- Check if pet is attacking (has a target and is in combat)
+--- Check if pet is attacking (has a target and is in combat)
+---@return boolean
 local function isPetAttacking()
   if not hasPetSummoned() then
     return false
@@ -49,8 +59,9 @@ local function isPetAttacking()
   return petTarget and petInCombat
 end
 
--- Get the current warning state
--- Returns: nil (no warning), "no_pet", or "not_attacking"
+--- Get the current warning state
+--- Returns: nil (no warning), "no_pet", or "not_attacking"
+---@return string|nil
 local function getWarningState()
   -- Only check for pet classes
   if not isPetClass() then
@@ -92,6 +103,8 @@ local function getWarningState()
   return nil
 end
 
+--- Updates the visual display based on the pet's state
+---@return nil
 local function updateDisplay()
   if not frame or not BUIIDatabase["pet_reminder"] then
     if frame then
@@ -144,6 +157,8 @@ local function updateDisplay()
   end
 end
 
+--- Updates the bounce animation intensity based on user settings
+---@return nil
 local function updateAnimationIntensity()
   if not animGroup or not text then
     return
@@ -171,6 +186,8 @@ local function updateAnimationIntensity()
   end
 end
 
+--- Cancels the polling combat ticker for pet state
+---@return nil
 local function stopCombatTicker()
   if combatTicker then
     combatTicker:Cancel()
@@ -178,6 +195,8 @@ local function stopCombatTicker()
   end
 end
 
+--- Starts a combat ticker to regularly check pet state
+---@return nil
 local function startCombatTicker()
   stopCombatTicker()
   -- Check every 0.5 seconds during combat
@@ -190,6 +209,10 @@ local function startCombatTicker()
   end)
 end
 
+--- Handles events to monitor pet tracking state
+---@param self Frame|any
+---@param event string
+---@param ... any
 local function onEvent(self, event, ...)
   if event == "UNIT_PET" then
     local unit = ...
@@ -234,6 +257,8 @@ local function onEvent(self, event, ...)
   end
 end
 
+--- Initializes the Pet Reminder frame, text, animations, and edit mode settings
+---@return nil
 local function BUII_PetReminder_Initialize()
   if frame then
     return
@@ -340,6 +365,8 @@ local function BUII_PetReminder_Initialize()
   )
 end
 
+--- Enables the Pet Reminder feature and registers relevant events
+---@return nil
 function BUII_PetReminder_Enable()
   BUII_PetReminder_Initialize()
 
@@ -358,6 +385,8 @@ function BUII_PetReminder_Enable()
   updateDisplay()
 end
 
+--- Disables the Pet Reminder feature, stops timers and unwires events
+---@return nil
 function BUII_PetReminder_Disable()
   if not frame then
     return
@@ -372,12 +401,16 @@ function BUII_PetReminder_Disable()
   end
 end
 
+--- Refreshes the display configuration
+---@return nil
 function BUII_PetReminder_Refresh()
   if frame and text then
     updateDisplay()
   end
 end
 
+--- Initializes default DB values for Pet Reminder
+---@return nil
 function BUII_PetReminder_InitDB()
   if BUIIDatabase["pet_reminder"] == nil then
     BUIIDatabase["pet_reminder"] = false

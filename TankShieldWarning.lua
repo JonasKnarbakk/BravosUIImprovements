@@ -1,7 +1,13 @@
+---@class BUII_TankShieldWarningEditModeTemplate : BUII_ManagedFrame
+---@type Frame|BUII_TankShieldWarningEditModeTemplate|any|nil
 local frame = nil
+---@type FontString|nil
 local text = nil
+---@type AnimationGroup|nil
 local animGroup = nil
+---@type number
 local lastDurability = 100
+---@type number
 local lastSoundTime = 0
 
 -- Settings Constants
@@ -12,6 +18,7 @@ local enum_TankShieldWarningSetting_AudioWarning = 63
 local enum_TankShieldWarningSetting_Sound = 64
 
 -- Available warning sounds
+---@type table[]
 local BUII_WARNING_SOUNDS = {
   { name = "Chain Break", id = 235094 },
   { name = "Glass Break", id = 12334 },
@@ -20,7 +27,8 @@ local BUII_WARNING_SOUNDS = {
   { name = "Impact Break", id = 147347 },
 }
 
--- Calculate shield durability percentage
+--- Calculate shield durability percentage
+---@return number
 local function getShieldDurability()
   local current, max = GetInventoryItemDurability(17) -- Off-hand slot
   if current and max and max > 0 then
@@ -29,7 +37,8 @@ local function getShieldDurability()
   return 100
 end
 
--- Check if player has a shield equipped
+--- Check if player has a shield equipped
+---@return boolean
 local function hasShieldEquipped()
   -- Simple check: if the off-hand slot (17) has durability info, it's likely a shield
   -- Only shields can be equipped in the off-hand slot and have durability
@@ -37,6 +46,8 @@ local function hasShieldEquipped()
   return (current ~= nil and max ~= nil and max > 0)
 end
 
+--- Play the warning sound if enabled and not throttled
+---@return nil
 local function playSoundIfEnabled()
   if not BUIIDatabase["tank_shield_warning_audio"] then
     return
@@ -55,7 +66,8 @@ local function playSoundIfEnabled()
   end
 end
 
--- Check if player is a tank spec that uses shields
+--- Check if player is a tank spec that uses shields
+---@return boolean
 local function isShieldTankSpec()
   local specID = GetSpecialization()
   if not specID then
@@ -71,6 +83,8 @@ local function isShieldTankSpec()
   return specIDActual == 73 or specIDActual == 66
 end
 
+--- Updates the display of the warning
+---@return nil
 local function updateDisplay()
   if not frame or not BUIIDatabase["tank_shield_warning"] then
     if frame then
@@ -127,6 +141,8 @@ local function updateDisplay()
   lastDurability = durability
 end
 
+--- Updates the bouncing animation intensity based on settings
+---@return nil
 local function updateAnimationIntensity()
   if not animGroup or not text then
     return
@@ -154,6 +170,10 @@ local function updateAnimationIntensity()
   end
 end
 
+--- Event handler for Tank Shield Warning
+---@param self Frame|any
+---@param event string
+---@param ... any
 local function onEvent(self, event, ...)
   if event == "UPDATE_INVENTORY_DURABILITY" then
     updateDisplay()
@@ -167,6 +187,8 @@ local function onEvent(self, event, ...)
   end
 end
 
+--- Initializes the Tank Shield Warning frame and Edit Mode settings
+---@return nil
 local function BUII_TankShieldWarning_Initialize()
   if frame then
     return
@@ -305,6 +327,8 @@ local function BUII_TankShieldWarning_Initialize()
   )
 end
 
+--- Enables the Tank Shield Warning feature
+---@return nil
 function BUII_TankShieldWarning_Enable()
   -- Only initialize for Protection Warriors and Protection Paladins
   if not isShieldTankSpec() then
@@ -323,6 +347,8 @@ function BUII_TankShieldWarning_Enable()
   updateDisplay()
 end
 
+--- Disables the Tank Shield Warning feature
+---@return nil
 function BUII_TankShieldWarning_Disable()
   if not frame then
     return
@@ -336,12 +362,16 @@ function BUII_TankShieldWarning_Disable()
   end
 end
 
+--- Refreshes the display configuration
+---@return nil
 function BUII_TankShieldWarning_Refresh()
   if frame and text then
     updateDisplay()
   end
 end
 
+--- Initializes default DB values
+---@return nil
 function BUII_TankShieldWarning_InitDB()
   if BUIIDatabase["tank_shield_warning"] == nil then
     BUIIDatabase["tank_shield_warning"] = false

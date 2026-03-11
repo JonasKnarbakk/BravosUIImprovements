@@ -1,13 +1,72 @@
 local addonName, addon = ...
+---@type boolean
 local spellBarHookSet = false
+---@type boolean
 local castingBarHookSet = false
 
+---@class BUIIDatabase
+---@field class_color boolean
+---@field castbar_icon boolean
+---@field castbar_on_top boolean
+---@field sane_bag_sort boolean
+---@field font_name string
+---@field font_outline string
+---@field font_shadow boolean
+---@field texture_name string
+---@field stat_panel boolean
+---@field stance_tracker boolean
+---@field resource_tracker boolean
+---@field gear_talent_loadout boolean
+---@field combat_state boolean
+---@field ready_check boolean
+---@field tank_shield_warning boolean
+---@field call_to_arms boolean
+---@field group_tools boolean
+---@field loot_spec boolean
+---@field pet_reminder boolean
+---@field missing_buff_reminder boolean
+---@field icon_search boolean
+---@field icon_tooltips boolean
+---@field castbar_timers boolean
+---@field quick_keybind_shortcut boolean
+---@field improved_edit_mode boolean
+---@field tooltip_expansion boolean
+---@field ion_mode boolean
+---@field resource_tracker_shaman boolean
+---@field resource_tracker_demonhunter boolean
+---@field resource_tracker_rogue boolean
+---@field resource_tracker_druid boolean
+---@field resource_tracker_mage boolean
+---@field resource_tracker_warlock boolean
+---@field resource_tracker_paladin boolean
+---@field resource_tracker_monk boolean
+---@field resource_tracker_deathknight boolean
+---@field resource_tracker_evoker boolean
+---@field stance_tracker_druid boolean
+---@field stance_tracker_paladin boolean
+_G.BUIIDatabase = BUIIDatabase or {}
+
+---@class BUIICharacterDatabase
+---@field hide_stance_bar boolean
+---@field stance_bar_position table
+_G.BUIICharacterDatabase = BUIICharacterDatabase or {}
+
+--- Handles Target Frame Spell Bar OnUpdate Event
+---@param self Frame|any
+---@param arg1 any
+---@param ... any
+---@return nil
 local function handleTargetFrameSpellBar_OnUpdate(self, arg1, ...)
   if BUIIDatabase["castbar_on_top"] then
     self:SetPoint("TOPLEFT", TargetFrame, "TOPLEFT", 45, 20)
   end
 end
 
+--- Handles Focus Frame Spell Bar OnUpdate Event
+---@param self Frame|any
+---@param arg1 any
+---@param ... any
+---@return nil
 local function handleFocusFrameSpellBar_OnUpdate(self, arg1, ...)
   if BUIIDatabase["castbar_on_top"] then
     if FocusFrame.smallSize then
@@ -18,6 +77,8 @@ local function handleFocusFrameSpellBar_OnUpdate(self, arg1, ...)
   end
 end
 
+--- Sets the player's health bar color based on their class
+---@return nil
 local function setPlayerClassColor()
   local _, const_class = UnitClass("player")
   local r, g, b = GetClassColor(const_class)
@@ -43,6 +104,9 @@ local function setPlayerClassColor()
   end
 end
 
+--- Toggles cast bar positioning on top of the target/focus frames
+---@param setOnTop boolean
+---@return nil
 local function setCastBarOnTop(setOnTop)
   if setOnTop then
     if not spellBarHookSet then
@@ -56,6 +120,9 @@ local function setCastBarOnTop(setOnTop)
   end
 end
 
+--- Toggles sane bag sorting (right-to-left)
+---@param setSane boolean
+---@return nil
 local function setSaneBagSorting(setSane)
   if setSane then
     C_Container.SetSortBagsRightToLeft(true)
@@ -68,6 +135,9 @@ local function setSaneBagSorting(setSane)
   end
 end
 
+--- Helper to show or hide stance buttons
+---@param shouldHide boolean
+---@return nil
 local function hideStanceButtons(shouldHide)
   -- Use SetAlpha and EnableMouse instead of Hide/Show to avoid tainting secure frames
   -- This works during combat and doesn't cause taint issues
@@ -86,11 +156,17 @@ local function hideStanceButtons(shouldHide)
   end
 end
 
+--- Toggles visibility of the stance bar
+---@param shouldHide boolean
+---@return nil
 local function setHideStanceBar(shouldHide)
   BUIICharacterDatabase["hide_stance_bar"] = shouldHide
   hideStanceButtons(shouldHide)
 end
 
+--- Toggles display of the player cast bar icon
+---@param shouldShow boolean
+---@return nil
 local function showPlayerCastBarIcon(shouldShow)
   if shouldShow then
     local point, relativeTo, relativePoint = PlayerCastingBarFrame.Icon:GetPoint()
@@ -115,6 +191,9 @@ local function showPlayerCastBarIcon(shouldShow)
   end
 end
 
+--- Handles Unit Frame Portrait updates (used for class coloring)
+---@param self Frame|any
+---@return nil
 local function handleUnitFramePortraitUpdate(self)
   local healthBar = self.HealthBar
 
@@ -183,6 +262,8 @@ local function handleUnitFramePortraitUpdate(self)
   end
 end
 
+--- Refreshes fonts for all modules
+---@return nil
 local function BUII_RefreshAllModuleFonts()
   -- Update all active modules that use fonts
   if BUIIDatabase["stat_panel"] and BUII_StatPanel_Refresh then
@@ -223,13 +304,20 @@ local function BUII_RefreshAllModuleFonts()
   end
 end
 
+--- Refreshes textures for all modules
+---@return nil
 local function BUII_RefreshAllModuleTextures()
   if BUIIDatabase["resource_tracker"] and BUII_ResourceTracker_Refresh then
     BUII_ResourceTracker_Refresh()
   end
 end
 
+---@type table<string, Font>
 local BUII_FontObjects = {}
+--- Gets or creates a Font object for the given name and path
+---@param fontName string
+---@param fontPath string
+---@return Font
 local function BUII_GetFontObject(fontName, fontPath)
   if not BUII_FontObjects[fontName] then
     local name = "BUII_FontObject_" .. fontName:gsub("%s", "")
@@ -240,6 +328,9 @@ local function BUII_GetFontObject(fontName, fontPath)
   return BUII_FontObjects[fontName]
 end
 
+--- Selects a tab in the Options Panel
+---@param tabNum number
+---@return nil
 function BUII_OptionsPanel_SelectTab(tabNum)
   local panel = BUIIOptionsPanel
   local scrollChild = panel.ScrollFrame.ScrollChild
@@ -258,6 +349,8 @@ function BUII_OptionsPanel_SelectTab(tabNum)
   end
 end
 
+--- Initializes options panel dropdowns
+---@return nil
 local function BUII_InitializeDropdowns()
   local panel = BUIIOptionsPanel
   local weakAura = panel.ScrollFrame.ScrollChild.WeakAuraContent
@@ -453,6 +546,9 @@ local function BUII_InitializeDropdowns()
   textureDropdown.PreviewTexture:SetDesaturated(false)
 end
 
+--- Main OnLoad handler for the addon
+---@param self Frame|any
+---@return nil
 function BUII_OnLoadHandler(self)
   self:RegisterEvent("ADDON_LOADED")
   self:RegisterEvent("PLAYER_ENTERING_WORLD")
@@ -500,6 +596,8 @@ function BUII_OnLoadHandler(self)
   end
 end
 
+--- Registers BUII systems with the native Edit Mode manager
+---@return nil
 local function BUII_RegisterEditModeSystem()
   -- Define the minimum necessary for the settings dialog to work without crashing Blizzard's ipairs
   if
@@ -510,6 +608,12 @@ local function BUII_RegisterEditModeSystem()
   end
 end
 
+--- Main Event handler for the addon
+---@param self Frame|any
+---@param event string
+---@param arg1 any
+---@param ... any
+---@return nil
 function BUII_OnEventHandler(self, event, arg1, ...)
   if event == "PLAYER_SPECIALIZATION_CHANGED" then
     -- Force restore positions for all our custom frames
@@ -862,10 +966,16 @@ function BUII_OnEventHandler(self, event, arg1, ...)
   end
 end
 
+--- Toggle handler for Class Color check button
+---@param self CheckButton|any
+---@return nil
 function BUII_HealthClassColorCheckButton_OnClick(self)
   setPlayerClassColor()
 end
 
+--- Toggle handler for Cast Bar Timers check button
+---@param self CheckButton|any
+---@return nil
 function BUII_CastBarTimersCheckButton_OnClick(self)
   if self:GetChecked() then
     BUII_CastBarTimersEnable()
@@ -876,6 +986,9 @@ function BUII_CastBarTimersCheckButton_OnClick(self)
   end
 end
 
+--- Toggle handler for Cast Bar Icon check button
+---@param self CheckButton|any
+---@return nil
 function BUII_CastBarIconCheckButton_OnClick(self)
   if self:GetChecked() then
     showPlayerCastBarIcon(true)
@@ -884,6 +997,9 @@ function BUII_CastBarIconCheckButton_OnClick(self)
   end
 end
 
+--- Toggle handler for Cast Bar on Top check button
+---@param self CheckButton|any
+---@return nil
 function BUII_CastBarOnTopCheckButton_OnClick(self)
   if self:GetChecked() then
     setCastBarOnTop(true)
@@ -892,14 +1008,23 @@ function BUII_CastBarOnTopCheckButton_OnClick(self)
   end
 end
 
+--- Toggle handler for Sane Bag Sorting check button
+---@param self CheckButton|any
+---@return nil
 function BUII_SaneCombinedBagSortingCheckButton_OnClick(self)
   setSaneBagSorting(self:GetChecked())
 end
 
+--- Toggle handler for Hide Stance Bar check button
+---@param self CheckButton|any
+---@return nil
 function BUII_HideStanceBar_OnClick(self)
   setHideStanceBar(self:GetChecked())
 end
 
+--- Toggle handler for Quick Keybind Shortcut check button
+---@param self CheckButton|any
+---@return nil
 function BUII_QuickKeybindShortcut_OnClick(self)
   if self:GetChecked() then
     BUII_QuickKeybindModeShortcutEnable()
@@ -910,6 +1035,9 @@ function BUII_QuickKeybindShortcut_OnClick(self)
   end
 end
 
+--- Toggle handler for Improved Edit Mode check button
+---@param self CheckButton|any
+---@return nil
 function BUII_ImprovedEditMode_OnClick(self)
   if self:GetChecked() then
     BUII_ImprovedEditModeEnable()
@@ -920,6 +1048,9 @@ function BUII_ImprovedEditMode_OnClick(self)
   end
 end
 
+--- Toggle handler for Tooltip Expansion check button
+---@param self CheckButton|any
+---@return nil
 function BUII_TooltipExpansion_OnClick(self)
   if self:GetChecked() then
     BUII_TooltipImprovements_Enabled()
@@ -930,6 +1061,9 @@ function BUII_TooltipExpansion_OnClick(self)
   end
 end
 
+--- Toggle handler for Moveable Arena Frames check button
+---@param self CheckButton|any
+---@return nil
 function BUII_MoveableArenaFrames_OnClick(self)
   if self:GetChecked() then
     BUII_MoveableArenaEnemyFrames_Enable()
@@ -940,6 +1074,9 @@ function BUII_MoveableArenaFrames_OnClick(self)
   end
 end
 
+--- Toggle handler for Moveable Totem Frame check button
+---@param self CheckButton|any
+---@return nil
 function BUII_MoveableTotemFrame_OnClick(self)
   if self:GetChecked() then
     BUII_MoveableTotemFrame_Enable()
@@ -950,6 +1087,9 @@ function BUII_MoveableTotemFrame_OnClick(self)
   end
 end
 
+--- Toggle handler for Icon Search check button
+---@param self CheckButton|any
+---@return nil
 function BUII_IconSearch_OnClick(self)
   if self:GetChecked() then
     BUII_IconSearch_Enable()
@@ -960,6 +1100,9 @@ function BUII_IconSearch_OnClick(self)
   end
 end
 
+--- Toggle handler for Icon Tooltips check button
+---@param self CheckButton|any
+---@return nil
 function BUII_IconTooltips_OnClick(self)
   if self:GetChecked() then
     BUIIDatabase["icon_tooltips"] = true
@@ -974,6 +1117,9 @@ function BUII_IconTooltips_OnClick(self)
   end
 end
 
+--- Toggle handler for Call To Arms check button
+---@param self CheckButton|any
+---@return nil
 function BUII_CallToArms_OnClick(self)
   if self:GetChecked() then
     BUII_CallToArms_Enable()
@@ -984,6 +1130,9 @@ function BUII_CallToArms_OnClick(self)
   end
 end
 
+--- Toggle handler for Ion Mode check button
+---@param self CheckButton|any
+---@return nil
 function BUII_Ion_OnClick(self)
   if self:GetChecked() then
     BUII_Ion_Enable()
@@ -994,6 +1143,9 @@ function BUII_Ion_OnClick(self)
   end
 end
 
+--- Toggle handler for Gear And Talent Loadout check button
+---@param self CheckButton|any
+---@return nil
 function BUII_GearAndTalentLoadout_OnClick(self)
   if self:GetChecked() then
     BUII_GearAndTalentLoadout_Enable()
@@ -1044,6 +1196,9 @@ function BUII_GroupTools_OnClick(self)
   end
 end
 
+--- Toggle handler for Stance Tracker check button
+---@param self CheckButton|any
+---@return nil
 function BUII_StanceTracker_OnClick(self)
   if self:GetChecked() then
     BUII_StanceTracker_Enable()
@@ -1054,6 +1209,9 @@ function BUII_StanceTracker_OnClick(self)
   end
 end
 
+--- Toggle handler for Druid Stance Tracker check button
+---@param self CheckButton|any
+---@return nil
 function BUII_StanceTrackerDruid_OnClick(self)
   BUIIDatabase["stance_tracker_druid"] = self:GetChecked()
   if BUIIDatabase["stance_tracker"] then
@@ -1061,6 +1219,9 @@ function BUII_StanceTrackerDruid_OnClick(self)
   end
 end
 
+--- Toggle handler for Paladin Stance Tracker check button
+---@param self CheckButton|any
+---@return nil
 function BUII_StanceTrackerPaladin_OnClick(self)
   BUIIDatabase["stance_tracker_paladin"] = self:GetChecked()
   if BUIIDatabase["stance_tracker"] then
@@ -1068,6 +1229,9 @@ function BUII_StanceTrackerPaladin_OnClick(self)
   end
 end
 
+--- Toggle handler for Rogue Stance Tracker check button
+---@param self CheckButton|any
+---@return nil
 function BUII_StanceTrackerRogue_OnClick(self)
   BUIIDatabase["stance_tracker_rogue"] = self:GetChecked()
   if BUIIDatabase["stance_tracker"] then
@@ -1075,6 +1239,9 @@ function BUII_StanceTrackerRogue_OnClick(self)
   end
 end
 
+--- Toggle handler for Warrior Stance Tracker check button
+---@param self CheckButton|any
+---@return nil
 function BUII_StanceTrackerWarrior_OnClick(self)
   BUIIDatabase["stance_tracker_warrior"] = self:GetChecked()
   if BUIIDatabase["stance_tracker"] then
@@ -1082,6 +1249,9 @@ function BUII_StanceTrackerWarrior_OnClick(self)
   end
 end
 
+--- Toggle handler for Resource Tracker check button
+---@param self CheckButton|any
+---@return nil
 function BUII_ResourceTracker_OnClick(self)
   if self:GetChecked() then
     BUII_ResourceTracker_Enable()
@@ -1092,6 +1262,9 @@ function BUII_ResourceTracker_OnClick(self)
   end
 end
 
+--- Toggle handler for Shaman Resource Tracker check button
+---@param self CheckButton|any
+---@return nil
 function BUII_ResourceTrackerShaman_OnClick(self)
   BUIIDatabase["resource_tracker_shaman"] = self:GetChecked()
   if BUIIDatabase["resource_tracker"] then
@@ -1099,6 +1272,9 @@ function BUII_ResourceTrackerShaman_OnClick(self)
   end
 end
 
+--- Toggle handler for Demon Hunter Resource Tracker check button
+---@param self CheckButton|any
+---@return nil
 function BUII_ResourceTrackerDemonHunter_OnClick(self)
   BUIIDatabase["resource_tracker_demonhunter"] = self:GetChecked()
   if BUIIDatabase["resource_tracker"] then
@@ -1106,6 +1282,9 @@ function BUII_ResourceTrackerDemonHunter_OnClick(self)
   end
 end
 
+--- Toggle handler for Rogue Resource Tracker check button
+---@param self CheckButton|any
+---@return nil
 function BUII_ResourceTrackerRogue_OnClick(self)
   BUIIDatabase["resource_tracker_rogue"] = self:GetChecked()
   if BUIIDatabase["resource_tracker"] then
@@ -1113,6 +1292,9 @@ function BUII_ResourceTrackerRogue_OnClick(self)
   end
 end
 
+--- Toggle handler for Druid Resource Tracker check button
+---@param self CheckButton|any
+---@return nil
 function BUII_ResourceTrackerDruid_OnClick(self)
   BUIIDatabase["resource_tracker_druid"] = self:GetChecked()
   if BUIIDatabase["resource_tracker"] then
@@ -1120,6 +1302,9 @@ function BUII_ResourceTrackerDruid_OnClick(self)
   end
 end
 
+--- Toggle handler for Mage Resource Tracker check button
+---@param self CheckButton|any
+---@return nil
 function BUII_ResourceTrackerMage_OnClick(self)
   BUIIDatabase["resource_tracker_mage"] = self:GetChecked()
   if BUIIDatabase["resource_tracker"] then
@@ -1127,6 +1312,9 @@ function BUII_ResourceTrackerMage_OnClick(self)
   end
 end
 
+--- Toggle handler for Warlock Resource Tracker check button
+---@param self CheckButton|any
+---@return nil
 function BUII_ResourceTrackerWarlock_OnClick(self)
   BUIIDatabase["resource_tracker_warlock"] = self:GetChecked()
   if BUIIDatabase["resource_tracker"] then
@@ -1134,6 +1322,9 @@ function BUII_ResourceTrackerWarlock_OnClick(self)
   end
 end
 
+--- Toggle handler for Paladin Resource Tracker check button
+---@param self CheckButton|any
+---@return nil
 function BUII_ResourceTrackerPaladin_OnClick(self)
   BUIIDatabase["resource_tracker_paladin"] = self:GetChecked()
   if BUIIDatabase["resource_tracker"] then
@@ -1141,6 +1332,9 @@ function BUII_ResourceTrackerPaladin_OnClick(self)
   end
 end
 
+--- Toggle handler for Monk Resource Tracker check button
+---@param self CheckButton|any
+---@return nil
 function BUII_ResourceTrackerMonk_OnClick(self)
   BUIIDatabase["resource_tracker_monk"] = self:GetChecked()
   if BUIIDatabase["resource_tracker"] then
@@ -1148,6 +1342,9 @@ function BUII_ResourceTrackerMonk_OnClick(self)
   end
 end
 
+--- Toggle handler for Death Knight Resource Tracker check button
+---@param self CheckButton|any
+---@return nil
 function BUII_ResourceTrackerDeathKnight_OnClick(self)
   BUIIDatabase["resource_tracker_deathknight"] = self:GetChecked()
   if BUIIDatabase["resource_tracker"] then
@@ -1155,6 +1352,9 @@ function BUII_ResourceTrackerDeathKnight_OnClick(self)
   end
 end
 
+--- Toggle handler for Evoker Resource Tracker check button
+---@param self CheckButton|any
+---@return nil
 function BUII_ResourceTrackerEvoker_OnClick(self)
   BUIIDatabase["resource_tracker_evoker"] = self:GetChecked()
   if BUIIDatabase["resource_tracker"] then
@@ -1162,6 +1362,9 @@ function BUII_ResourceTrackerEvoker_OnClick(self)
   end
 end
 
+--- Toggle handler for Stat Panel check button
+---@param self CheckButton|any
+---@return nil
 function BUII_StatPanel_OnClick(self)
   if self:GetChecked() then
     BUII_StatPanel_Enable()
@@ -1172,6 +1375,9 @@ function BUII_StatPanel_OnClick(self)
   end
 end
 
+--- Toggle handler for Loot Spec check button
+---@param self CheckButton|any
+---@return nil
 function BUII_LootSpec_OnClick(self)
   if self:GetChecked() then
     BUII_LootSpec_Enable()
@@ -1182,6 +1388,9 @@ function BUII_LootSpec_OnClick(self)
   end
 end
 
+--- Toggle handler for Pet Reminder check button
+---@param self CheckButton|any
+---@return nil
 function BUII_PetReminder_OnClick(self)
   if self:GetChecked() then
     BUII_PetReminder_Enable()
@@ -1192,6 +1401,9 @@ function BUII_PetReminder_OnClick(self)
   end
 end
 
+--- Toggle handler for Missing Buff Reminder check button
+---@param self CheckButton|any
+---@return nil
 function BUII_MissingBuffReminder_OnClick(self)
   if self:GetChecked() then
     BUII_MissingBuffReminder_Enable()
@@ -1202,6 +1414,9 @@ function BUII_MissingBuffReminder_OnClick(self)
   end
 end
 
+--- Toggle handler for Font Shadow check button
+---@param self CheckButton|any
+---@return nil
 function BUII_FontShadow_OnClick(self)
   BUIIDatabase["font_shadow"] = self:GetChecked()
   BUII_RefreshAllModuleFonts()

@@ -1,7 +1,9 @@
+---@type boolean|nil
 local enabled = nil
 
--- Several items are wrongly reported as Classic items, use
--- this table to correct them
+--- Several items are wrongly reported as Classic items, use
+--- this table to correct them
+---@type table<number, string>
 local overrideTable = {
   [23500] = "Burning Crusade", -- Saltheril's Haven Party Invitation
   [31404] = "Burning Crusade", -- Green Trophy Tabard of the Illidari
@@ -71,6 +73,9 @@ local overrideTable = {
   [210469] = "Dragonflight", -- Personal Tabard
 }
 
+--- Checks if an item has an overridden expansion name
+---@param item number|string
+---@return string|nil
 local function checkForItemOverride(item)
   for key, val in pairs(overrideTable) do
     if key == item then
@@ -81,6 +86,9 @@ local function checkForItemOverride(item)
   return nil
 end
 
+--- Adds the current season's expansion line to the tooltip
+---@param tooltip GameTooltip|any
+---@return nil
 local function addCurrentSeasonLine(tooltip)
   if GetServerExpansionLevel() == 9 then
     tooltip:AddLine("Dragonflight", 0, 1, 0.6)
@@ -89,6 +97,10 @@ local function addCurrentSeasonLine(tooltip)
   end
 end
 
+--- Adds a colored expansion line to the tooltip
+---@param name string
+---@param tooltip GameTooltip|any
+---@return nil
 local function addColoredExpLine(name, tooltip)
   if name == "Classic" then
     tooltip:AddLine(name, 1, 1, 1)
@@ -123,6 +135,10 @@ local function addColoredExpLine(name, tooltip)
   end
 end
 
+--- Hook for item tooltips to add expansion information
+---@param tooltip GameTooltip|any
+---@param data table|any
+---@return nil
 local function BUII_TooltipImprovements_OnTooltipSetItem(tooltip, data)
   if enabled then
     if tooltip == GameTooltip or tooltip == ItemRefTooltip then
@@ -145,17 +161,23 @@ local function BUII_TooltipImprovements_OnTooltipSetItem(tooltip, data)
   end
 end
 
+--- Enables the Tooltip Improvements feature
+---@return nil
 function BUII_TooltipImprovements_Enabled()
   if enabled == nil then
     TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, BUII_TooltipImprovements_OnTooltipSetItem)
-    enabled = true
   end
+  enabled = true
 end
 
+--- Disables the Tooltip Improvements feature
+---@return nil
 function BUII_TooltipImprovements_Disable()
   enabled = false
 end
 
+--- Initializes default DB values for Tooltip Improvements
+---@return nil
 function BUII_TooltipImprovements_InitDB()
   if BUIIDatabase["tooltip_expansion"] == nil then
     BUIIDatabase["tooltip_expansion"] = false

@@ -1,10 +1,21 @@
 local addonName, addon = ...
+---@type boolean
 local moveableTotemFrameEnabled = false
+---@type Frame|any
 local originalParent = nil
+---@type Frame|any
+local enum_TotemFrameSetting_GrowthDirection = 8
+
+---@class BUII_TotemFrameEditModeTemplate : BUII_ManagedFrame
+---@type BUII_TotemFrameEditModeTemplate|nil
+local buiiTotemFrame = nil
+---@type Frame|BUII_TotemFrameEditModeTemplate|nil
 local totemFrameOverlay = nil
 
 local enum_MoveableTotemFrameSetting_Scale = 1
 
+--- Synchronizes the actual TotemFrame position to follow our custom overlay
+---@return nil
 local function syncTotemFrameToOverlay()
   if not totemFrameOverlay or not TotemFrame then
     return
@@ -14,6 +25,8 @@ local function syncTotemFrameToOverlay()
   TotemFrame:SetPoint("CENTER", totemFrameOverlay, "CENTER", 0, 0)
 end
 
+--- Sets up the overlay used for Edit Mode positioning of the Totem Frame
+---@return nil
 local function setupTotemFrameOverlay()
   if totemFrameOverlay then
     return
@@ -61,6 +74,8 @@ local function setupTotemFrameOverlay()
   end)
 end
 
+--- Enables the Moveable Totem Frame feature, unhooking it from the default UI managed frame system
+---@return nil
 function BUII_MoveableTotemFrame_Enable()
   if not TotemFrame then
     return
@@ -106,6 +121,8 @@ function BUII_MoveableTotemFrame_Enable()
   end)
 end
 
+--- Disables the Moveable Totem Frame feature, restoring it to its default parent and layout
+---@return nil
 function BUII_MoveableTotemFrame_Disable()
   moveableTotemFrameEnabled = false
 
@@ -130,6 +147,8 @@ function BUII_MoveableTotemFrame_Disable()
   end
 end
 
+--- Initializes default DB values for Moveable Totem Frame
+---@return nil
 function BUII_MoveableTotemFrame_InitDB()
   if BUIIDatabase["moveable_totem_frame"] == nil then
     BUIIDatabase["moveable_totem_frame"] = false

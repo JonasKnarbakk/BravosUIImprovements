@@ -1,3 +1,40 @@
+---@class BUII_ManagedFrame : Frame
+---@field system number
+---@field systemIndex number
+---@field isSelected boolean
+---@field isManagedFrame boolean
+---@field buiiSettingsConfig table
+---@field buiiDbKey string
+---@field buiiPendingExit boolean
+---@field buiiOnReset function|nil
+---@field buiiOnApplySettings function|nil
+---@field buiiOnEditModeEnter function|nil
+---@field buiiOnEditModeExit function|nil
+---@field systemInfo table
+---@field savedSystemInfo table
+---@field pendingSettings table
+---@field hasActiveChanges boolean
+---@field isRestoringPosition boolean
+---@field isApplyingSettings boolean
+---@field lastKnownPosition table
+---@field UpdateSystem function
+---@field HasActiveChanges function
+---@field IsSelected function
+---@field RevertChanges function
+---@field OnEditModeEnter function
+---@field OnEditModeExit function
+---@field settingDisplayInfoMap table
+---@field Selection table|any
+---@field defaultPoint string
+---@field defaultRelativePoint string
+---@field defaultX number
+---@field defaultY number
+---@field OnApplySettings function|nil
+---@field buiiPendingPositionUpdate boolean
+
+---@class BUII_EditModeUtils
+---@field RegisteredSystems table<number, BUII_ManagedFrame>
+---@field HooksInitialized boolean
 BUII_EditModeUtils = {}
 BUII_EditModeUtils.RegisteredSystems = {}
 BUII_EditModeUtils.HooksInitialized = false
@@ -34,7 +71,9 @@ _G["BUII_HUD_EDIT_MODE_QUEUE_STATUS_BUTTON_LABEL"] = "Queue Status Button"
 _G["BUII_HUD_EDIT_MODE_ARENA_ENEMY_FRAMES_LABEL"] = "Arena Enemy Frames"
 _G["BUII_HUD_EDIT_MODE_TOTEM_FRAME_LABEL"] = "Totem Frame"
 
--- Helper to get appropriate DB (Global or Character)
+--- Helper to get appropriate DB (Global or Character)
+---@param dbKey string
+---@return table
 function BUII_EditModeUtils:GetDB(dbKey)
   local charKey = dbKey .. "_use_char_settings"
   if BUIICharacterDatabase and BUIICharacterDatabase[charKey] then
@@ -43,7 +82,10 @@ function BUII_EditModeUtils:GetDB(dbKey)
   return BUIIDatabase
 end
 
--- Centralized Character Specific setting helper
+--- Centralized Character Specific setting helper
+---@param settingsConfig table
+---@param dbKey string
+---@param onUpdateFunc? function
 function BUII_EditModeUtils:AddCharacterSpecificSetting(settingsConfig, dbKey, onUpdateFunc)
   table.insert(settingsConfig, 1, {
     setting = 1, -- Usually safe as first setting
@@ -66,7 +108,11 @@ function BUII_EditModeUtils:AddCharacterSpecificSetting(settingsConfig, dbKey, o
   })
 end
 
--- Centralized Scale setting helper
+--- Centralized Scale setting helper
+---@param settingsConfig table
+---@param settingIndex number
+---@param key? string
+---@param onUpdateFunc? function
 function BUII_EditModeUtils:AddScaleSetting(settingsConfig, settingIndex, key, onUpdateFunc)
   table.insert(settingsConfig, {
     setting = settingIndex or 100,
@@ -106,12 +152,15 @@ function BUII_EditModeUtils:AddScaleSetting(settingsConfig, settingIndex, key, o
   })
 end
 
--- Generic Formatters
+--- Generic Formatters
+---@param value number
+---@return string
 function BUII_EditModeUtils.FormatPercentage(value)
   return math.floor(value * 100 + 0.5) .. "%"
 end
 
--- Helper to get active layout
+--- Helper to get active layout
+---@return string
 function BUII_EditModeUtils:GetActiveLayoutKey()
   local layoutName = "Default"
   pcall(function()
@@ -130,7 +179,10 @@ function BUII_EditModeUtils:GetActiveLayoutKey()
   return layoutName
 end
 
--- Helper to apply position
+--- Helper to apply position
+---@param frame BUII_ManagedFrame|any
+---@param dbKey string
+---@param force? boolean
 function BUII_EditModeUtils:ApplySavedPosition(frame, dbKey, force)
   if not frame then
     return
@@ -166,13 +218,13 @@ function BUII_EditModeUtils:ApplySavedPosition(frame, dbKey, force)
     -- 1. Try to find a "Default" layout setting
     if layouts["Default"] then
       pos = layouts["Default"]
-    -- 2. Fallback to *any* existing layout to ensure we have a valid position
+      -- 2. Fallback to *any* existing layout to ensure we have a valid position
     elseif next(layouts) then
       for _, p in pairs(layouts) do
         pos = p
         break
       end
-    -- 3. Legacy fallback if no layouts exist at all
+      -- 3. Legacy fallback if no layouts exist at all
     elseif db[dbKey .. "_pos"] then
       pos = db[dbKey .. "_pos"]
     end
@@ -265,7 +317,9 @@ function BUII_EditModeUtils:ApplySavedPosition(frame, dbKey, force)
   end
 end
 
--- Helper to save pending changes
+--- Helper to save pending changes
+---@param frame BUII_ManagedFrame|any
+---@param dbKey string
 function BUII_EditModeUtils:CommitPendingChanges(frame, dbKey)
   if frame.pendingSettings then
     local db = self:GetDB(dbKey)
@@ -472,6 +526,13 @@ local function InitializeBlizzardEditModeIntegration()
   end
 end
 
+--- Register a System with Blizzard Edit Mode
+---@param frame BUII_ManagedFrame|any
+---@param systemEnum number
+---@param systemName string
+---@param settingsConfig table
+---@param dbKey string
+---@param callbacks? table
 function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settingsConfig, dbKey, callbacks)
   if not systemEnum then
     return

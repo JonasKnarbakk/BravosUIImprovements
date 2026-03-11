@@ -1,8 +1,15 @@
+---@class BUII_MissingBuffReminderEditModeTemplate : BUII_ManagedFrame
+---@type Frame|BUII_MissingBuffReminderEditModeTemplate|any|nil
 local frame = nil
+---@type Frame|nil
 local contentFrame = nil -- Container for icon and text that bounces together
+---@type Texture|nil
 local icon = nil
+---@type FontString|nil
 local text = nil
+---@type AnimationGroup|nil
 local animGroup = nil
+---@type table|nil
 local currentMissingBuff = nil
 
 -- Ensure Enum exists
@@ -52,7 +59,8 @@ local RAID_BUFFS = {
   },
 }
 
--- Check if any defined raid buff is currently requested by the game client (Glowing)
+--- Check if any defined raid buff is currently requested by the game client (Glowing)
+---@return table|nil
 local function getMissingBuffInfo()
   -- Only check if in a group
   local inGroup = IsInGroup() or IsInRaid()
@@ -69,6 +77,8 @@ local function getMissingBuffInfo()
   return nil
 end
 
+--- Updates the visual display for missing buffs
+---@return nil
 local function updateDisplay()
   if not frame or not BUIIDatabase or not BUIIDatabase["missing_buff_reminder"] then
     if frame then
@@ -135,6 +145,8 @@ local function updateDisplay()
   end
 end
 
+--- Updates the bounce animation intensity based on user settings
+---@return nil
 local function updateAnimationIntensity()
   if not animGroup or not contentFrame then
     return
@@ -162,6 +174,10 @@ local function updateAnimationIntensity()
   end
 end
 
+--- Handles events to trigger buff checks and display updates
+---@param self Frame|any
+---@param event string
+---@param arg1 any
 local function onEvent(self, event, arg1)
   if event == "SPELL_ACTIVATION_OVERLAY_GLOW_SHOW" or event == "SPELL_ACTIVATION_OVERLAY_GLOW_HIDE" then
     -- Check if the spell event is relevant to our buffs
@@ -185,6 +201,8 @@ local function onEvent(self, event, arg1)
   end
 end
 
+--- Initializes the Missing Buff Reminder frame, content, animations, and edit mode settings
+---@return nil
 local function BUII_MissingBuffReminder_Initialize()
   if frame then
     return
@@ -304,6 +322,8 @@ local function BUII_MissingBuffReminder_Initialize()
   )
 end
 
+--- Enables the Missing Buff Reminder feature and registers events
+---@return nil
 function BUII_MissingBuffReminder_Enable()
   BUII_MissingBuffReminder_Initialize()
 
@@ -320,6 +340,8 @@ function BUII_MissingBuffReminder_Enable()
   updateDisplay()
 end
 
+--- Disables the Missing Buff Reminder feature and unwires events
+---@return nil
 function BUII_MissingBuffReminder_Disable()
   if not frame then
     return
@@ -334,12 +356,16 @@ function BUII_MissingBuffReminder_Disable()
   currentMissingBuff = nil
 end
 
+--- Refreshes the display configuration
+---@return nil
 function BUII_MissingBuffReminder_Refresh()
   if frame and text then
     updateDisplay()
   end
 end
 
+--- Initializes default DB values for Missing Buff Reminder
+---@return nil
 function BUII_MissingBuffReminder_InitDB()
   if BUIIDatabase["missing_buff_reminder"] == nil then
     BUIIDatabase["missing_buff_reminder"] = false

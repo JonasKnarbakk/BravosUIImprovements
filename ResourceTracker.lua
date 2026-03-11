@@ -1,6 +1,19 @@
 local addonName, addon = ...
+---@class BUII_ResourceTrackerEditModeTemplate : BUII_ManagedFrame
+---@type Frame|BUII_ResourceTrackerEditModeTemplate|any|nil
 local frame = nil
+---@class BUII_ResourcePointTemplate : Frame
+---@field ProgressBar StatusBar|any
+---@field AnimTexture Texture|any
+---@field AnimGroup AnimationGroup|any
+---@field ScaleAnim Animation|any
+---@field Background Texture|any
+---@field SetBackdropBorderColor function|any
+---@field lastStart number|nil
+---@field lastDuration number|nil
+---@type BUII_ResourcePointTemplate[]
 local points = {}
+---@type FontString|nil
 local counterText = nil
 
 -- Ensure Enum exists
@@ -143,10 +156,14 @@ local FRAME_STRATA_VALUES = {
   [5] = "DIALOG",
 }
 
+--- Gets the Resource Tracker database settings
+---@return table
 local function GetResourceTrackerDB()
-  return BUII_EditModeUtils:GetDB("resource_tracker")
+  return BUII_EditModeUtils:GetDB("resource_tracker") or {}
 end
 
+--- Gets the active configuration based on player class and spec
+---@return table|nil
 local function GetActiveConfig()
   local db = GetResourceTrackerDB()
   local _, classFilename = UnitClass("player")
@@ -187,7 +204,9 @@ local function GetActiveConfig()
   return nil
 end
 
--- Helper to get resource state (current whole points, partial progress 0-1, charged points table)
+--- Helper to get resource state (current whole points, partial progress 0-1, charged points table)
+---@param config table|nil
+---@return number currentStacks, number|table partialFill, any extraData
 local function GetResourceState(config)
   if not config then
     return 0, 0, nil
@@ -346,8 +365,11 @@ local function GetResourceState(config)
 end
 
 -- Handle hiding/showing native resource frames
+---@type boolean|nil
 local nativeFrameHideHook = nil
 
+--- Updates the visibility of the native resource frame
+---@return nil
 local function UpdateNativeFrameVisibility()
   local db = GetResourceTrackerDB()
   local config = GetActiveConfig()
@@ -392,7 +414,8 @@ local function UpdateNativeFrameVisibility()
   end
 end
 
--- Main update function
+--- Main update function for resource points and bars
+---@return nil
 local function UpdatePoints()
   if not frame or frame.isApplyingSettings then
     return
@@ -412,7 +435,7 @@ local function UpdatePoints()
     return
   end
 
-  local currentStacks = 0
+  local currentStacks = 0 --[[@as number]]
   local partialFill = 0
   local chargedPoints = nil
   local maxPoints = 5
@@ -522,7 +545,7 @@ local function UpdatePoints()
   -- Ensure we have enough points created
   for i = 1, maxPoints do
     if not points[i] then
-      points[i] = CreateFrame("Frame", nil, frame, "BUII_ResourcePointTemplate")
+      points[i] = CreateFrame("Frame", nil, frame, "BUII_ResourcePointTemplate") --[[@as BUII_ResourcePointTemplate]]
     end
   end
 
@@ -927,7 +950,11 @@ local function UpdatePoints()
   end
 end
 
+---@type table|nil
 local updateTimer = nil
+
+--- Requests an update of points on the next frame
+---@return nil
 local function RequestUpdatePoints()
   if updateTimer then
     return
@@ -938,10 +965,16 @@ local function RequestUpdatePoints()
   end)
 end
 
+--- Event handler for resource tracker
+---@param self Frame|any
+---@param event string
+---@param ... any
 local function onEvent(self, event, ...)
   UpdatePoints()
 end
 
+--- Initializes the Resource Tracker frame and edit mode settings
+---@return nil
 local function BUII_ResourceTracker_Initialize()
   if frame then
     return
@@ -1343,17 +1376,19 @@ local function BUII_ResourceTracker_Initialize()
   )
 end
 
+--- Enables the Resource Tracker feature
+---@return nil
 function BUII_ResourceTracker_Enable()
   BUII_ResourceTracker_Initialize()
 
-  frame:RegisterEvent("UNIT_AURA", "player")
-  frame:RegisterEvent("UNIT_POWER_UPDATE", "player")
-  frame:RegisterEvent("UNIT_POWER_FREQUENT", "player")
-  frame:RegisterEvent("UNIT_DISPLAYPOWER", "player")
-  frame:RegisterEvent("UNIT_MAXHEALTH", "player")
-  frame:RegisterEvent("UNIT_ABSORB_AMOUNT_CHANGED", "player")
-  frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED", "player")
-  frame:RegisterEvent("RUNE_POWER_UPDATE", "player")
+  frame:RegisterUnitEvent("UNIT_AURA", "player")
+  frame:RegisterUnitEvent("UNIT_POWER_UPDATE", "player")
+  frame:RegisterUnitEvent("UNIT_POWER_FREQUENT", "player")
+  frame:RegisterUnitEvent("UNIT_DISPLAYPOWER", "player")
+  frame:RegisterUnitEvent("UNIT_MAXHEALTH", "player")
+  frame:RegisterUnitEvent("UNIT_ABSORB_AMOUNT_CHANGED", "player")
+  frame:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", "player")
+  frame:RegisterEvent("RUNE_POWER_UPDATE")
   frame:RegisterEvent("PLAYER_ENTERING_WORLD")
   frame:SetScript("OnEvent", onEvent)
 
@@ -1362,6 +1397,8 @@ function BUII_ResourceTracker_Enable()
   UpdateNativeFrameVisibility()
 end
 
+--- Disables the Resource Tracker feature
+---@return nil
 function BUII_ResourceTracker_Disable()
   if not frame then
     return
@@ -1381,12 +1418,16 @@ function BUII_ResourceTracker_Disable()
   end
 end
 
+--- Refreshes the display configuration
+---@return nil
 function BUII_ResourceTracker_Refresh()
   if frame then
     UpdatePoints()
   end
 end
 
+--- Initializes default DB values for Resource Tracker
+---@return nil
 function BUII_ResourceTracker_InitDB()
   -- BUIIDatabase initialization
   if BUIIDatabase["resource_tracker"] == nil then

@@ -1,12 +1,19 @@
+---@class BUII_GroupToolsEditModeTemplate : BUII_ManagedFrame
+---@type Frame|BUII_GroupToolsEditModeTemplate|any|nil
 local frame = nil
+---@type FontString|nil
 local bRezText = nil
+---@type Frame|nil
 local timerFrame = nil
+---@type boolean
 local isEditing = false
 
 -- Settings Constants
 local enum_GroupToolsSetting_Scale = 20
 local enum_GroupToolsSetting_FontSize = 21
 
+--- Updates the battle resurrection text timer and charges
+---@return nil
 local function UpdateBattleRez()
   if not frame then
     return
@@ -115,6 +122,8 @@ local function UpdateBattleRez()
   bRezText:SetText(greyCol .. "BR: " .. color .. chargesStr .. "|r" .. nextText)
 end
 
+--- Updates the visibility of the Group Tools frame strictly based on group state or edit mode
+---@return nil
 local function UpdateVisibility()
   if not frame then
     return
@@ -138,6 +147,9 @@ local function UpdateVisibility()
   end
 end
 
+--- Handles various events for updating visibility and timers
+---@param self Frame|any
+---@param event string
 local function onEvent(self, event)
   UpdateBattleRez()
   UpdateVisibility()
@@ -152,6 +164,8 @@ local function onEvent(self, event)
   end
 end
 
+--- Initializes the Group Tools frame, buttons, text strings, and edit mode settings
+---@return nil
 local function BUII_GroupTools_Initialize()
   if frame then
     return
@@ -271,6 +285,8 @@ local function BUII_GroupTools_Initialize()
   end)
 end
 
+--- Enables the Group Tools feature and registers required events
+---@return nil
 function BUII_GroupTools_Enable()
   BUII_GroupTools_Initialize()
 
@@ -290,6 +306,8 @@ function BUII_GroupTools_Enable()
   UpdateBattleRez()
 end
 
+--- Disables the Group Tools feature and unwires events
+---@return nil
 function BUII_GroupTools_Disable()
   if not frame then
     return
@@ -300,6 +318,8 @@ function BUII_GroupTools_Disable()
   frame:Hide()
 end
 
+--- Refreshes the display configuration
+---@return nil
 function BUII_GroupTools_Refresh()
   if frame then
     UpdateBattleRez()
@@ -310,6 +330,8 @@ function BUII_GroupTools_Refresh()
   -- To properly update buttons, we'd need to store them in frame or locals.
 end
 
+--- Initializes default database values for Group Tools
+---@return nil
 function BUII_GroupTools_InitDB()
   if BUIIDatabase["group_tools"] == nil then
     BUIIDatabase["group_tools"] = false

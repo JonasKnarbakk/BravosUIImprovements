@@ -1,20 +1,30 @@
 local addonName, addon = ...
 
--- Global list of icons found during search
+--- Global list of icons found during search
+---@type table|nil
 local filteredIcons = nil
 
--- Cache for search results to avoid lag while typing
+--- Cache for search results to avoid lag while typing
+---@type table
 local searchCache = {}
+---@type string
 local lastSearchText = ""
 
+---@type number
 local searchBoxXOffset = 72
+---@type number
 local searchBoxYOffset = 34
 
--- Utility to get all spellbook items (Unused but kept for structure if user edits)
+--- Utility to get all spellbook items (Unused but kept for structure if user edits)
+---@param text string
+---@return table
 local function GetSpellBookIcons(text)
   return {}
 end
 
+--- Search icons based on text
+---@param text string
+---@return table icons, table names
 local function SearchIcons(text)
   text = string.lower(text)
   if text == lastSearchText and searchCache[text] then
@@ -168,6 +178,9 @@ local function SearchIcons(text)
   return icons, names
 end
 
+--- Hook icon tooltips in the frame
+---@param frame Frame|any
+---@return nil
 local function EnableIconTooltips(frame)
   if frame.iconTooltipsEnabled then
     return
@@ -213,6 +226,9 @@ local function EnableIconTooltips(frame)
   frame.iconTooltipsEnabled = true
 end
 
+--- Sets up the search box within the given frame
+---@param frame Frame|any
+---@return nil
 local function SetupSearchBox(frame)
   if frame.BUIISearchBox then
     return
@@ -293,6 +309,8 @@ local function SetupSearchBox(frame)
   searchBox:Show()
 end
 
+--- Initializes the Icon Search feature hooks
+---@return nil
 local function InitIconSearch()
   if not BUIIDatabase["icon_search"] then
     return
@@ -410,16 +428,22 @@ local function InitIconSearch()
   end
 end
 
+--- Initializes default DB values for Icon Search
+---@return nil
 function BUII_IconSearch_InitDB()
   if BUIIDatabase["icon_search"] == nil then
     BUIIDatabase["icon_search"] = true
   end
 end
 
+--- Enables Icon Search
+---@return nil
 function BUII_IconSearch_Enable()
   InitIconSearch()
 end
 
+--- Disables Icon Search
+---@return nil
 function BUII_IconSearch_Disable()
   if MacroPopupFrame and MacroPopupFrame.BUIISearchBox then
     MacroPopupFrame.BUIISearchBox:Hide()
@@ -432,6 +456,9 @@ function BUII_IconSearch_Disable()
   end
 end
 
+--- Updates tooltips for the search results
+---@param enabled boolean
+---@return nil
 function BUII_IconSearch_UpdateTooltips(enabled)
   local frames = { MacroPopupFrame, TransmogFrame and TransmogFrame.OutfitPopup, GearManagerPopupFrame }
   for _, frame in ipairs(frames) do

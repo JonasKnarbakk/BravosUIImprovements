@@ -15,6 +15,7 @@ Enum.EditModeSystem.BUII_ArenaEnemyFrames = 113
 Enum.EditModeSystem.BUII_MissingBuffReminder = 114
 
 -- Default WoW fonts
+---@type table[]
 local DEFAULT_FONTS = {
   { name = "Friz Quadrata TT", path = "Fonts\\FRIZQT__.TTF" },
   { name = "Arial Narrow", path = "Fonts\\ARIALN.TTF" },
@@ -23,6 +24,7 @@ local DEFAULT_FONTS = {
 }
 
 -- Outline options
+---@type table[]
 BUII_OUTLINE_OPTIONS = {
   { name = "None", value = "" },
   { name = "Outline", value = "OUTLINE" },
@@ -33,6 +35,7 @@ BUII_OUTLINE_OPTIONS = {
 }
 
 -- Default WoW Textures
+---@type table[]
 local DEFAULT_TEXTURES = {
   { name = "Solid", path = "Interface\\Buttons\\WHITE8X8" },
   { name = "Blizzard", path = "Interface\\TargetingFrame\\UI-StatusBar" },
@@ -76,6 +79,8 @@ function BUII_GetAvailableTextures()
   return textures
 end
 
+--- Returns the path to the currently selected texture
+---@return string
 function BUII_GetTexturePath()
   if not BUIIDatabase then
     return "Interface\\Buttons\\WHITE8X8"
@@ -142,7 +147,11 @@ function BUII_GetAvailableFonts()
   return fonts
 end
 
--- Test if a font path is valid by trying to create a temporary font string
+--- Test if a font path is valid by trying to create a temporary font string
+---@param fontPath string
+---@param fontSize? number
+---@param flags? string
+---@return boolean
 local function BUII_ValidateFontPath(fontPath, fontSize, flags)
   if not fontPath or fontPath == "" then
     return false
@@ -159,6 +168,8 @@ local function BUII_ValidateFontPath(fontPath, fontSize, flags)
   return success
 end
 
+--- Returns the path to the currently selected font
+---@return string
 function BUII_GetFontPath()
   if not BUIIDatabase then
     return GameFontHighlight:GetFont()
@@ -201,6 +212,8 @@ function BUII_GetFontPath()
   return GameFontHighlight:GetFont()
 end
 
+--- Returns the flags for the current font (e.g. OUTLINE)
+---@return string
 function BUII_GetFontFlags()
   if not BUIIDatabase then
     return "OUTLINE"
@@ -214,6 +227,8 @@ function BUII_GetFontFlags()
   return flags
 end
 
+--- Returns the shadow offsets for the current font (x, y)
+---@return number, number
 function BUII_GetFontShadow()
   if not BUIIDatabase then
     return 1, -1
@@ -226,6 +241,9 @@ function BUII_GetFontShadow()
   return 1, -1
 end
 
+--- Formats a number with K/M abbreviation
+---@param number number|nil
+---@return string
 function BUII_FormatNumber(number)
   if not number then
     return "0"

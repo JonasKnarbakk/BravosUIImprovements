@@ -1,11 +1,19 @@
+---@class BUII_ReadyCheckEditModeTemplate : BUII_ManagedFrame
+---@type Frame|BUII_ReadyCheckEditModeTemplate|any|nil
 local frame = nil
+---@type FontString|nil
 local text = nil
+---@type AnimationGroup|nil
 local animGroup = nil
+---@type table|nil
 local hideTimer = nil
 
 -- Durability frame variables
+---@type Frame|nil
 local durabilityFrame = nil
+---@type Texture|nil
 local durabilityIcon = nil
+---@type FontString|nil
 local durabilityText = nil
 
 -- Settings Constants
@@ -29,7 +37,8 @@ local EQUIPMENT_SLOTS_WITH_DURABILITY = {
   17, -- Off Hand
 }
 
--- Update durability frame Y position
+--- Update durability frame Y position
+---@return nil
 local function updateDurabilityYPosition()
   if durabilityFrame then
     local yOffset = BUIIDatabase["ready_check_repair_y_offset"] or 52
@@ -38,7 +47,8 @@ local function updateDurabilityYPosition()
   end
 end
 
--- Calculate average durability percentage across all equipped items
+--- Calculate average durability percentage across all equipped items
+---@return number
 local function getAverageDurability()
   local totalDurability = 0
   local totalMaxDurability = 0
@@ -58,6 +68,9 @@ local function getAverageDurability()
   return (totalDurability / totalMaxDurability) * 100
 end
 
+--- Handles ready check events to display the frame and durability
+---@param self Frame|any
+---@param event string
 local function onEvent(self, event)
   if event == "READY_CHECK" then
     local _, instanceType = IsInInstance()
@@ -97,6 +110,8 @@ local function onEvent(self, event)
   end
 end
 
+--- Initializes the Ready Check frame, durability sub-frame, text, and edit mode settings
+---@return nil
 local function BUII_ReadyCheck_Initialize()
   if frame then
     return
@@ -109,6 +124,16 @@ local function BUII_ReadyCheck_Initialize()
   frame:SetDontSavePosition(true)
   frame:EnableMouse(false)
   frame:Hide()
+
+  -- Set default position properties for EditModeUtils fallback
+  frame.defaultPoint = "CENTER"
+  frame.defaultRelativePoint = "CENTER"
+  frame.defaultX = 0
+  frame.defaultY = 150
+
+  -- Set initial position
+  frame:ClearAllPoints()
+  frame:SetPoint("CENTER", UIParent, "CENTER", 0, 150)
 
   text = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
   text:SetFont(BUII_GetFontPath(), 44, BUII_GetFontFlags())
@@ -225,6 +250,12 @@ local function BUII_ReadyCheck_Initialize()
         end
       end,
       OnEditModeExit = function(f)
+        -- Explicitly restore position after edit mode exits
+        C_Timer.After(0.1, function()
+          if frame then
+            BUII_EditModeUtils:ApplySavedPosition(frame, "ready_check", true)
+          end
+        end)
         animGroup:Stop()
         frame:Hide()
         durabilityFrame:Hide()
@@ -233,6 +264,8 @@ local function BUII_ReadyCheck_Initialize()
   )
 end
 
+--- Enables the Ready Check Notification feature
+---@return nil
 function BUII_ReadyCheck_Enable()
   BUII_ReadyCheck_Initialize()
 
@@ -244,6 +277,8 @@ function BUII_ReadyCheck_Enable()
   frame:Hide() -- Hide initially
 end
 
+--- Disables the Ready Check Notification feature
+---@return nil
 function BUII_ReadyCheck_Disable()
   if not frame then
     return
@@ -260,6 +295,8 @@ function BUII_ReadyCheck_Disable()
   end
 end
 
+--- Refreshes the display configuration
+---@return nil
 function BUII_ReadyCheck_Refresh()
   if frame and text then
     text:SetFont(BUII_GetFontPath(), 44, BUII_GetFontFlags())
@@ -271,6 +308,8 @@ function BUII_ReadyCheck_Refresh()
   end
 end
 
+--- Initializes default DB values for Ready Check
+---@return nil
 function BUII_ReadyCheck_InitDB()
   if BUIIDatabase["ready_check"] == nil then
     BUIIDatabase["ready_check"] = false
@@ -283,5 +322,15 @@ function BUII_ReadyCheck_InitDB()
   end
   if BUIIDatabase["ready_check_repair_y_offset"] == nil then
     BUIIDatabase["ready_check_repair_y_offset"] = 52
+  end
+  if BUIIDatabase["ready_check_layouts"] == nil or BUIIDatabase["ready_check_layouts"]["Default"] == nil then
+    BUIIDatabase["ready_check_layouts"] = BUIIDatabase["ready_check_layouts"] or {}
+    BUIIDatabase["ready_check_layouts"]["Default"] = {
+      point = "CENTER",
+      relativePoint = "CENTER",
+      offsetX = 0,
+      offsetY = 150,
+      scale = 1.0,
+    }
   end
 end

@@ -7,6 +7,20 @@
         "?/?.lua"
     ],
     "diagnostics.globals": [
+        "BUIIDatabase",
+        "BUIICharacterDatabase",
+        "BUIIOptionsPanel",
+        "buii",
+        "describe",
+        "it",
+        "before_each",
+        "after_each",
+        "setup",
+        "teardown",
+        "spy",
+        "mock",
+        "match",
+        "assert"
     ],
     "workspace.library": [
         "wow-ui-source",
@@ -14,6 +28,7 @@
     ],
     "workspace.checkThirdParty": false,
     "diagnostics.disable": [
-        "lowercase-global"
+        "lowercase-global",
+        "duplicate-set-field"
     ]
 }

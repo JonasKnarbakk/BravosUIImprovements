@@ -1,9 +1,14 @@
 local addonName, addon = ...
+---@class BUII_StatPanelEditModeTemplate : BUII_ManagedFrame
+---@type Frame|BUII_StatPanelEditModeTemplate|any|nil
 local frame = nil
+---@type Frame[]
 local rows = {}
+---@type FontString|nil
 local title = nil
 
 -- Stats Definitions
+---@type table[]
 local STATS = {
   { key = "crit", label = "Crit", name = "Critical Strike", func = GetCritChance, percent = true },
   { key = "haste", label = "Haste", name = "Haste", func = GetHaste, percent = true },
@@ -36,10 +41,16 @@ local enum_StatPanelSetting_ShowTitle = 85
 -- Start dynamic enums for stats from 100
 local STAT_ENUM_START = 100
 
+--- Gets the Stat Panel database settings
+---@return table|nil
 local function GetStatPanelDB()
   return BUII_EditModeUtils:GetDB("stat_panel")
 end
 
+--- Formats a stat value
+---@param value number
+---@param isPercent boolean
+---@return string
 local function FormatValue(value, isPercent)
   if isPercent then
     return string.format("%.2f%%", value)
@@ -48,6 +59,8 @@ local function FormatValue(value, isPercent)
   end
 end
 
+--- Updates the display of stats
+---@return nil
 local function UpdateStats()
   if not frame then
     return
@@ -171,10 +184,16 @@ local function UpdateStats()
   frame:SetHeight(totalHeight)
 end
 
+--- Event handler for Stat Panel updates
+---@param self Frame|any
+---@param event string
+---@param ... any
 local function onEvent(self, event, ...)
   UpdateStats()
 end
 
+--- Initializes the Stat Panel feature
+---@return nil
 local function BUII_StatPanel_Initialize()
   if frame then
     return
@@ -345,6 +364,8 @@ local function BUII_StatPanel_Initialize()
   )
 end
 
+--- Enables the Stat Panel feature
+---@return nil
 function BUII_StatPanel_Enable()
   BUII_StatPanel_Initialize()
 
@@ -365,6 +386,8 @@ function BUII_StatPanel_Enable()
   frame:Show()
 end
 
+--- Disables the Stat Panel feature
+---@return nil
 function BUII_StatPanel_Disable()
   if not frame then
     return
@@ -375,6 +398,8 @@ function BUII_StatPanel_Disable()
   frame:Hide()
 end
 
+--- Refreshes the display configuration
+---@return nil
 function BUII_StatPanel_Refresh()
   if not frame then
     return
@@ -393,6 +418,8 @@ function BUII_StatPanel_Refresh()
   end
 end
 
+--- Initializes default DB values format
+---@return nil
 function BUII_StatPanel_InitDB()
   -- BUIIDatabase initialization
   if BUIIDatabase["stat_panel"] == nil then

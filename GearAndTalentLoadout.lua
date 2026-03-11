@@ -1,7 +1,14 @@
+---@class BUII_GearAndTalentLoadoutEditModeTemplate : BUII_ManagedFrame
+local addonName, addon = ...
+---@type Frame|BUII_GearAndTalentLoadoutEditModeTemplate|nil
 local frame = nil
+---@type Frame|nil
 local contentFrame = nil
+---@type Texture|nil
 local icon = nil
+---@type FontString|nil
 local gearText = nil
+---@type FontString|nil
 local talentText = nil
 
 -- Settings Constants
@@ -15,6 +22,8 @@ local DEFAULT_ICON_SIZE = 40
 local DEFAULT_TEXT_FONT_SIZE = 22
 local DEFAULT_VERTICAL_SPACING = 2
 
+--- Updates the visual display with current equipment set and talent loadout text and icons
+---@return nil
 local function UpdateDisplay()
   if not frame or not contentFrame then
     return
@@ -87,6 +96,9 @@ local function UpdateDisplay()
   frame:SetSize(iconSize, iconSize)
 end
 
+---@param self Frame
+---@param event string
+---@param ... any
 local function onEvent(self, event, ...)
   if event == "EQUIPMENT_SETS_CHANGED" or event == "TRAIT_CONFIG_UPDATED" then
     UpdateDisplay()
@@ -100,6 +112,8 @@ local function onEvent(self, event, ...)
   end
 end
 
+--- Initializes the Gear and Talent Loadout frame, text strings, icons, and edit mode settings
+---@return nil
 local function BUII_GearAndTalentLoadout_Initialize()
   if frame then
     return
@@ -235,6 +249,8 @@ local function BUII_GearAndTalentLoadout_Initialize()
   )
 end
 
+--- Enables the Gear and Talent Loadout feature by registering events and displaying the frame
+---@return nil
 function BUII_GearAndTalentLoadout_Enable()
   BUII_GearAndTalentLoadout_Initialize()
 
@@ -250,6 +266,8 @@ function BUII_GearAndTalentLoadout_Enable()
   UpdateDisplay()
 end
 
+--- Disables the Gear and Talent Loadout feature by unregistering events and hiding the frame
+---@return nil
 function BUII_GearAndTalentLoadout_Disable()
   if not frame then
     return
@@ -266,10 +284,13 @@ function BUII_GearAndTalentLoadout_Disable()
   end
 end
 
+---@return nil
 function BUII_GearAndTalentLoadout_Refresh()
   UpdateDisplay()
 end
 
+--- Initializes default database values for the Gear and Talent Loadout feature
+---@return nil
 function BUII_GearAndTalentLoadout_InitDB()
   if BUIIDatabase["gear_talent_loadout"] == nil then
     BUIIDatabase["gear_talent_loadout"] = false

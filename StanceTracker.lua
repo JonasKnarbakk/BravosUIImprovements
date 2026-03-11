@@ -1,7 +1,12 @@
 local addonName, addon = ...
+---@class BUII_StanceTrackerEditModeTemplate : BUII_ManagedFrame
+---@type Frame|BUII_StanceTrackerEditModeTemplate|any|nil
 local frame = nil
+---@type Texture|nil
 local icon = nil
+---@type FontString|nil
 local text = nil
+---@type boolean
 local isTestMode = false
 
 -- Settings Constants
@@ -15,15 +20,23 @@ local enum_StanceTrackerSetting_EmphasizeScale = 16
 local enum_StanceTrackerSetting_EmphasizeIntensity = 17
 local enum_StanceTrackerSetting_EmphasizeYOffset = 18
 
+--- Gets the Stance Tracker database settings
+---@return table|nil
 local function GetStanceTrackerDB()
   return BUII_EditModeUtils:GetDB("stance_tracker")
 end
 
+---@type Frame|nil
 local empAnchor = nil
+---@type Frame|nil
 local empFrame = nil
+---@type FontString|nil
 local empText = nil
+---@type AnimationGroup|nil
 local empAnimGroup = nil
 
+--- Updates the emphasize display for no stance/aura
+---@return nil
 local function updateEmphasize()
   local db = GetStanceTrackerDB()
   if not empFrame then
@@ -96,6 +109,8 @@ local function updateEmphasize()
   end
 end
 
+--- Updates the main stance display (icon and text)
+---@return nil
 local function updateDisplay()
   local db = GetStanceTrackerDB()
   local isEditMode = EditModeManagerFrame and EditModeManagerFrame:IsShown()
@@ -213,10 +228,16 @@ local function updateDisplay()
   updateEmphasize()
 end
 
+--- Handles events for stance updates
+---@param self Frame|any
+---@param event string
+---@param ... any
 local function onEvent(self, event, ...)
   updateDisplay()
 end
 
+--- Initializes the Stance Tracker frame, text, Icon, Emphasize frame, and edit mode settings
+---@return nil
 local function BUII_StanceTracker_Initialize()
   if frame then
     return
@@ -450,6 +471,8 @@ local function BUII_StanceTracker_Initialize()
   )
 end
 
+--- Enables the Stance Tracker feature
+---@return nil
 function BUII_StanceTracker_Enable()
   BUII_StanceTracker_Initialize()
 
@@ -469,6 +492,8 @@ function BUII_StanceTracker_Enable()
   updateDisplay()
 end
 
+--- Disables the Stance Tracker feature
+---@return nil
 function BUII_StanceTracker_Disable()
   if not frame then
     return
@@ -482,16 +507,22 @@ function BUII_StanceTracker_Disable()
   end
 end
 
+--- Refreshes the display configuration
+---@return nil
 function BUII_StanceTracker_Refresh()
   if frame then
     updateDisplay()
   end
 end
 
+--- Gets the global or character-specific DB
+---@return table|nil
 function BUII_StanceTracker_GetDB()
   return GetStanceTrackerDB()
 end
 
+--- Initializes default DB values for Stance Tracker
+---@return nil
 function BUII_StanceTracker_InitDB()
   -- BUIIDatabase initialization
   if BUIIDatabase["stance_tracker"] == nil then

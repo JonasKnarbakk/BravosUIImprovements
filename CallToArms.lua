@@ -1,10 +1,21 @@
 local addonName, addon = ...
+---@class BUII_CallToArmsEditModeTemplate : BUII_ManagedFrame
+--- Callback triggered when EditMode Settings are applied
+---@param frame BUII_CallToArmsEditModeTemplate|any
+local function onApplySettings(frame) end
+---@type BUII_CallToArmsEditModeTemplate|Frame|any|nil
 local frame = nil
+---@type FontString|nil
 local text = nil
+---@type any|nil
 local timer = nil
+---@type boolean
 local locked = false
+---@type string|nil
 local last_status = nil
+---@type boolean
 local isTestMode = false
+---@type AnimationGroup|nil
 local animGroup = nil
 
 -- Settings Constants
@@ -255,6 +266,12 @@ local tankIcon = "|TInterface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES:16:16:0:0:64:
 local healerIcon = "|TInterface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES:16:16:0:0:64:64:20:39:1:20|t"
 local damageIcon = "|TInterface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES:16:16:0:0:64:64:20:39:22:41|t"
 
+--- Checks if an instance type matches the given options and requirements
+---@param instanceTypes table
+---@param optionsKey string
+---@param ilReq number
+---@param isRaidCheck boolean
+---@return boolean
 local function checkTypes(instanceTypes, optionsKey, ilReq, isRaidCheck)
   if instanceTypes[optionsKey] then
     return true
@@ -272,6 +289,10 @@ local function checkTypes(instanceTypes, optionsKey, ilReq, isRaidCheck)
   return false
 end
 
+--- Determines the dungeon type (timewalking, heroic, normal)
+---@param dName string
+---@param isTimeWalker boolean
+---@return string
 local function getDungeonType(dName, isTimeWalker)
   if dName and dName:find("Timewalking") then
     return "timewalking"
@@ -282,6 +303,13 @@ local function getDungeonType(dName, isTimeWalker)
   end
 end
 
+--- Validates if a specific instance should be checked based on settings
+---@param dID number
+---@param isHoliday boolean
+---@param dName string
+---@param ilReq number
+---@param dungeonType string
+---@return boolean
 local function checkInstanceType(dID, isHoliday, dName, ilReq, dungeonType)
   local options_key = tostring(dID)
   local dungeon_check = checkTypes(types_config["dg_types"], options_key, ilReq, false)
@@ -302,6 +330,8 @@ local function checkInstanceType(dID, isHoliday, dName, ilReq, dungeonType)
   return dungeon_check or raid_check or holiday_check
 end
 
+--- Generates sample text for Edit Mode testing
+---@return string
 local function GenerateTestOutput()
   local testOutput = ""
   local rewardIcon = "|T413587:0|t"
@@ -370,6 +400,8 @@ local function GenerateTestOutput()
   return testOutput
 end
 
+--- Checks if the player is in a valid state to receive Call to Arms alerts (e.g. not in PvP)
+---@return boolean
 local function IsCallToArmsRelevant()
   if isTestMode or (EditModeManagerFrame and EditModeManagerFrame:IsShown()) then
     return true
@@ -388,6 +420,8 @@ local function IsCallToArmsRelevant()
   return true
 end
 
+--- Scans current LFG/LFR shortage statuses and generates alert text
+---@return string
 local function checkStatus()
   if not IsCallToArmsRelevant() then
     return ""
@@ -448,7 +482,7 @@ local function checkStatus()
     or BUIIDatabase["call_to_arms_dungeon_timewalking"]
 
   if anyDungeonTypeEnabled then
-    for i = 1, GetNumRandomDungeons() do
+    for i = 1, (GetNumRandomDungeons() or 0) do
       local dID, dName, typeID, subtypeID, minLevel, maxLevel, recLevel, minRecLevel, maxRecLevel, expansionLevel, groupID, textureFilename, difficulty, maxPlayers, description, isHoliday, bonusRepAmount, minPlayers, isTimeWalker, name2, minGear =
         GetLFGRandomDungeonInfo(i)
       if dID then
@@ -459,7 +493,7 @@ local function checkStatus()
 
   -- Loop through RFs
   if BUIIDatabase["call_to_arms_lfr"] then
-    for i = 1, GetNumRFDungeons() do
+    for i = 1, (GetNumRFDungeons() or 0) do
       local dID, dName, typeID, subtypeID, minLevel, maxLevel, recLevel, minRecLevel, maxRecLevel, expansionLevel, groupID, textureFilename, difficulty, maxPlayers, description, isHoliday, bonusRepAmount, minPlayers, isTimeWalker, name2, minGear =
         GetRFDungeonInfo(i)
       if dID then
@@ -473,6 +507,8 @@ end
 
 local lastText = ""
 
+--- Updates the visual frame with the latest Call to Arms status and plays alert sounds
+---@return nil
 local function updateDisplay()
   if not BUIIDatabase["call_to_arms"] then
     frame:Hide()
@@ -512,6 +548,11 @@ local function updateDisplay()
   end
 end
 
+--- Handles LFG system updates and handles throttling
+---@param self Frame|any
+---@param event string
+---@param ... any
+---@return nil
 local function onEvent(self, event, ...)
   if not BUIIDatabase["call_to_arms"] then
     return
@@ -536,6 +577,8 @@ local function onEvent(self, event, ...)
   end
 end
 
+--- Initializes the Call to Arms frame, text, animations, and edit mode settings
+---@return nil
 local function BUII_CallToArms_Initialize()
   if frame then
     return
@@ -732,6 +775,8 @@ local function BUII_CallToArms_Initialize()
   )
 end
 
+--- Enables the Call to Arms feature and registers events
+---@return nil
 function BUII_CallToArms_Enable()
   BUII_CallToArms_Initialize()
 
@@ -743,6 +788,8 @@ function BUII_CallToArms_Enable()
   updateDisplay()
 end
 
+--- Disables the Call to Arms feature
+---@return nil
 function BUII_CallToArms_Disable()
   if not frame then
     return
@@ -755,6 +802,8 @@ function BUII_CallToArms_Disable()
   end
 end
 
+--- Refreshes the Call to Arms display settings like font and shadow
+---@return nil
 function BUII_CallToArms_Refresh()
   if frame and text then
     text:SetFont(BUII_GetFontPath(), 12, BUII_GetFontFlags())
@@ -763,12 +812,16 @@ function BUII_CallToArms_Refresh()
   end
 end
 
+--- Triggers a manual update of the Call to Arms display if enabled
+---@return nil
 function BUII_CallToArms_Update()
   if BUIIDatabase["call_to_arms"] then
     updateDisplay()
   end
 end
 
+--- Toggles test mode for Call to Arms to display sample data outside of Edit Mode
+---@return nil
 function BUII_CallToArms_TestMode()
   if not BUIIDatabase["call_to_arms"] then
     return
@@ -785,6 +838,8 @@ function BUII_CallToArms_TestMode()
   updateDisplay()
 end
 
+--- Debug function to print all random dungeon and raid finder IDs
+---@return nil
 function BUII_CallToArms_DumpIDs()
   print("--- Random Dungeons ---")
   for i = 1, GetNumRandomDungeons() do

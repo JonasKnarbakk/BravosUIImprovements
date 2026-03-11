@@ -1,5 +1,7 @@
 local actionBarHookSet = false
 
+--- Experimental function to fix action bar minimum padding setting
+---@return nil
 local function experimentalFixPaddingMinSetting()
   -- Set icon padding to 0
   -- EditModePresetLayoutManager:GetModernSystemMap()[Enum.EditModeSystem.ActionBar][
@@ -9,7 +11,7 @@ local function experimentalFixPaddingMinSetting()
   -- 	Enum.EditModeActionBarSystemIndices.MainBar]["settings"]) do
   -- 	print("Key: ", key, " Value: ", value)
   -- end
-  -- EditModeSettingDisplayInfoManager.systemSettingDisplayInfo[Enum.EditModeSystem.ActionBar][5] = {
+  -- EditModeSettingDisplayInfoManager.systemSettingDisplayInfo[Enum.EditModioeSystem.ActionBar][5] = {
   -- 	minValue = 0,
   -- }
 
@@ -39,6 +41,10 @@ local function experimentalFixPaddingMinSetting()
   end
 end
 
+--- Sets the button padding for a specific action bar
+---@param actionBar Frame|any
+---@param padding number
+---@return nil
 local function setButtonPaddingOnActionBar(actionBar, padding)
   if padding < actionBar.minButtonPadding then
     actionBar.minButtonPadding = padding
@@ -50,6 +56,11 @@ local function setButtonPaddingOnActionBar(actionBar, padding)
   end
 end
 
+--- OnUpdate handler for action bars to enforce padding
+---@param self Frame|any
+---@param arg1 any
+---@param ... any
+---@return nil
 local function actionBar_OnUpdate(self, arg1, ...)
   if self.minButtonPadding ~= 0 then
     self.minButtonPadding = 0
@@ -59,6 +70,9 @@ local function actionBar_OnUpdate(self, arg1, ...)
   end
 end
 
+--- Disables the overlay border for a given action bar
+---@param actionBarName string
+---@return nil
 local function disableBorderOnActionBar(actionBarName)
   for i = 0, 12 do
     local button = _G[actionBarName .. "Button" .. i]
@@ -68,6 +82,9 @@ local function disableBorderOnActionBar(actionBarName)
   end
 end
 
+--- Enables the overlay border for a given action bar
+---@param actionBarName string
+---@return nil
 local function enableBorderOnActionBar(actionBarName)
   for i = 0, 12 do
     local button = _G[actionBarName .. "Button" .. i]
@@ -77,6 +94,8 @@ local function enableBorderOnActionBar(actionBarName)
   end
 end
 
+--- Enables the experimental no-padding feature for action bars
+---@return nil
 function BUII_ActionBarsImprovedNoPaddingEnable()
   -- if not actionBarHookSet then
   -- 	StanceBar:HookScript("OnUpdate", actionBar_OnUpdate)
@@ -107,6 +126,8 @@ function BUII_ActionBarsImprovedNoPaddingEnable()
   -- disableBorderOnActionBar("MultiBarBottomRight")
 end
 
+--- Disables the no-padding feature for action bars
+---@return nil
 function BUII_ActionBarsImprovedNoPaddingDisable()
   BUIIDatabase["no_action_bar_padding"] = false
   -- enableBorderOnActionBar("Stance")

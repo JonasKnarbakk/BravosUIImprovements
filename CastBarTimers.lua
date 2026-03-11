@@ -1,5 +1,11 @@
+---@type boolean
 local castBarTimersInitialized = false
 
+--- Creates a child frame specifically to hold the timer text fontstring
+---@param parent Frame
+---@param xOffset number
+---@param yOffset number
+---@return nil
 local function createChildTimerFrame(parent, xOffset, yOffset)
   local timerFrame = CreateFrame("Frame", "BUIICastBarTimer" .. parent:GetName(), parent)
   timerFrame:SetWidth(1)
@@ -10,6 +16,8 @@ local function createChildTimerFrame(parent, xOffset, yOffset)
   timerFrame.text:SetPoint("CENTER", 0, 0)
 end
 
+--- Realigns the spell name text on castbars to make room for timers
+---@return nil
 local function realignSpellNameText()
   TargetFrameSpellBar.Text:SetJustifyH("LEFT")
   FocusFrameSpellBar.Text:SetJustifyH("LEFT")
@@ -23,6 +31,8 @@ local function realignSpellNameText()
   FocusFrameSpellBar.Text:SetPoint("TOPRIGHT", FocusFrameSpellBar, "TOPRIGHT", -25, -8)
 end
 
+--- Restores the original alignment of the spell name text on castbars
+---@return nil
 local function restoreSpellNameText()
   TargetFrameSpellBar.Text:SetJustifyH("CENTER")
   FocusFrameSpellBar.Text:SetJustifyH("CENTER")
@@ -38,10 +48,18 @@ local function restoreSpellNameText()
   FocusFrameSpellBar.Text:SetPoint("TOPRIGHT", FocusFrameSpellBar, "TOPRIGHT", 0, -8)
 end
 
+--- Calculates the remaining cast time
+---@param endTime number
+---@param currentTime number
+---@return number
 local function calculateTimeLeft(endTime, currentTime)
   return (endTime / 1000) - currentTime
 end
 
+--- Updates the timer text based on the castbar's current casting status
+---@param castBarFrame Frame|any
+---@param timerTextFrame Frame|any
+---@return nil
 local function setTimerText(castBarFrame, timerTextFrame)
   local timeLeft = nil
   local unit = castBarFrame.unit
@@ -67,18 +85,32 @@ local function setTimerText(castBarFrame, timerTextFrame)
   end
 end
 
+--- OnUpdate handler for the Player casting bar
+---@param self Frame|any
+---@param ... any
+---@return nil
 local function handlePlayerCastBar_OnUpdate(self, ...)
   setTimerText(self, _G["BUIICastBarTimerPlayerCastingBarFrame"])
 end
 
+--- OnUpdate handler for the Target casting bar
+---@param self Frame|any
+---@param ... any
+---@return nil
 local function handleTargetSpellBar_OnUpdate(self, ...)
   setTimerText(self, _G["BUIICastBarTimerTargetFrameSpellBar"])
 end
 
+--- OnUpdate handler for the Focus casting bar
+---@param self Frame|any
+---@param ... any
+---@return nil
 local function handleFocusSpellBar_OnUpdate(self, ...)
   setTimerText(self, _G["BUIICastBarTimerFocusFrameSpellBar"])
 end
 
+--- Enables castbar timers and hooks their OnUpdate scripts
+---@return nil
 function BUII_CastBarTimersEnable()
   if not castBarTimersInitialized then
     createChildTimerFrame(PlayerCastingBarFrame, -14, -17)
@@ -98,6 +130,8 @@ function BUII_CastBarTimersEnable()
   _G["BUIICastBarTimerFocusFrameSpellBar"]:Show()
 end
 
+--- Disables castbar timers and hides them
+---@return nil
 function BUII_CastBarTimersDisable()
   if castBarTimersInitialized then
     restoreSpellNameText()
@@ -107,6 +141,8 @@ function BUII_CastBarTimersDisable()
   end
 end
 
+--- Initializes CastBar timer defaults into the global DB
+---@return nil
 function BUII_CastBarTimers_InitDB()
   if BUIIDatabase["castbar_timers"] == nil then
     BUIIDatabase["castbar_timers"] = false

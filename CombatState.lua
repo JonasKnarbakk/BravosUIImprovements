@@ -1,11 +1,19 @@
+local addonName, addon = ...
+---@class BUII_CombatStateEditModeTemplate : BUII_ManagedFrame
+---@type Frame|BUII_CombatStateEditModeTemplate|any|nil
 local frame = nil
+---@type FontString|nil
 local text = nil
+---@type AnimationGroup|nil
 local animGroup = nil
 
 -- Settings Constants
 local enum_CombatStateSetting_Scale = 30
 local enum_CombatStateSetting_FontSize = 31
 
+--- Handles combat state changes (enter/leave combat)
+---@param self Frame|any
+---@param event string
 local function onEvent(self, event)
   if event == "PLAYER_REGEN_DISABLED" then
     -- Enter Combat
@@ -22,6 +30,8 @@ local function onEvent(self, event)
   end
 end
 
+--- Initializes the Combat State Notification frame, text, and edit mode settings
+---@return nil
 local function BUII_CombatState_Initialize()
   if frame then
     return
@@ -34,6 +44,16 @@ local function BUII_CombatState_Initialize()
   frame:SetDontSavePosition(true)
   frame:EnableMouse(false)
   frame:Hide()
+
+  -- Set default position properties for EditModeUtils fallback
+  frame.defaultPoint = "CENTER"
+  frame.defaultRelativePoint = "CENTER"
+  frame.defaultX = 0
+  frame.defaultY = 150
+
+  -- Set initial position
+  frame:ClearAllPoints()
+  frame:SetPoint("CENTER", UIParent, "CENTER", 0, 150)
 
   text = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
   text:SetFont(BUII_GetFontPath(), 32, BUII_GetFontFlags())
@@ -84,12 +104,20 @@ local function BUII_CombatState_Initialize()
         text:SetAlpha(1)
       end,
       OnEditModeExit = function(f)
+        -- Explicitly restore position after edit mode exits
+        C_Timer.After(0.1, function()
+          if frame then
+            BUII_EditModeUtils:ApplySavedPosition(frame, "combat_state", true)
+          end
+        end)
         text:SetAlpha(0)
       end,
     }
   )
 end
 
+--- Enables the Combat State Notification feature and registers events
+---@return nil
 function BUII_CombatState_Enable()
   BUII_CombatState_Initialize()
 
@@ -101,6 +129,8 @@ function BUII_CombatState_Enable()
   frame:Show()
 end
 
+--- Disables the Combat State Notification feature and unwires events
+---@return nil
 function BUII_CombatState_Disable()
   if not frame then
     return
@@ -112,6 +142,8 @@ function BUII_CombatState_Disable()
   frame:Hide()
 end
 
+--- Refreshes the display configuration (font, shadow)
+---@return nil
 function BUII_CombatState_Refresh()
   if frame and text then
     text:SetFont(BUII_GetFontPath(), 32, BUII_GetFontFlags())
@@ -119,8 +151,20 @@ function BUII_CombatState_Refresh()
   end
 end
 
+--- Initializes default values into the SavedVariables database for Combat State
+---@return nil
 function BUII_CombatState_InitDB()
   if BUIIDatabase["combat_state"] == nil then
     BUIIDatabase["combat_state"] = false
+  end
+  if BUIIDatabase["combat_state_layouts"] == nil or BUIIDatabase["combat_state_layouts"]["Default"] == nil then
+    BUIIDatabase["combat_state_layouts"] = BUIIDatabase["combat_state_layouts"] or {}
+    BUIIDatabase["combat_state_layouts"]["Default"] = {
+      point = "CENTER",
+      relativePoint = "CENTER",
+      offsetX = 0,
+      offsetY = 150,
+      scale = 1.0,
+    }
   end
 end

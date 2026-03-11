@@ -1,8 +1,15 @@
+---@type boolean
 local enabled = false
+---@type boolean
 local gameMenuFrameHook_OnShow = false
+---@type boolean
 local wasKeybindModeTrigger = false
+---@type Button|any|nil
 local quickKeybindModeShortcutFrame = nil
 
+--- Check if an object is a function
+---@param object any
+---@return boolean
 local function isFunction(object)
   if type(object) == "function" then
     return true
@@ -11,12 +18,16 @@ local function isFunction(object)
   return false
 end
 
+--- Handles the click event for the Quick Keybind Mode shortcut
+---@return nil
 local function quickKeybindModeShortcutFrame_OnClick()
   QuickKeybindFrame:Show()
   GameMenuFrame:Hide()
   wasKeybindModeTrigger = true
 end
 
+--- Adds the Quick Keybind Mode button to the Game Menu
+---@return nil
 local function quickKeybinddModeAddButton()
   if enabled and not InCombatLockdown() then
     if isFunction(GameMenuFrame.AddSection) and isFunction(GameMenuFrame.AddButton) then
@@ -25,8 +36,12 @@ local function quickKeybinddModeAddButton()
     else
       -- Legacy way, will not be needed after The War Within releases (likely pre-patch)
       if not quickKeybindModeShortcutFrame then
-        quickKeybindModeShortcutFrame =
-          CreateFrame("Button", "BUIIQuickKeybindModeShortcutMenuButton", GameMenuFrame, "GameMenuButtonTemplate")
+        quickKeybindModeShortcutFrame = CreateFrame(
+          "Button",
+          "BUII_QuickKeybindModeShortcutButton",
+          GameMenuFrame,
+          "GameMenuButtonTemplate"
+        ) --[[@as Button]]
         quickKeybindModeShortcutFrame:SetText("Quick Keybind Mode")
         quickKeybindModeShortcutFrame:SetScript("OnClick", quickKeybindModeShortcutFrame_OnClick)
         quickKeybindModeShortcutFrame:SetPoint(
@@ -47,6 +62,8 @@ local function quickKeybinddModeAddButton()
   end
 end
 
+--- Handles the disable event for Quick Keybind Mode
+---@return nil
 local function quickKeybindMode_OnDisable()
   if wasKeybindModeTrigger then
     -- Have to show the GameMenuFrame again otherwise SettingsPanel is shown
@@ -55,6 +72,8 @@ local function quickKeybindMode_OnDisable()
   end
 end
 
+--- Enables the Quick Keybind Mode Shortcut feature
+---@return nil
 function BUII_QuickKeybindModeShortcutEnable()
   enabled = true
 
@@ -69,10 +88,14 @@ function BUII_QuickKeybindModeShortcutEnable()
   end
 end
 
+--- Disables the Quick Keybind Mode Shortcut feature
+---@return nil
 function BUII_QuickKeybindModeShortcutDisable()
   enabled = false
 end
 
+--- Initializes default DB values for Quick Keybind Shortcut
+---@return nil
 function BUII_QuickKeybindModeShortcut_InitDB()
   if BUIIDatabase["quick_keybind_shortcut"] == nil then
     BUIIDatabase["quick_keybind_shortcut"] = false
