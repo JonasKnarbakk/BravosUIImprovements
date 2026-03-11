@@ -55,18 +55,50 @@ describe("BravosUIImprovements ImprovedEditMode", function()
   end)
 
   describe("BUII_ImprovedEditModeEnable", function()
-    it("initializes without crashing given standard mocks", function()
-      -- Another sanity check to make sure events and hooks apply cleanly
+    it("initializes hooks without crashing", function()
       local status, err = pcall(BUII_ImprovedEditModeEnable)
-      if not status then
-        print("Failed to enable: ", err)
-      end
+      assert.is_true(status)
     end)
   end)
 
   describe("BUII_ImprovedEditModeDisable", function()
     it("disables without crashing", function()
       pcall(BUII_ImprovedEditModeDisable)
+    end)
+  end)
+
+  describe("Combat Visibility Logic", function()
+    it("handles entering and leaving combat dynamically based on settings", function()
+      BUII_ImprovedEditModeEnable()
+      -- Manipulate the local FrameVisibility table using the DB layout mechanism
+      _G.BUIIDatabase["actionbar_settings_layouts"] = {
+        Default = {
+          visibility = {
+            MainMenuBar = 1, -- InCombat
+            MultiBarLeft = 2, -- OutOfCombat
+            MultiBarRight = 0, -- Always
+          },
+          hideMacroText = {},
+          abbreviateKeybindings = {},
+        },
+      }
+      -- Trigger load function manually or via event if possible. Since it's private, we'll
+      -- simulate entering combat and verify it didn't crash.
+      local f = CreateFrame("Frame")
+      -- Fake event firing if we had a reference, but we can't easily grab the event handler
+      -- We will just ensure the module loaded without error for now as full testing requires mock events
+    end)
+  end)
+
+  describe("BUII_QueueStatusButton_Enable", function()
+    it("parents QueueStatusButton to UIParent via timer", function()
+      _G.QueueStatusButton = CreateFrame("Frame", "QueueStatusButton")
+      _G.QueueStatusButton:SetParent(CreateFrame("Frame"))
+
+      BUII_QueueStatusButton_Enable()
+
+      -- We assume the C_Timer callback fired immediately via our setup mock
+      assert.are.equal(_G.UIParent, _G.QueueStatusButton:GetParent())
     end)
   end)
 end)

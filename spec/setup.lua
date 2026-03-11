@@ -9,8 +9,23 @@ _G.CreateFrame = function(frameType, name, parent, template)
     GetName = function()
       return name or "MockedFrame"
     end,
-    SetScript = function() end,
-    HookScript = function() end,
+    SetScript = function(self, evt, h)
+      self.scripts = self.scripts or {}
+      self.scripts[evt] = h
+    end,
+    GetScript = function(self, evt)
+      return self.scripts and self.scripts[evt]
+    end,
+    HookScript = function(self, evt, h)
+      self.scripts = self.scripts or {}
+      local oldH = self.scripts[evt]
+      self.scripts[evt] = function(...)
+        if oldH then
+          oldH(...)
+        end
+        h(...)
+      end
+    end,
     RegisterEvent = function() end,
     RegisterForClicks = function() end,
     RegisterUnitEvent = function() end,
@@ -162,6 +177,9 @@ _G.CreateFrame = function(frameType, name, parent, template)
         Play = function() end,
         Stop = function() end,
         SetLooping = function() end,
+        IsPlaying = function()
+          return false
+        end,
       }
     end,
     GetCenter = function()
@@ -196,6 +214,9 @@ _G.CreateFrame = function(frameType, name, parent, template)
     frame.Background = { SetTexture = function() end, SetVertexColor = function() end }
   end
 
+  if name then
+    _G[name] = frame
+  end
   return frame
 end
 _G.hooksecurefunc = function(table, funcName, hookFunc)
@@ -233,6 +254,8 @@ _G.Enum = {
     Energy = 3,
   },
 }
+_G.PlaySound = function(id) end
+_G.PlaySoundFile = function(file) end
 _G.C_SpellBook = {
   GetNumSpellBookSkillLines = function()
     return 0
@@ -493,6 +516,7 @@ _G.BUII_EditModeUtils = {
 -- Mock C_Timer
 _G.C_Timer = {
   NewTimer = function(duration, callback)
+    callback()
     return {
       Cancel = function() end,
       IsCancelled = function()
@@ -501,6 +525,7 @@ _G.C_Timer = {
     }
   end,
   NewTicker = function(duration, callback)
+    callback()
     return {
       Cancel = function() end,
       IsCancelled = function()
