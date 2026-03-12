@@ -286,3 +286,12 @@ local DB_DEFAULTS = {
 function BUII_LootSpec_InitDB()
   MergeDefaults(BUIIDatabase, DB_DEFAULTS)
 end
+
+BUII_RegisterModule({
+  dbKey = "loot_spec",
+  enable = BUII_LootSpec_Enable,
+  disable = BUII_LootSpec_Disable,
+  refresh = BUII_LootSpec_Refresh,
+  checkboxPath = "weakAura.LootSpec",
+  alwaysSetChecked = true,
+})

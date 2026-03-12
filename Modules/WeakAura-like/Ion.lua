@@ -38,3 +38,10 @@ local DB_DEFAULTS = {
 function BUII_Ion_InitDB()
   MergeDefaults(BUIIDatabase, DB_DEFAULTS)
 end
+
+BUII_RegisterModule({
+  dbKey = "ion_mode",
+  enable = BUII_Ion_Enable,
+  disable = BUII_Ion_Disable,
+  checkboxPath = "weakAura.Ion",
+})

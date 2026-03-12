@@ -337,3 +337,11 @@ local DB_DEFAULTS = {
 function BUII_GroupTools_InitDB()
   MergeDefaults(BUIIDatabase, DB_DEFAULTS)
 end
+
+BUII_RegisterModule({
+  dbKey = "group_tools",
+  enable = BUII_GroupTools_Enable,
+  disable = BUII_GroupTools_Disable,
+  refresh = BUII_GroupTools_Refresh,
+  checkboxPath = "weakAura.GroupTools",
+})

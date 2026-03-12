@@ -75,19 +75,20 @@ local BUII_CORE_CHAR_DB_DEFAULTS = {
   -- stance_bar_position is set dynamically from StanceBar:GetPoint() at runtime
 }
 
---- Applies default values to a saved variables table.
---- Only sets values for keys that are currently nil (preserves user settings).
---- This is a global utility so modules can use it in their InitDB() functions.
----@param target table the saved variables table
----@param defaults table<string, any> the defaults to apply
-function MergeDefaults(target, defaults)
-  for key, defaultValue in pairs(defaults) do
-    if target[key] == nil then
-      if type(defaultValue) == "table" then
-        target[key] = CopyTable(defaultValue)
-      else
-        target[key] = defaultValue
-      end
+--- Creates a standard toggle handler for a registered module.
+--- The returned function toggles a database key and calls enable/disable.
+---@param dbKey string
+---@param enableFunc function
+---@param disableFunc function
+---@return function
+local function BUII_CreateToggleHandler(dbKey, enableFunc, disableFunc)
+  return function(self)
+    if self:GetChecked() then
+      enableFunc()
+      BUIIDatabase[dbKey] = true
+    else
+      disableFunc()
+      BUIIDatabase[dbKey] = false
     end
   end
 end
@@ -292,53 +293,25 @@ local function handleUnitFramePortraitUpdate(self)
   end
 end
 
---- Refreshes fonts for all modules
+local modules = BUII_Modules
+
+--- Refreshes fonts for all registered modules that have a refresh function
 ---@return nil
 local function BUII_RefreshAllModuleFonts()
-  -- Update all active modules that use fonts
-  if BUIIDatabase["stat_panel"] and BUII_StatPanel_Refresh then
-    BUII_StatPanel_Refresh()
-  end
-  if BUIIDatabase["stance_tracker"] and BUII_StanceTracker_Refresh then
-    BUII_StanceTracker_Refresh()
-  end
-  if BUIIDatabase["resource_tracker"] and BUII_ResourceTracker_Refresh then
-    BUII_ResourceTracker_Refresh()
-  end
-  if BUIIDatabase["gear_talent_loadout"] and BUII_GearAndTalentLoadout_Refresh then
-    BUII_GearAndTalentLoadout_Refresh()
-  end
-  if BUIIDatabase["combat_state"] and BUII_CombatState_Refresh then
-    BUII_CombatState_Refresh()
-  end
-  if BUIIDatabase["ready_check"] and BUII_ReadyCheck_Refresh then
-    BUII_ReadyCheck_Refresh()
-  end
-  if BUIIDatabase["tank_shield_warning"] and BUII_TankShieldWarning_Refresh then
-    BUII_TankShieldWarning_Refresh()
-  end
-  if BUIIDatabase["call_to_arms"] and BUII_CallToArms_Refresh then
-    BUII_CallToArms_Refresh()
-  end
-  if BUIIDatabase["group_tools"] and BUII_GroupTools_Refresh then
-    BUII_GroupTools_Refresh()
-  end
-  if BUIIDatabase["loot_spec"] and BUII_LootSpec_Refresh then
-    BUII_LootSpec_Refresh()
-  end
-  if BUIIDatabase["pet_reminder"] and BUII_PetReminder_Refresh then
-    BUII_PetReminder_Refresh()
-  end
-  if BUIIDatabase["missing_buff_reminder"] and BUII_MissingBuffReminder_Refresh then
-    BUII_MissingBuffReminder_Refresh()
+  for _, mod in ipairs(modules) do
+    if BUIIDatabase[mod.dbKey] and mod.refresh then
+      mod.refresh()
+    end
   end
 end
 
---- Refreshes textures for all modules
+--- Refreshes textures for all registered modules that have a refresh function and refreshTexture flag
 ---@return nil
 local function BUII_RefreshAllModuleTextures()
-  if BUIIDatabase["resource_tracker"] and BUII_ResourceTracker_Refresh then
-    BUII_ResourceTracker_Refresh()
+  for _, mod in ipairs(modules) do
+    if BUIIDatabase[mod.dbKey] and mod.refresh and mod.refreshTexture then
+      mod.refresh()
+    end
   end
 end
 
@@ -756,199 +729,48 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       defaultUI.HideStanceBar:SetChecked(true)
     end
 
-    if BUIIDatabase["quick_keybind_shortcut"] then
-      BUII_QuickKeybindModeShortcutEnable()
-      defaultUI.QuickKeybindShortcut:SetChecked(true)
+    -- Registry-driven module initialization
+    for _, mod in ipairs(modules) do
+      -- Resolve checkbox from checkboxPath (e.g. "weakAura.Ion" -> weakAura.Ion)
+      local container, childKey = mod.checkboxPath:match("^(%w+)%.(.+)$")
+      local checkbox
+      if container == "defaultUI" then
+        checkbox = defaultUI[childKey]
+      elseif container == "weakAura" then
+        checkbox = weakAura[childKey]
+      end
+
+      if BUIIDatabase[mod.dbKey] then
+        mod.enable()
+        if checkbox then
+          checkbox:SetChecked(true)
+        end
+      elseif mod.alwaysSetChecked and checkbox then
+        -- No disable() call needed: this is init, the module was never enabled.
+        -- This just ensures the checkbox UI reflects the saved false state.
+        checkbox:SetChecked(false)
+      end
     end
 
-    if BUIIDatabase["improved_edit_mode"] then
-      BUII_ImprovedEditModeEnable()
-      defaultUI.ImprovedEditMode:SetChecked(true)
-    end
+    -- Sub-toggles: resource tracker per-class checkboxes (no enable/disable, just UI state)
+    weakAura.ResourceTrackerShaman:SetChecked(BUIIDatabase["resource_tracker_shaman"] or false)
+    weakAura.ResourceTrackerDemonHunter:SetChecked(BUIIDatabase["resource_tracker_demonhunter"] or false)
+    weakAura.ResourceTrackerRogue:SetChecked(BUIIDatabase["resource_tracker_rogue"] or false)
+    weakAura.ResourceTrackerDruid:SetChecked(BUIIDatabase["resource_tracker_druid"] or false)
+    weakAura.ResourceTrackerMage:SetChecked(BUIIDatabase["resource_tracker_mage"] or false)
+    weakAura.ResourceTrackerWarlock:SetChecked(BUIIDatabase["resource_tracker_warlock"] or false)
+    weakAura.ResourceTrackerPaladin:SetChecked(BUIIDatabase["resource_tracker_paladin"] or false)
+    weakAura.ResourceTrackerMonk:SetChecked(BUIIDatabase["resource_tracker_monk"] or false)
+    weakAura.ResourceTrackerDeathKnight:SetChecked(BUIIDatabase["resource_tracker_deathknight"] or false)
+    weakAura.ResourceTrackerEvoker:SetChecked(BUIIDatabase["resource_tracker_evoker"] or false)
 
-    if BUIIDatabase["tooltip_expansion"] then
-      BUII_TooltipImprovements_Enabled()
-      defaultUI.TooltipExpansion:SetChecked(true)
-    end
+    -- Sub-toggles: stance tracker per-class checkboxes
+    weakAura.StanceTrackerDruid:SetChecked(BUIIDatabase["stance_tracker_druid"] or false)
+    weakAura.StanceTrackerPaladin:SetChecked(BUIIDatabase["stance_tracker_paladin"] or false)
+    weakAura.StanceTrackerRogue:SetChecked(BUIIDatabase["stance_tracker_rogue"] or false)
+    weakAura.StanceTrackerWarrior:SetChecked(BUIIDatabase["stance_tracker_warrior"] or false)
 
-    if BUIIDatabase["call_to_arms"] then
-      BUII_CallToArms_Enable()
-      weakAura.CallToArms:SetChecked(true)
-    end
-
-    if BUIIDatabase["ion_mode"] then
-      BUII_Ion_Enable()
-      weakAura.Ion:SetChecked(true)
-    end
-
-    if BUIIDatabase["gear_talent_loadout"] then
-      BUII_GearAndTalentLoadout_Enable()
-      weakAura.GearAndTalentLoadout:SetChecked(true)
-    end
-
-    if BUIIDatabase["combat_state"] then
-      BUII_CombatState_Enable()
-      weakAura.CombatState:SetChecked(true)
-    end
-
-    if BUIIDatabase["ready_check"] then
-      BUII_ReadyCheck_Enable()
-      weakAura.ReadyCheck:SetChecked(true)
-    end
-
-    if BUIIDatabase["tank_shield_warning"] then
-      BUII_TankShieldWarning_Enable()
-      weakAura.TankShieldWarning:SetChecked(true)
-    else
-      weakAura.TankShieldWarning:SetChecked(false)
-    end
-
-    if BUIIDatabase["group_tools"] then
-      BUII_GroupTools_Enable()
-      weakAura.GroupTools:SetChecked(true)
-    end
-
-    if BUIIDatabase["stance_tracker"] then
-      BUII_StanceTracker_Enable()
-      weakAura.StanceTracker:SetChecked(true)
-    else
-      weakAura.StanceTracker:SetChecked(false)
-    end
-
-    if BUIIDatabase["stat_panel"] then
-      BUII_StatPanel_Enable()
-      weakAura.StatPanel:SetChecked(true)
-    else
-      weakAura.StatPanel:SetChecked(false)
-    end
-
-    if BUIIDatabase["resource_tracker"] then
-      BUII_ResourceTracker_Enable()
-      weakAura.ResourceTracker:SetChecked(true)
-    else
-      weakAura.ResourceTracker:SetChecked(false)
-    end
-
-    if BUIIDatabase["resource_tracker_shaman"] then
-      weakAura.ResourceTrackerShaman:SetChecked(true)
-    else
-      weakAura.ResourceTrackerShaman:SetChecked(false)
-    end
-
-    if BUIIDatabase["resource_tracker_demonhunter"] then
-      weakAura.ResourceTrackerDemonHunter:SetChecked(true)
-    else
-      weakAura.ResourceTrackerDemonHunter:SetChecked(false)
-    end
-
-    if BUIIDatabase["resource_tracker_rogue"] then
-      weakAura.ResourceTrackerRogue:SetChecked(true)
-    else
-      weakAura.ResourceTrackerRogue:SetChecked(false)
-    end
-
-    if BUIIDatabase["resource_tracker_druid"] then
-      weakAura.ResourceTrackerDruid:SetChecked(true)
-    else
-      weakAura.ResourceTrackerDruid:SetChecked(false)
-    end
-
-    if BUIIDatabase["resource_tracker_mage"] then
-      weakAura.ResourceTrackerMage:SetChecked(true)
-    else
-      weakAura.ResourceTrackerMage:SetChecked(false)
-    end
-
-    if BUIIDatabase["resource_tracker_warlock"] then
-      weakAura.ResourceTrackerWarlock:SetChecked(true)
-    else
-      weakAura.ResourceTrackerWarlock:SetChecked(false)
-    end
-
-    if BUIIDatabase["resource_tracker_paladin"] then
-      weakAura.ResourceTrackerPaladin:SetChecked(true)
-    else
-      weakAura.ResourceTrackerPaladin:SetChecked(false)
-    end
-
-    if BUIIDatabase["resource_tracker_monk"] then
-      weakAura.ResourceTrackerMonk:SetChecked(true)
-    else
-      weakAura.ResourceTrackerMonk:SetChecked(false)
-    end
-
-    if BUIIDatabase["resource_tracker_deathknight"] then
-      weakAura.ResourceTrackerDeathKnight:SetChecked(true)
-    else
-      weakAura.ResourceTrackerDeathKnight:SetChecked(false)
-    end
-
-    if BUIIDatabase["resource_tracker_evoker"] then
-      weakAura.ResourceTrackerEvoker:SetChecked(true)
-    else
-      weakAura.ResourceTrackerEvoker:SetChecked(false)
-    end
-
-    if BUIIDatabase["stance_tracker_druid"] then
-      weakAura.StanceTrackerDruid:SetChecked(true)
-    else
-      weakAura.StanceTrackerDruid:SetChecked(false)
-    end
-
-    if BUIIDatabase["stance_tracker_paladin"] then
-      weakAura.StanceTrackerPaladin:SetChecked(true)
-    else
-      weakAura.StanceTrackerPaladin:SetChecked(false)
-    end
-
-    if BUIIDatabase["stance_tracker_rogue"] then
-      weakAura.StanceTrackerRogue:SetChecked(true)
-    else
-      weakAura.StanceTrackerRogue:SetChecked(false)
-    end
-
-    if BUIIDatabase["stance_tracker_warrior"] then
-      weakAura.StanceTrackerWarrior:SetChecked(true)
-    else
-      weakAura.StanceTrackerWarrior:SetChecked(false)
-    end
-
-    if BUIIDatabase["loot_spec"] then
-      BUII_LootSpec_Enable()
-      weakAura.LootSpec:SetChecked(true)
-    else
-      weakAura.LootSpec:SetChecked(false)
-    end
-
-    if BUIIDatabase["pet_reminder"] then
-      BUII_PetReminder_Enable()
-      weakAura.PetReminder:SetChecked(true)
-    else
-      weakAura.PetReminder:SetChecked(false)
-    end
-
-    if BUIIDatabase["missing_buff_reminder"] then
-      BUII_MissingBuffReminder_Enable()
-      weakAura.MissingBuffReminder:SetChecked(true)
-    else
-      weakAura.MissingBuffReminder:SetChecked(false)
-    end
-
-    if BUIIDatabase["moveable_arena_frames"] then
-      BUII_MoveableArenaEnemyFrames_Enable()
-      defaultUI.MoveableArenaFrames:SetChecked(true)
-    end
-
-    if BUIIDatabase["moveable_totem_frame"] then
-      BUII_MoveableTotemFrame_Enable()
-      defaultUI.MoveableTotemFrame:SetChecked(true)
-    end
-
-    if BUIIDatabase["icon_search"] then
-      BUII_IconSearch_Enable()
-      defaultUI.IconSearch:SetChecked(true)
-    end
-
+    -- Core-inline toggles: icon_tooltips and font_shadow (no enable/disable module)
     if BUIIDatabase["icon_tooltips"] then
       defaultUI.IconTooltips:SetChecked(true)
     end
@@ -968,17 +790,9 @@ function BUII_HealthClassColorCheckButton_OnClick(self)
   setPlayerClassColor()
 end
 
---- Toggle handler for Cast Bar Timers check button
----@param self CheckButton|any
----@return nil
+--- Toggle handler for Cast Bar Timers check button (XML global shim)
 function BUII_CastBarTimersCheckButton_OnClick(self)
-  if self:GetChecked() then
-    BUII_CastBarTimersEnable()
-    BUIIDatabase["castbar_timers"] = true
-  else
-    BUII_CastBarTimersDisable()
-    BUIIDatabase["castbar_timers"] = false
-  end
+  BUII_CreateToggleHandler("castbar_timers", BUII_CastBarTimersEnable, BUII_CastBarTimersDisable)(self)
 end
 
 --- Toggle handler for Cast Bar Icon check button
@@ -1017,82 +831,46 @@ function BUII_HideStanceBar_OnClick(self)
   setHideStanceBar(self:GetChecked())
 end
 
---- Toggle handler for Quick Keybind Shortcut check button
----@param self CheckButton|any
----@return nil
+--- Toggle handler for Quick Keybind Shortcut check button (XML global shim)
 function BUII_QuickKeybindShortcut_OnClick(self)
-  if self:GetChecked() then
-    BUII_QuickKeybindModeShortcutEnable()
-    BUIIDatabase["quick_keybind_shortcut"] = true
-  else
-    BUII_QuickKeybindModeShortcutDisable()
-    BUIIDatabase["quick_keybind_shortcut"] = false
-  end
+  BUII_CreateToggleHandler(
+    "quick_keybind_shortcut",
+    BUII_QuickKeybindModeShortcutEnable,
+    BUII_QuickKeybindModeShortcutDisable
+  )(self)
 end
 
---- Toggle handler for Improved Edit Mode check button
----@param self CheckButton|any
----@return nil
+--- Toggle handler for Improved Edit Mode check button (XML global shim)
 function BUII_ImprovedEditMode_OnClick(self)
-  if self:GetChecked() then
-    BUII_ImprovedEditModeEnable()
-    BUIIDatabase["improved_edit_mode"] = true
-  else
-    BUII_ImprovedEditModeDisable()
-    BUIIDatabase["improved_edit_mode"] = false
-  end
+  BUII_CreateToggleHandler("improved_edit_mode", BUII_ImprovedEditModeEnable, BUII_ImprovedEditModeDisable)(self)
 end
 
---- Toggle handler for Tooltip Expansion check button
----@param self CheckButton|any
----@return nil
+--- Toggle handler for Tooltip Expansion check button (XML global shim)
 function BUII_TooltipExpansion_OnClick(self)
-  if self:GetChecked() then
-    BUII_TooltipImprovements_Enabled()
-    BUIIDatabase["tooltip_expansion"] = true
-  else
-    BUII_TooltipImprovements_Disable()
-    BUIIDatabase["tooltip_expansion"] = false
-  end
+  BUII_CreateToggleHandler("tooltip_expansion", BUII_TooltipImprovements_Enabled, BUII_TooltipImprovements_Disable)(
+    self
+  )
 end
 
---- Toggle handler for Moveable Arena Frames check button
----@param self CheckButton|any
----@return nil
+--- Toggle handler for Moveable Arena Frames check button (XML global shim)
 function BUII_MoveableArenaFrames_OnClick(self)
-  if self:GetChecked() then
-    BUII_MoveableArenaEnemyFrames_Enable()
-    BUIIDatabase["moveable_arena_frames"] = true
-  else
-    BUII_MoveableArenaEnemyFrames_Disable()
-    BUIIDatabase["moveable_arena_frames"] = false
-  end
+  BUII_CreateToggleHandler(
+    "moveable_arena_frames",
+    BUII_MoveableArenaEnemyFrames_Enable,
+    BUII_MoveableArenaEnemyFrames_Disable
+  )(self)
 end
 
---- Toggle handler for Moveable Totem Frame check button
----@param self CheckButton|any
----@return nil
+--- Toggle handler for Moveable Totem Frame check button (XML global shim)
 function BUII_MoveableTotemFrame_OnClick(self)
-  if self:GetChecked() then
-    BUII_MoveableTotemFrame_Enable()
-    BUIIDatabase["moveable_totem_frame"] = true
-  else
-    BUII_MoveableTotemFrame_Disable()
-    BUIIDatabase["moveable_totem_frame"] = false
-  end
+  BUII_CreateToggleHandler("moveable_totem_frame", BUII_MoveableTotemFrame_Enable, BUII_MoveableTotemFrame_Disable)(
+    self
+  )
 end
 
---- Toggle handler for Icon Search check button
----@param self CheckButton|any
----@return nil
+--- Toggle handler for Icon Search check button (XML global shim)
 function BUII_IconSearch_OnClick(self)
-  if self:GetChecked() then
-    BUII_IconSearch_Enable()
-    BUIIDatabase["icon_search"] = true
-  else
-    BUII_IconSearch_Disable()
-    BUIIDatabase["icon_search"] = false
-  end
+  BUII_CreateToggleHandler("icon_search", BUII_IconSearch_Enable, BUII_IconSearch_Disable)(self)
 end
 
 --- Toggle handler for Icon Tooltips check button
@@ -1112,96 +890,46 @@ function BUII_IconTooltips_OnClick(self)
   end
 end
 
---- Toggle handler for Call To Arms check button
----@param self CheckButton|any
----@return nil
+--- Toggle handler for Call To Arms check button (XML global shim)
 function BUII_CallToArms_OnClick(self)
-  if self:GetChecked() then
-    BUII_CallToArms_Enable()
-    BUIIDatabase["call_to_arms"] = true
-  else
-    BUII_CallToArms_Disable()
-    BUIIDatabase["call_to_arms"] = false
-  end
+  BUII_CreateToggleHandler("call_to_arms", BUII_CallToArms_Enable, BUII_CallToArms_Disable)(self)
 end
 
---- Toggle handler for Ion Mode check button
----@param self CheckButton|any
----@return nil
+--- Toggle handler for Ion Mode check button (XML global shim)
 function BUII_Ion_OnClick(self)
-  if self:GetChecked() then
-    BUII_Ion_Enable()
-    BUIIDatabase["ion_mode"] = true
-  else
-    BUII_Ion_Disable()
-    BUIIDatabase["ion_mode"] = false
-  end
+  BUII_CreateToggleHandler("ion_mode", BUII_Ion_Enable, BUII_Ion_Disable)(self)
 end
 
---- Toggle handler for Gear And Talent Loadout check button
----@param self CheckButton|any
----@return nil
+--- Toggle handler for Gear And Talent Loadout check button (XML global shim)
 function BUII_GearAndTalentLoadout_OnClick(self)
-  if self:GetChecked() then
-    BUII_GearAndTalentLoadout_Enable()
-    BUIIDatabase["gear_talent_loadout"] = true
-  else
-    BUII_GearAndTalentLoadout_Disable()
-    BUIIDatabase["gear_talent_loadout"] = false
-  end
+  BUII_CreateToggleHandler("gear_talent_loadout", BUII_GearAndTalentLoadout_Enable, BUII_GearAndTalentLoadout_Disable)(
+    self
+  )
 end
 
+--- Toggle handler for Combat State check button (XML global shim)
 function BUII_CombatState_OnClick(self)
-  if self:GetChecked() then
-    BUII_CombatState_Enable()
-    BUIIDatabase["combat_state"] = true
-  else
-    BUII_CombatState_Disable()
-    BUIIDatabase["combat_state"] = false
-  end
+  BUII_CreateToggleHandler("combat_state", BUII_CombatState_Enable, BUII_CombatState_Disable)(self)
 end
 
+--- Toggle handler for Ready Check check button (XML global shim)
 function BUII_ReadyCheck_OnClick(self)
-  if self:GetChecked() then
-    BUII_ReadyCheck_Enable()
-    BUIIDatabase["ready_check"] = true
-  else
-    BUII_ReadyCheck_Disable()
-    BUIIDatabase["ready_check"] = false
-  end
+  BUII_CreateToggleHandler("ready_check", BUII_ReadyCheck_Enable, BUII_ReadyCheck_Disable)(self)
 end
 
+--- Toggle handler for Tank Shield Warning check button (XML global shim)
 function BUII_TankShieldWarning_OnClick(self)
-  if self:GetChecked() then
-    BUIIDatabase["tank_shield_warning"] = true
-    BUII_TankShieldWarning_Enable()
-  else
-    BUIIDatabase["tank_shield_warning"] = false
-    BUII_TankShieldWarning_Disable()
-  end
+  BUII_CreateToggleHandler("tank_shield_warning", BUII_TankShieldWarning_Enable, BUII_TankShieldWarning_Disable)(self)
 end
 
+--- Toggle handler for Group Tools check button (XML global shim)
 function BUII_GroupTools_OnClick(self)
-  if self:GetChecked() then
-    BUII_GroupTools_Enable()
-    BUIIDatabase["group_tools"] = true
-  else
-    BUII_GroupTools_Disable()
-    BUIIDatabase["group_tools"] = false
-  end
+  BUII_CreateToggleHandler("group_tools", BUII_GroupTools_Enable, BUII_GroupTools_Disable)(self)
 end
 
---- Toggle handler for Stance Tracker check button
----@param self CheckButton|any
----@return nil
+--- Toggle handler for Stance Tracker check button (XML global shim)
 function BUII_StanceTracker_OnClick(self)
-  if self:GetChecked() then
-    BUII_StanceTracker_Enable()
-    BUIIDatabase["stance_tracker"] = true
-  else
-    BUII_StanceTracker_Disable()
-    BUIIDatabase["stance_tracker"] = false
-  end
+  BUII_CreateToggleHandler("stance_tracker", BUII_StanceTracker_Enable, BUII_StanceTracker_Disable)(self)
 end
 
 --- Toggle handler for Druid Stance Tracker check button
@@ -1244,17 +972,9 @@ function BUII_StanceTrackerWarrior_OnClick(self)
   end
 end
 
---- Toggle handler for Resource Tracker check button
----@param self CheckButton|any
----@return nil
+--- Toggle handler for Resource Tracker check button (XML global shim)
 function BUII_ResourceTracker_OnClick(self)
-  if self:GetChecked() then
-    BUII_ResourceTracker_Enable()
-    BUIIDatabase["resource_tracker"] = true
-  else
-    BUII_ResourceTracker_Disable()
-    BUIIDatabase["resource_tracker"] = false
-  end
+  BUII_CreateToggleHandler("resource_tracker", BUII_ResourceTracker_Enable, BUII_ResourceTracker_Disable)(self)
 end
 
 --- Toggle handler for Shaman Resource Tracker check button
@@ -1357,56 +1077,26 @@ function BUII_ResourceTrackerEvoker_OnClick(self)
   end
 end
 
---- Toggle handler for Stat Panel check button
----@param self CheckButton|any
----@return nil
+--- Toggle handler for Stat Panel check button (XML global shim)
 function BUII_StatPanel_OnClick(self)
-  if self:GetChecked() then
-    BUII_StatPanel_Enable()
-    BUIIDatabase["stat_panel"] = true
-  else
-    BUII_StatPanel_Disable()
-    BUIIDatabase["stat_panel"] = false
-  end
+  BUII_CreateToggleHandler("stat_panel", BUII_StatPanel_Enable, BUII_StatPanel_Disable)(self)
 end
 
---- Toggle handler for Loot Spec check button
----@param self CheckButton|any
----@return nil
+--- Toggle handler for Loot Spec check button (XML global shim)
 function BUII_LootSpec_OnClick(self)
-  if self:GetChecked() then
-    BUII_LootSpec_Enable()
-    BUIIDatabase["loot_spec"] = true
-  else
-    BUII_LootSpec_Disable()
-    BUIIDatabase["loot_spec"] = false
-  end
+  BUII_CreateToggleHandler("loot_spec", BUII_LootSpec_Enable, BUII_LootSpec_Disable)(self)
 end
 
---- Toggle handler for Pet Reminder check button
----@param self CheckButton|any
----@return nil
+--- Toggle handler for Pet Reminder check button (XML global shim)
 function BUII_PetReminder_OnClick(self)
-  if self:GetChecked() then
-    BUII_PetReminder_Enable()
-    BUIIDatabase["pet_reminder"] = true
-  else
-    BUII_PetReminder_Disable()
-    BUIIDatabase["pet_reminder"] = false
-  end
+  BUII_CreateToggleHandler("pet_reminder", BUII_PetReminder_Enable, BUII_PetReminder_Disable)(self)
 end
 
---- Toggle handler for Missing Buff Reminder check button
----@param self CheckButton|any
----@return nil
+--- Toggle handler for Missing Buff Reminder check button (XML global shim)
 function BUII_MissingBuffReminder_OnClick(self)
-  if self:GetChecked() then
-    BUII_MissingBuffReminder_Enable()
-    BUIIDatabase["missing_buff_reminder"] = true
-  else
-    BUII_MissingBuffReminder_Disable()
-    BUIIDatabase["missing_buff_reminder"] = false
-  end
+  BUII_CreateToggleHandler("missing_buff_reminder", BUII_MissingBuffReminder_Enable, BUII_MissingBuffReminder_Disable)(
+    self
+  )
 end
 
 --- Toggle handler for Font Shadow check button

@@ -398,3 +398,10 @@ local DB_DEFAULTS = {
 function BUII_MoveableArenaEnemyFrames_InitDB()
   MergeDefaults(BUIIDatabase, DB_DEFAULTS)
 end
+
+BUII_RegisterModule({
+  dbKey = "moveable_arena_frames",
+  enable = BUII_MoveableArenaEnemyFrames_Enable,
+  disable = BUII_MoveableArenaEnemyFrames_Disable,
+  checkboxPath = "defaultUI.MoveableArenaFrames",
+})

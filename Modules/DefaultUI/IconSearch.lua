@@ -463,3 +463,10 @@ end
 function BUII_IconSearch_InitDB()
   -- No module-specific defaults needed
 end
+
+BUII_RegisterModule({
+  dbKey = "icon_search",
+  enable = BUII_IconSearch_Enable,
+  disable = BUII_IconSearch_Disable,
+  checkboxPath = "defaultUI.IconSearch",
+})

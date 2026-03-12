@@ -1,5 +1,8 @@
 -- local lua = require("lua")
 
+-- Load Utilities (includes MergeDefaults, BUII_Modules, BUII_RegisterModule)
+dofile("Utils.lua")
+
 -- Mock basic WoW Global APIs
 _G.GetTime = function()
   return 1000
@@ -464,17 +467,7 @@ _G.CopyTable = function(t)
   end
   return res
 end
-_G.MergeDefaults = function(target, defaults)
-  for key, defaultValue in pairs(defaults) do
-    if target[key] == nil then
-      if type(defaultValue) == "table" then
-        target[key] = CopyTable(defaultValue)
-      else
-        target[key] = defaultValue
-      end
-    end
-  end
-end
+
 _G.EditModeManagerFrame = {
   GetActiveLayoutInfo = function()
     return { layoutName = "Default" }

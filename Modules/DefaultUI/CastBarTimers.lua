@@ -148,3 +148,10 @@ local DB_DEFAULTS = {
 function BUII_CastBarTimers_InitDB()
   MergeDefaults(BUIIDatabase, DB_DEFAULTS)
 end
+
+BUII_RegisterModule({
+  dbKey = "castbar_timers",
+  enable = BUII_CastBarTimersEnable,
+  disable = BUII_CastBarTimersDisable,
+  checkboxPath = "defaultUI.CastBarTimers",
+})

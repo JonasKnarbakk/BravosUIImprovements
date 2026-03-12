@@ -386,3 +386,12 @@ function BUII_TankShieldWarning_InitDB()
     BUIIDatabase["tank_shield_warning_sound"] = SOUNDKIT.RAID_WARNING
   end
 end
+
+BUII_RegisterModule({
+  dbKey = "tank_shield_warning",
+  enable = BUII_TankShieldWarning_Enable,
+  disable = BUII_TankShieldWarning_Disable,
+  refresh = BUII_TankShieldWarning_Refresh,
+  checkboxPath = "weakAura.TankShieldWarning",
+  alwaysSetChecked = true,
+})

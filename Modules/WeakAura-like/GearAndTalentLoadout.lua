@@ -299,3 +299,11 @@ local DB_DEFAULTS = {
 function BUII_GearAndTalentLoadout_InitDB()
   MergeDefaults(BUIIDatabase, DB_DEFAULTS)
 end
+
+BUII_RegisterModule({
+  dbKey = "gear_talent_loadout",
+  enable = BUII_GearAndTalentLoadout_Enable,
+  disable = BUII_GearAndTalentLoadout_Disable,
+  refresh = BUII_GearAndTalentLoadout_Refresh,
+  checkboxPath = "weakAura.GearAndTalentLoadout",
+})

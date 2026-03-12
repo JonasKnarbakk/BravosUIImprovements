@@ -245,3 +245,39 @@ function BUII_FormatNumber(number)
     return tostring(math.floor(number))
   end
 end
+
+--- Applies default values to a saved variables table.
+--- Only sets values for keys that are currently nil (preserves user settings).
+--- This is a global utility so modules can use it in their InitDB() functions.
+---@param target table the saved variables table
+---@param defaults table<string, any> the defaults to apply
+function MergeDefaults(target, defaults)
+  for key, defaultValue in pairs(defaults) do
+    if target[key] == nil then
+      if type(defaultValue) == "table" then
+        target[key] = CopyTable(defaultValue)
+      else
+        target[key] = defaultValue
+      end
+    end
+  end
+end
+
+---@class BUIIModuleConfig
+---@field dbKey string           key in BUIIDatabase
+---@field enable function        called when enabled
+---@field disable function       called when disabled
+---@field refresh? function      optional: called on font/texture change
+---@field refreshTexture? boolean if true, also refresh on texture change
+---@field checkboxPath string    dot-path from options panel, e.g. "weakAura.Ion"
+---@field alwaysSetChecked? boolean if true, always SetChecked(false) when disabled at init
+
+---@type BUIIModuleConfig[]
+BUII_Modules = {}
+
+--- Registers a module with the central registry.
+--- Modules call this after defining their Enable/Disable/Refresh functions.
+---@param config BUIIModuleConfig
+function BUII_RegisterModule(config)
+  table.insert(BUII_Modules, config)
+end

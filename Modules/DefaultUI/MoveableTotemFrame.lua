@@ -154,3 +154,10 @@ local DB_DEFAULTS = {
 function BUII_MoveableTotemFrame_InitDB()
   MergeDefaults(BUIIDatabase, DB_DEFAULTS)
 end
+
+BUII_RegisterModule({
+  dbKey = "moveable_totem_frame",
+  enable = BUII_MoveableTotemFrame_Enable,
+  disable = BUII_MoveableTotemFrame_Disable,
+  checkboxPath = "defaultUI.MoveableTotemFrame",
+})

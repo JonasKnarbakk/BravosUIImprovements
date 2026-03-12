@@ -167,3 +167,11 @@ local DB_DEFAULTS = {
 function BUII_CombatState_InitDB()
   MergeDefaults(BUIIDatabase, DB_DEFAULTS)
 end
+
+BUII_RegisterModule({
+  dbKey = "combat_state",
+  enable = BUII_CombatState_Enable,
+  disable = BUII_CombatState_Disable,
+  refresh = BUII_CombatState_Refresh,
+  checkboxPath = "weakAura.CombatState",
+})

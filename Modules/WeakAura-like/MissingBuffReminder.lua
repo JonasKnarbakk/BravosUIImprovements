@@ -377,3 +377,12 @@ local DB_DEFAULTS = {
 function BUII_MissingBuffReminder_InitDB()
   MergeDefaults(BUIIDatabase, DB_DEFAULTS)
 end
+
+BUII_RegisterModule({
+  dbKey = "missing_buff_reminder",
+  enable = BUII_MissingBuffReminder_Enable,
+  disable = BUII_MissingBuffReminder_Disable,
+  refresh = BUII_MissingBuffReminder_Refresh,
+  checkboxPath = "weakAura.MissingBuffReminder",
+  alwaysSetChecked = true,
+})

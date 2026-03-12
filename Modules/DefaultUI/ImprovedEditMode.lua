@@ -1235,3 +1235,10 @@ local DB_DEFAULTS = {
 function BUII_ImprovedEditMode_InitDB()
   MergeDefaults(BUIIDatabase, DB_DEFAULTS)
 end
+
+BUII_RegisterModule({
+  dbKey = "improved_edit_mode",
+  enable = BUII_ImprovedEditModeEnable,
+  disable = BUII_ImprovedEditModeDisable,
+  checkboxPath = "defaultUI.ImprovedEditMode",
+})

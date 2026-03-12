@@ -552,3 +552,12 @@ function BUII_StanceTracker_InitDB()
   MergeDefaults(BUIIDatabase, DB_DEFAULTS)
   MergeDefaults(BUIICharacterDatabase, CHAR_DB_DEFAULTS)
 end
+
+BUII_RegisterModule({
+  dbKey = "stance_tracker",
+  enable = BUII_StanceTracker_Enable,
+  disable = BUII_StanceTracker_Disable,
+  refresh = BUII_StanceTracker_Refresh,
+  checkboxPath = "weakAura.StanceTracker",
+  alwaysSetChecked = true,
+})

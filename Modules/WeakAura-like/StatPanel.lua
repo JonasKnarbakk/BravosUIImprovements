@@ -445,3 +445,12 @@ function BUII_StatPanel_InitDB()
   MergeDefaults(BUIIDatabase, DB_DEFAULTS)
   MergeDefaults(BUIICharacterDatabase, CHAR_DB_DEFAULTS)
 end
+
+BUII_RegisterModule({
+  dbKey = "stat_panel",
+  enable = BUII_StatPanel_Enable,
+  disable = BUII_StatPanel_Disable,
+  refresh = BUII_StatPanel_Refresh,
+  checkboxPath = "weakAura.StatPanel",
+  alwaysSetChecked = true,
+})

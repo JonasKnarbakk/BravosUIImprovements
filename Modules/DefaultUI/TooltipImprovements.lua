@@ -183,3 +183,10 @@ local DB_DEFAULTS = {
 function BUII_TooltipImprovements_InitDB()
   MergeDefaults(BUIIDatabase, DB_DEFAULTS)
 end
+
+BUII_RegisterModule({
+  dbKey = "tooltip_expansion",
+  enable = BUII_TooltipImprovements_Enabled,
+  disable = BUII_TooltipImprovements_Disable,
+  checkboxPath = "defaultUI.TooltipExpansion",
+})

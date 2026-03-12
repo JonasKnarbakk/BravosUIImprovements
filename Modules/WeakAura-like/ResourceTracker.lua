@@ -1461,3 +1461,13 @@ function BUII_ResourceTracker_InitDB()
   MergeDefaults(BUIIDatabase, DB_DEFAULTS)
   MergeDefaults(BUIICharacterDatabase, CHAR_DB_DEFAULTS)
 end
+
+BUII_RegisterModule({
+  dbKey = "resource_tracker",
+  enable = BUII_ResourceTracker_Enable,
+  disable = BUII_ResourceTracker_Disable,
+  refresh = BUII_ResourceTracker_Refresh,
+  refreshTexture = true,
+  checkboxPath = "weakAura.ResourceTracker",
+  alwaysSetChecked = true,
+})

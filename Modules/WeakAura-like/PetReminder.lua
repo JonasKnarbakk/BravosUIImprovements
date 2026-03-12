@@ -421,3 +421,12 @@ local DB_DEFAULTS = {
 function BUII_PetReminder_InitDB()
   MergeDefaults(BUIIDatabase, DB_DEFAULTS)
 end
+
+BUII_RegisterModule({
+  dbKey = "pet_reminder",
+  enable = BUII_PetReminder_Enable,
+  disable = BUII_PetReminder_Disable,
+  refresh = BUII_PetReminder_Refresh,
+  checkboxPath = "weakAura.PetReminder",
+  alwaysSetChecked = true,
+})

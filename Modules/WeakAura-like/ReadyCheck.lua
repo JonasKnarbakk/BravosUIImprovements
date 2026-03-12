@@ -327,3 +327,11 @@ local DB_DEFAULTS = {
 function BUII_ReadyCheck_InitDB()
   MergeDefaults(BUIIDatabase, DB_DEFAULTS)
 end
+
+BUII_RegisterModule({
+  dbKey = "ready_check",
+  enable = BUII_ReadyCheck_Enable,
+  disable = BUII_ReadyCheck_Disable,
+  refresh = BUII_ReadyCheck_Refresh,
+  checkboxPath = "weakAura.ReadyCheck",
+})

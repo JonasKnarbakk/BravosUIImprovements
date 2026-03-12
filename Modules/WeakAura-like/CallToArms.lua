@@ -880,3 +880,11 @@ function BUII_CallToArms_InitDB()
 
   MergeDefaults(BUIIDatabase, DB_DEFAULTS)
 end
+
+BUII_RegisterModule({
+  dbKey = "call_to_arms",
+  enable = BUII_CallToArms_Enable,
+  disable = BUII_CallToArms_Disable,
+  refresh = BUII_CallToArms_Refresh,
+  checkboxPath = "weakAura.CallToArms",
+})

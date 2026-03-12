@@ -97,3 +97,10 @@ local DB_DEFAULTS = {
 function BUII_QuickKeybindModeShortcut_InitDB()
   MergeDefaults(BUIIDatabase, DB_DEFAULTS)
 end
+
+BUII_RegisterModule({
+  dbKey = "quick_keybind_shortcut",
+  enable = BUII_QuickKeybindModeShortcutEnable,
+  disable = BUII_QuickKeybindModeShortcutDisable,
+  checkboxPath = "defaultUI.QuickKeybindShortcut",
+})
