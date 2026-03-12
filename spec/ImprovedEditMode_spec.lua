@@ -27,6 +27,7 @@ _G.MultiBar7 = CreateFrame("Frame", "MultiBar7")
 _G.BagsBar = CreateFrame("Frame", "BagsBar")
 _G.MicroMenu = CreateFrame("Frame", "MicroMenu")
 _G.MicroMenuContainer = CreateFrame("Frame", "MicroMenuContainer")
+_G.MicroMenuContainer.Layout = function() end
 _G.QueueStatusButton = CreateFrame("Frame", "QueueStatusButton")
 
 -- Create child buttons for bars
@@ -106,6 +107,21 @@ describe("BravosUIImprovements ImprovedEditMode", function()
       BUII_ImprovedEditMode_InitDB()
 
       assert.are.equal(true, BUIIDatabase["improved_edit_mode"])
+    end)
+  end)
+
+  describe("QueueStatusButton regression (nil offsetX error)", function()
+    it("does not call QueueStatusButton:UpdatePosition() without arguments in Disable", function()
+      -- Mock UpdatePosition to simulate Blizzard's failing code if arguments are missing
+      _G.QueueStatusButton.UpdatePosition = function(self, pos, isHorizontal)
+        if pos == nil then
+          error("offsetX will be nil in Blizzard code because arguments are missing!")
+        end
+      end
+
+      -- This should not error. It would have errored before the fix.
+      local status, err = pcall(BUII_QueueStatusButton_Disable)
+      assert.is_true(status, "BUII_QueueStatusButton_Disable should not crash: " .. (err or ""))
     end)
   end)
 end)

@@ -372,20 +372,23 @@ local function setupQueueStatusButton()
         return
       end
       syncButtonToOverlay()
-
-      if MicroMenuContainer then
-        hooksecurefunc(MicroMenuContainer, "Layout", function(self)
-          -- Force container size to only match MicroMenu
-          -- Blizzard's Layout includes QueueStatusButton by default
-          if MicroMenu then
-            local mmWidth = MicroMenu:GetWidth() * MicroMenu:GetScale()
-            local mmHeight = MicroMenu:GetHeight() * MicroMenu:GetScale()
-            MicroMenuContainer:SetSize(math.max(mmWidth, 1), math.max(mmHeight, 1))
-          end
-        end)
-      end
-      queueStatusButtonHooksInstalled = true
     end)
+
+    if MicroMenuContainer then
+      hooksecurefunc(MicroMenuContainer, "Layout", function(self)
+        if not editModeImprovedEnabled then
+          return
+        end
+        -- Force container size to only match MicroMenu
+        -- Blizzard's Layout includes QueueStatusButton by default
+        if MicroMenu then
+          local mmWidth = MicroMenu:GetWidth() * MicroMenu:GetScale()
+          local mmHeight = MicroMenu:GetHeight() * MicroMenu:GetScale()
+          MicroMenuContainer:SetSize(math.max(mmWidth, 1), math.max(mmHeight, 1))
+        end
+      end)
+    end
+    queueStatusButtonHooksInstalled = true
   end
 end
 
@@ -415,9 +418,6 @@ function BUII_QueueStatusButton_Disable()
   end
   if QueueStatusButton and MicroMenuContainer then
     QueueStatusButton:SetParent(MicroMenuContainer)
-    if QueueStatusButton.UpdatePosition then
-      QueueStatusButton:UpdatePosition()
-    end
     MicroMenuContainer:Layout()
   end
 end
