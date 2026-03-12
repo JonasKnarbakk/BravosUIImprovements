@@ -1421,100 +1421,43 @@ function BUII_ResourceTracker_Refresh()
   end
 end
 
---- Initializes default DB values for Resource Tracker
----@return nil
-function BUII_ResourceTracker_InitDB()
-  -- BUIIDatabase initialization
-  if BUIIDatabase["resource_tracker"] == nil then
-    BUIIDatabase["resource_tracker"] = false
-  end
-  if BUIIDatabase["resource_tracker_shaman"] == nil then
-    BUIIDatabase["resource_tracker_shaman"] = true
-  end
-  if BUIIDatabase["resource_tracker_demonhunter"] == nil then
-    BUIIDatabase["resource_tracker_demonhunter"] = true
-  end
-  if BUIIDatabase["resource_tracker_warlock"] == nil then
-    BUIIDatabase["resource_tracker_warlock"] = true
-  end
-  if BUIIDatabase["resource_tracker_paladin"] == nil then
-    BUIIDatabase["resource_tracker_paladin"] = true
-  end
-  if BUIIDatabase["resource_tracker_monk"] == nil then
-    BUIIDatabase["resource_tracker_monk"] = true
-  end
-  if BUIIDatabase["resource_tracker_deathknight"] == nil then
-    BUIIDatabase["resource_tracker_deathknight"] = true
-  end
-  if BUIIDatabase["resource_tracker_evoker"] == nil then
-    BUIIDatabase["resource_tracker_evoker"] = true
-  end
-  if BUIIDatabase["resource_tracker_rogue"] == nil then
-    BUIIDatabase["resource_tracker_rogue"] = true
-  end
-  if BUIIDatabase["resource_tracker_druid"] == nil then
-    BUIIDatabase["resource_tracker_druid"] = true
-  end
-  if BUIIDatabase["resource_tracker_mage"] == nil then
-    BUIIDatabase["resource_tracker_mage"] = true
-  end
-  if BUIIDatabase["resource_tracker_show_border"] == nil then
-    BUIIDatabase["resource_tracker_show_border"] = false
-  end
-  if BUIIDatabase["resource_tracker_use_class_color"] == nil then
-    BUIIDatabase["resource_tracker_use_class_color"] = false
-  end
-  if BUIIDatabase["resource_tracker_hide_native"] == nil then
-    BUIIDatabase["resource_tracker_hide_native"] = false
-  end
-  if BUIIDatabase["resource_tracker_show_power_bar"] == nil then
-    BUIIDatabase["resource_tracker_show_power_bar"] = false
-  end
-  if BUIIDatabase["resource_tracker_power_bar_height"] == nil then
-    BUIIDatabase["resource_tracker_power_bar_height"] = 4
-  end
-  if BUIIDatabase["resource_tracker_power_bar_padding"] == nil then
-    BUIIDatabase["resource_tracker_power_bar_padding"] = 2
-  end
-  if BUIIDatabase["resource_tracker_power_bar_show_text"] == nil then
-    BUIIDatabase["resource_tracker_power_bar_show_text"] = false
-  end
-  if BUIIDatabase["resource_tracker_power_bar_font_size"] == nil then
-    BUIIDatabase["resource_tracker_power_bar_font_size"] = 12
-  end
-  if BUIIDatabase["resource_tracker_frame_strata"] == nil then
-    BUIIDatabase["resource_tracker_frame_strata"] = 2 -- LOW
-  end
+local DB_DEFAULTS = {
+  resource_tracker = false,
+  resource_tracker_shaman = true,
+  resource_tracker_demonhunter = true,
+  resource_tracker_warlock = true,
+  resource_tracker_paladin = true,
+  resource_tracker_monk = true,
+  resource_tracker_deathknight = true,
+  resource_tracker_evoker = true,
+  resource_tracker_rogue = true,
+  resource_tracker_druid = true,
+  resource_tracker_mage = true,
+  resource_tracker_show_border = false,
+  resource_tracker_use_class_color = false,
+  resource_tracker_hide_native = false,
+  resource_tracker_show_power_bar = false,
+  resource_tracker_power_bar_height = 4,
+  resource_tracker_power_bar_padding = 2,
+  resource_tracker_power_bar_show_text = false,
+  resource_tracker_power_bar_font_size = 12,
+  resource_tracker_frame_strata = 2,
+}
 
-  -- BUIICharacterDatabase initialization
-  if BUIICharacterDatabase["resource_tracker_use_char_settings"] == nil then
-    BUIICharacterDatabase["resource_tracker_use_char_settings"] = false
-  end
-  if BUIICharacterDatabase["resource_tracker_show_border"] == nil then
-    BUIICharacterDatabase["resource_tracker_show_border"] = false
-  end
-  if BUIICharacterDatabase["resource_tracker_use_class_color"] == nil then
-    BUIICharacterDatabase["resource_tracker_use_class_color"] = false
-  end
-  if BUIICharacterDatabase["resource_tracker_hide_native"] == nil then
-    BUIICharacterDatabase["resource_tracker_hide_native"] = false
-  end
-  if BUIICharacterDatabase["resource_tracker_show_power_bar"] == nil then
-    BUIICharacterDatabase["resource_tracker_show_power_bar"] = false
-  end
-  if BUIICharacterDatabase["resource_tracker_power_bar_height"] == nil then
-    BUIICharacterDatabase["resource_tracker_power_bar_height"] = 4
-  end
-  if BUIICharacterDatabase["resource_tracker_power_bar_padding"] == nil then
-    BUIICharacterDatabase["resource_tracker_power_bar_padding"] = 2
-  end
-  if BUIICharacterDatabase["resource_tracker_power_bar_show_text"] == nil then
-    BUIICharacterDatabase["resource_tracker_power_bar_show_text"] = false
-  end
-  if BUIICharacterDatabase["resource_tracker_power_bar_font_size"] == nil then
-    BUIICharacterDatabase["resource_tracker_power_bar_font_size"] = 12
-  end
-  if BUIICharacterDatabase["resource_tracker_frame_strata"] == nil then
-    BUIICharacterDatabase["resource_tracker_frame_strata"] = 2 -- LOW
-  end
+local CHAR_DB_DEFAULTS = {
+  resource_tracker_use_char_settings = false,
+  resource_tracker_show_border = false,
+  resource_tracker_use_class_color = false,
+  resource_tracker_hide_native = false,
+  resource_tracker_show_power_bar = false,
+  resource_tracker_power_bar_height = 4,
+  resource_tracker_power_bar_padding = 2,
+  resource_tracker_power_bar_show_text = false,
+  resource_tracker_power_bar_font_size = 12,
+  resource_tracker_frame_strata = 2,
+}
+
+function BUII_ResourceTracker_InitDB()
+  MergeDefaults(BUIIDatabase, DB_DEFAULTS)
+  MergeDefaults(BUIICharacterDatabase, CHAR_DB_DEFAULTS)
 end

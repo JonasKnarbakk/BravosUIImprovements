@@ -289,19 +289,13 @@ function BUII_GearAndTalentLoadout_Refresh()
   UpdateDisplay()
 end
 
---- Initializes default database values for the Gear and Talent Loadout feature
----@return nil
+local DB_DEFAULTS = {
+  gear_talent_loadout = false,
+  gear_talent_icon_size = 40,
+  gear_talent_font_size = 22,
+  gear_talent_vertical_spacing = 2,
+}
+
 function BUII_GearAndTalentLoadout_InitDB()
-  if BUIIDatabase["gear_talent_loadout"] == nil then
-    BUIIDatabase["gear_talent_loadout"] = false
-  end
-  if BUIIDatabase["gear_talent_icon_size"] == nil then
-    BUIIDatabase["gear_talent_icon_size"] = 40
-  end
-  if BUIIDatabase["gear_talent_font_size"] == nil then
-    BUIIDatabase["gear_talent_font_size"] = 22
-  end
-  if BUIIDatabase["gear_talent_vertical_spacing"] == nil then
-    BUIIDatabase["gear_talent_vertical_spacing"] = 2
-  end
+  MergeDefaults(BUIIDatabase, DB_DEFAULTS)
 end

@@ -151,20 +151,19 @@ function BUII_CombatState_Refresh()
   end
 end
 
---- Initializes default values into the SavedVariables database for Combat State
----@return nil
-function BUII_CombatState_InitDB()
-  if BUIIDatabase["combat_state"] == nil then
-    BUIIDatabase["combat_state"] = false
-  end
-  if BUIIDatabase["combat_state_layouts"] == nil or BUIIDatabase["combat_state_layouts"]["Default"] == nil then
-    BUIIDatabase["combat_state_layouts"] = BUIIDatabase["combat_state_layouts"] or {}
-    BUIIDatabase["combat_state_layouts"]["Default"] = {
+local DB_DEFAULTS = {
+  combat_state = false,
+  combat_state_layouts = {
+    Default = {
       point = "CENTER",
       relativePoint = "CENTER",
       offsetX = 0,
       offsetY = 150,
       scale = 1.0,
-    }
-  end
+    },
+  },
+}
+
+function BUII_CombatState_InitDB()
+  MergeDefaults(BUIIDatabase, DB_DEFAULTS)
 end

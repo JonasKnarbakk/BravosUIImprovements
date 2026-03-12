@@ -31,10 +31,10 @@ function BUII_Ion_Disable()
   frame:SetScript("OnEvent", nil)
 end
 
---- Initializes Ion mode setting defaults into the DB
----@return nil
+local DB_DEFAULTS = {
+  ion_mode = false,
+}
+
 function BUII_Ion_InitDB()
-  if BUIIDatabase["ion_mode"] == nil then
-    BUIIDatabase["ion_mode"] = false
-  end
+  MergeDefaults(BUIIDatabase, DB_DEFAULTS)
 end

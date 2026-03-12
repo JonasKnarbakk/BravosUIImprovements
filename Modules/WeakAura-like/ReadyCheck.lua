@@ -308,29 +308,22 @@ function BUII_ReadyCheck_Refresh()
   end
 end
 
---- Initializes default DB values for Ready Check
----@return nil
-function BUII_ReadyCheck_InitDB()
-  if BUIIDatabase["ready_check"] == nil then
-    BUIIDatabase["ready_check"] = false
-  end
-  if BUIIDatabase["ready_check_show_repair"] == nil then
-    BUIIDatabase["ready_check_show_repair"] = true
-  end
-  if BUIIDatabase["ready_check_repair_threshold"] == nil then
-    BUIIDatabase["ready_check_repair_threshold"] = 99
-  end
-  if BUIIDatabase["ready_check_repair_y_offset"] == nil then
-    BUIIDatabase["ready_check_repair_y_offset"] = 52
-  end
-  if BUIIDatabase["ready_check_layouts"] == nil or BUIIDatabase["ready_check_layouts"]["Default"] == nil then
-    BUIIDatabase["ready_check_layouts"] = BUIIDatabase["ready_check_layouts"] or {}
-    BUIIDatabase["ready_check_layouts"]["Default"] = {
+local DB_DEFAULTS = {
+  ready_check = false,
+  ready_check_show_repair = true,
+  ready_check_repair_threshold = 99,
+  ready_check_repair_y_offset = 52,
+  ready_check_layouts = {
+    Default = {
       point = "CENTER",
       relativePoint = "CENTER",
       offsetX = 0,
       offsetY = 150,
       scale = 1.0,
-    }
-  end
+    },
+  },
+}
+
+function BUII_ReadyCheck_InitDB()
+  MergeDefaults(BUIIDatabase, DB_DEFAULTS)
 end

@@ -147,10 +147,10 @@ function BUII_MoveableTotemFrame_Disable()
   end
 end
 
---- Initializes default DB values for Moveable Totem Frame
----@return nil
+local DB_DEFAULTS = {
+  moveable_totem_frame = false,
+}
+
 function BUII_MoveableTotemFrame_InitDB()
-  if BUIIDatabase["moveable_totem_frame"] == nil then
-    BUIIDatabase["moveable_totem_frame"] = false
-  end
+  MergeDefaults(BUIIDatabase, DB_DEFAULTS)
 end

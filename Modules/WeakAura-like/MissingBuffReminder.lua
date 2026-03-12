@@ -359,29 +359,21 @@ function BUII_MissingBuffReminder_Refresh()
   end
 end
 
---- Initializes default DB values for Missing Buff Reminder
----@return nil
-function BUII_MissingBuffReminder_InitDB()
-  if BUIIDatabase["missing_buff_reminder"] == nil then
-    BUIIDatabase["missing_buff_reminder"] = false
-  end
-  if BUIIDatabase["missing_buff_intensity"] == nil then
-    BUIIDatabase["missing_buff_intensity"] = 10
-  end
-  if BUIIDatabase["missing_buff_only_in_combat"] == nil then
-    BUIIDatabase["missing_buff_only_in_combat"] = false
-  end
-  if
-    BUIIDatabase["missing_buff_reminder_layouts"] == nil
-    or BUIIDatabase["missing_buff_reminder_layouts"]["Default"] == nil
-  then
-    BUIIDatabase["missing_buff_reminder_layouts"] = BUIIDatabase["missing_buff_reminder_layouts"] or {}
-    BUIIDatabase["missing_buff_reminder_layouts"]["Default"] = {
+local DB_DEFAULTS = {
+  missing_buff_reminder = false,
+  missing_buff_intensity = 10,
+  missing_buff_only_in_combat = false,
+  missing_buff_reminder_layouts = {
+    Default = {
       point = "CENTER",
       relativePoint = "CENTER",
       offsetX = 0,
       offsetY = 200,
       scale = 1.0,
-    }
-  end
+    },
+  },
+}
+
+function BUII_MissingBuffReminder_InitDB()
+  MergeDefaults(BUIIDatabase, DB_DEFAULTS)
 end

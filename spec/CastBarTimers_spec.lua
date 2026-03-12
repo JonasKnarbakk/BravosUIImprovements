@@ -33,19 +33,6 @@ describe("BravosUIImprovements CastBarTimers", function()
     _G.BUIIDatabase = {}
   end)
 
-  describe("BUII_CastBarTimers_InitDB", function()
-    it("initializes castbar_timers to false if nil", function()
-      BUII_CastBarTimers_InitDB()
-      assert.is_false(BUIIDatabase["castbar_timers"])
-    end)
-
-    it("keeps existing castbar_timers value", function()
-      BUIIDatabase["castbar_timers"] = true
-      BUII_CastBarTimers_InitDB()
-      assert.is_true(BUIIDatabase["castbar_timers"])
-    end)
-  end)
-
   describe("BUII_CastBarTimersEnable", function()
     it("creates and hooks timer frames, and realigns text", function()
       local setJustifySpy = spy.on(_G.PlayerCastingBarFrame.Text, "SetJustifyH")
@@ -110,6 +97,21 @@ describe("BravosUIImprovements CastBarTimers", function()
 
       -- 101.5 - 100.0 = 1.5 seconds remaining
       assert.spy(setTextSpy).was.called_with(textObj, "1.5")
+    end)
+  end)
+  describe("BUII_CastBarTimers_InitDB", function()
+    it("sets defaults for nil values", function()
+      _G.BUIIDatabase = {}
+      BUII_CastBarTimers_InitDB()
+
+      assert.are.equal(false, BUIIDatabase["castbar_timers"])
+    end)
+
+    it("preserves existing values", function()
+      _G.BUIIDatabase = { ["castbar_timers"] = true }
+      BUII_CastBarTimers_InitDB()
+
+      assert.are.equal(true, BUIIDatabase["castbar_timers"])
     end)
   end)
 end)

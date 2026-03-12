@@ -20,13 +20,6 @@ describe("BravosUIImprovements ReadyCheck", function()
     _G.BUIIDatabase = {}
   end)
 
-  describe("BUII_ReadyCheck_InitDB", function()
-    it("initializes missing database values", function()
-      BUII_ReadyCheck_InitDB()
-      assert.is_false(_G.BUIIDatabase["ready_check"])
-    end)
-  end)
-
   describe("BUII_ReadyCheck_Enable", function()
     it("initializes without crashing given standard mocks", function()
       BUII_ReadyCheck_Enable()
@@ -42,6 +35,23 @@ describe("BravosUIImprovements ReadyCheck", function()
   describe("BUII_ReadyCheck_Refresh", function()
     it("refreshes fonts without crashing", function()
       BUII_ReadyCheck_Refresh()
+    end)
+  end)
+  describe("BUII_ReadyCheck_InitDB", function()
+    it("sets defaults for nil values", function()
+      _G.BUIIDatabase = {}
+      BUII_ReadyCheck_InitDB()
+
+      assert.are.equal(false, BUIIDatabase["ready_check"])
+      assert.are.equal(true, BUIIDatabase["ready_check_show_repair"])
+      assert.are.equal(99, BUIIDatabase["ready_check_repair_threshold"])
+    end)
+
+    it("preserves existing values", function()
+      _G.BUIIDatabase = { ["ready_check"] = true }
+      BUII_ReadyCheck_InitDB()
+
+      assert.are.equal(true, BUIIDatabase["ready_check"])
     end)
   end)
 end)

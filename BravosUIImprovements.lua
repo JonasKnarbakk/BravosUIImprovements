@@ -51,6 +51,47 @@ _G.BUIIDatabase = BUIIDatabase or {}
 ---@field stance_bar_position table
 _G.BUIICharacterDatabase = BUIICharacterDatabase or {}
 
+--- Centralized default values for BUIIDatabase.
+--- Core defaults for BravosUIImprovements.lua settings only.
+--- Module-specific defaults are defined in each module's InitDB() function.
+---@type table<string, any>
+local BUII_CORE_DB_DEFAULTS = {
+  class_color = false,
+  castbar_icon = false,
+  castbar_on_top = false,
+  sane_bag_sort = false,
+  font_name = "Friz Quadrata TT",
+  font_outline = "OUTLINE",
+  font_shadow = true,
+  texture_name = "Solid",
+  icon_search = true,
+  icon_tooltips = true,
+}
+
+--- Core defaults for BUIICharacterDatabase settings managed by BravosUIImprovements.lua.
+---@type table<string, any>
+local BUII_CORE_CHAR_DB_DEFAULTS = {
+  hide_stance_bar = false,
+  -- stance_bar_position is set dynamically from StanceBar:GetPoint() at runtime
+}
+
+--- Applies default values to a saved variables table.
+--- Only sets values for keys that are currently nil (preserves user settings).
+--- This is a global utility so modules can use it in their InitDB() functions.
+---@param target table the saved variables table
+---@param defaults table<string, any> the defaults to apply
+function MergeDefaults(target, defaults)
+  for key, defaultValue in pairs(defaults) do
+    if target[key] == nil then
+      if type(defaultValue) == "table" then
+        target[key] = CopyTable(defaultValue)
+      else
+        target[key] = defaultValue
+      end
+    end
+  end
+end
+
 --- Handles Target Frame Spell Bar OnUpdate Event
 ---@param self Frame|any
 ---@param arg1 any
@@ -626,46 +667,19 @@ function BUII_OnEventHandler(self, event, arg1, ...)
     if arg1 == "BravosUIImprovements" then
       BUII_RegisterEditModeSystem()
 
-      -- Initialize BUIIDatabase if it doesn't exist
+      -- Initialize saved variables tables if they don't exist
       if BUIIDatabase == nil then
         BUIIDatabase = {}
       end
-
-      -- Initialize BUIICharacterDatabase if it doesn't exist
       if BUIICharacterDatabase == nil then
         BUIICharacterDatabase = {}
       end
 
-      -- Initialize main file settings (class_color, castbar_icon, castbar_on_top, sane_bag_sort, hide_stance_bar)
-      if BUIIDatabase["class_color"] == nil then
-        BUIIDatabase["class_color"] = false
-      end
-      if BUIIDatabase["castbar_icon"] == nil then
-        BUIIDatabase["castbar_icon"] = false
-      end
-      if BUIIDatabase["castbar_on_top"] == nil then
-        BUIIDatabase["castbar_on_top"] = false
-      end
-      if BUIIDatabase["sane_bag_sort"] == nil then
-        BUIIDatabase["sane_bag_sort"] = false
-      end
-      if BUIIDatabase["font_name"] == nil then
-        BUIIDatabase["font_name"] = "Friz Quadrata TT"
-      end
-      if BUIIDatabase["font_outline"] == nil then
-        BUIIDatabase["font_outline"] = "OUTLINE"
-      end
-      if BUIIDatabase["texture_name"] == nil then
-        BUIIDatabase["texture_name"] = "Solid"
-      end
-      if BUIIDatabase["font_shadow"] == nil then
-        BUIIDatabase["font_shadow"] = true
-      end
+      -- Apply core defaults (only sets keys that are currently nil)
+      MergeDefaults(BUIIDatabase, BUII_CORE_DB_DEFAULTS)
+      MergeDefaults(BUIICharacterDatabase, BUII_CORE_CHAR_DB_DEFAULTS)
 
-      -- Initialize character-specific main file settings
-      if BUIICharacterDatabase["hide_stance_bar"] == nil then
-        BUIICharacterDatabase["hide_stance_bar"] = false
-      end
+      -- Initialize stance bar position from current frame (requires runtime data)
       if BUIICharacterDatabase["stance_bar_position"] == nil then
         local point, _, relativePoint, xOffset, yOffset = StanceBar:GetPoint()
         BUIICharacterDatabase["stance_bar_position"] = {
@@ -677,11 +691,15 @@ function BUII_OnEventHandler(self, event, arg1, ...)
         }
       end
 
-      -- Call module initialization functions
+      -- Call each module's InitDB() to apply module-specific defaults
       BUII_CastBarTimers_InitDB()
       BUII_QuickKeybindModeShortcut_InitDB()
       BUII_ImprovedEditMode_InitDB()
+      BUII_QueueStatusButton_InitDB()
       BUII_TooltipImprovements_InitDB()
+      BUII_MoveableArenaEnemyFrames_InitDB()
+      BUII_MoveableTotemFrame_InitDB()
+      BUII_IconSearch_InitDB()
       BUII_CallToArms_InitDB()
       BUII_Ion_InitDB()
       BUII_GearAndTalentLoadout_InitDB()
@@ -695,14 +713,6 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       BUII_LootSpec_InitDB()
       BUII_PetReminder_InitDB()
       BUII_MissingBuffReminder_InitDB()
-      BUII_MoveableArenaEnemyFrames_InitDB()
-      BUII_MoveableTotemFrame_InitDB()
-      if BUIIDatabase["icon_search"] == nil then
-        BUIIDatabase["icon_search"] = true
-      end
-      if BUIIDatabase["icon_tooltips"] == nil then
-        BUIIDatabase["icon_tooltips"] = true
-      end
 
       -- Initialize font, outline, and texture dropdowns
       BUII_InitializeDropdowns()

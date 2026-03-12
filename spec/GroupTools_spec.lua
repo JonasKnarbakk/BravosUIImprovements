@@ -20,13 +20,6 @@ describe("BravosUIImprovements GroupTools", function()
     _G.BUIIDatabase = {}
   end)
 
-  describe("BUII_GroupTools_InitDB", function()
-    it("initializes missing database values", function()
-      BUII_GroupTools_InitDB()
-      assert.is_false(_G.BUIIDatabase["group_tools"])
-    end)
-  end)
-
   describe("BUII_GroupTools_Enable", function()
     it("initializes without crashing given standard mocks", function()
       BUII_GroupTools_Enable()
@@ -42,6 +35,21 @@ describe("BravosUIImprovements GroupTools", function()
   describe("BUII_GroupTools_Refresh", function()
     it("refreshes without crashing", function()
       BUII_GroupTools_Refresh()
+    end)
+  end)
+  describe("BUII_GroupTools_InitDB", function()
+    it("sets defaults for nil values", function()
+      _G.BUIIDatabase = {}
+      BUII_GroupTools_InitDB()
+
+      assert.are.equal(false, BUIIDatabase["group_tools"])
+    end)
+
+    it("preserves existing values", function()
+      _G.BUIIDatabase = { ["group_tools"] = true }
+      BUII_GroupTools_InitDB()
+
+      assert.are.equal(true, BUIIDatabase["group_tools"])
     end)
   end)
 end)

@@ -20,13 +20,6 @@ describe("BravosUIImprovements CombatState", function()
     _G.BUIIDatabase = {}
   end)
 
-  describe("BUII_CombatState_InitDB", function()
-    it("initializes missing database values", function()
-      BUII_CombatState_InitDB()
-      assert.is_false(_G.BUIIDatabase["combat_state"])
-    end)
-  end)
-
   describe("BUII_CombatState_Enable", function()
     it("creates frame, registers events, and shows frame", function()
       BUII_CombatState_Enable()
@@ -72,6 +65,21 @@ describe("BravosUIImprovements CombatState", function()
       -- If we reached this function without crash it means Text elements exist and setFont didn't crash
       local status = pcall(BUII_CombatState_Refresh)
       assert.is_true(status)
+    end)
+  end)
+  describe("BUII_CombatState_InitDB", function()
+    it("sets defaults for nil values", function()
+      _G.BUIIDatabase = {}
+      BUII_CombatState_InitDB()
+
+      assert.are.equal(false, BUIIDatabase["combat_state"])
+    end)
+
+    it("preserves existing values", function()
+      _G.BUIIDatabase = { ["combat_state"] = true }
+      BUII_CombatState_InitDB()
+
+      assert.are.equal(true, BUIIDatabase["combat_state"])
     end)
   end)
 end)

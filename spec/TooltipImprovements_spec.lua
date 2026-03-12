@@ -14,13 +14,6 @@ describe("BravosUIImprovements TooltipImprovements", function()
     _G.BUIIDatabase = {}
   end)
 
-  describe("BUII_TooltipImprovements_InitDB", function()
-    it("initializes missing database values", function()
-      BUII_TooltipImprovements_InitDB()
-      assert.is_false(_G.BUIIDatabase["tooltip_expansion"])
-    end)
-  end)
-
   local postCallback
 
   describe("BUII_TooltipImprovements_Enabled", function()
@@ -117,6 +110,21 @@ describe("BravosUIImprovements TooltipImprovements", function()
       end
       postCallback(_G.GameTooltip, {})
       assert.spy(addLineSpy).was.called_with(match.is_table(), "The War Within", 1, 0.4, 0)
+    end)
+  end)
+  describe("BUII_TooltipImprovements_InitDB", function()
+    it("sets defaults for nil values", function()
+      _G.BUIIDatabase = {}
+      BUII_TooltipImprovements_InitDB()
+
+      assert.are.equal(false, BUIIDatabase["tooltip_expansion"])
+    end)
+
+    it("preserves existing values", function()
+      _G.BUIIDatabase = { ["tooltip_expansion"] = true }
+      BUII_TooltipImprovements_InitDB()
+
+      assert.are.equal(true, BUIIDatabase["tooltip_expansion"])
     end)
   end)
 end)

@@ -22,13 +22,6 @@ describe("BravosUIImprovements StatPanel", function()
     _G.BUIICharacterDatabase = {}
   end)
 
-  describe("BUII_StatPanel_InitDB", function()
-    it("initializes missing database values", function()
-      BUII_StatPanel_InitDB()
-      assert.is_false(_G.BUIIDatabase["stat_panel"])
-    end)
-  end)
-
   describe("BUII_StatPanel_Enable", function()
     it("initializes without crashing given standard mocks", function()
       BUII_StatPanel_Enable()
@@ -44,6 +37,26 @@ describe("BravosUIImprovements StatPanel", function()
   describe("BUII_StatPanel_Refresh", function()
     it("refreshes without crashing", function()
       BUII_StatPanel_Refresh()
+    end)
+  end)
+  describe("BUII_StatPanel_InitDB", function()
+    it("sets defaults for nil values", function()
+      _G.BUIIDatabase = {}
+      _G.BUIICharacterDatabase = {}
+      BUII_StatPanel_InitDB()
+
+      assert.are.equal(false, BUIIDatabase["stat_panel"])
+      assert.are.equal(120, BUIIDatabase["stat_panel_width"])
+      assert.are.equal(false, BUIICharacterDatabase["stat_panel_use_char_settings"])
+    end)
+
+    it("preserves existing values", function()
+      _G.BUIIDatabase = { ["stat_panel"] = true }
+      _G.BUIICharacterDatabase = { ["stat_panel_use_char_settings"] = true }
+      BUII_StatPanel_InitDB()
+
+      assert.are.equal(true, BUIIDatabase["stat_panel"])
+      assert.are.equal(true, BUIICharacterDatabase["stat_panel_use_char_settings"])
     end)
   end)
 end)

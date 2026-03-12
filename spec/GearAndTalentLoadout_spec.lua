@@ -28,15 +28,6 @@ describe("BravosUIImprovements GearAndTalentLoadout", function()
     _G.BUIIDatabase.gear_talent_loadout = true
   end)
 
-  describe("BUII_GearAndTalentLoadout_InitDB", function()
-    it("initializes missing database values", function()
-      _G.BUIIDatabase = {}
-      BUII_GearAndTalentLoadout_InitDB()
-      assert.is_false(_G.BUIIDatabase["gear_talent_loadout"])
-      assert.are.equal(40, _G.BUIIDatabase["gear_talent_icon_size"])
-    end)
-  end)
-
   describe("BUII_GearAndTalentLoadout_Enable", function()
     it("initializes and shows the frames", function()
       -- Again, mostly testing that the initialization path doesn't crash given our mocks
@@ -47,6 +38,24 @@ describe("BravosUIImprovements GearAndTalentLoadout", function()
   describe("BUII_GearAndTalentLoadout_Disable", function()
     it("hides frame and clears events", function()
       pcall(BUII_GearAndTalentLoadout_Disable)
+    end)
+  end)
+  describe("BUII_GearAndTalentLoadout_InitDB", function()
+    it("sets defaults for nil values", function()
+      _G.BUIIDatabase = {}
+      BUII_GearAndTalentLoadout_InitDB()
+
+      assert.are.equal(false, BUIIDatabase["gear_talent_loadout"])
+      assert.are.equal(40, BUIIDatabase["gear_talent_icon_size"])
+      assert.are.equal(22, BUIIDatabase["gear_talent_font_size"])
+      assert.are.equal(2, BUIIDatabase["gear_talent_vertical_spacing"])
+    end)
+
+    it("preserves existing values", function()
+      _G.BUIIDatabase = { ["gear_talent_loadout"] = true }
+      BUII_GearAndTalentLoadout_InitDB()
+
+      assert.are.equal(true, BUIIDatabase["gear_talent_loadout"])
     end)
   end)
 end)

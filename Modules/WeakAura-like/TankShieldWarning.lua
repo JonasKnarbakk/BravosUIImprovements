@@ -372,19 +372,16 @@ end
 
 --- Initializes default DB values
 ---@return nil
+local DB_DEFAULTS = {
+  tank_shield_warning = false,
+  tank_shield_warning_threshold = 20,
+  tank_shield_warning_intensity = 20,
+  tank_shield_warning_audio = true,
+}
+
 function BUII_TankShieldWarning_InitDB()
-  if BUIIDatabase["tank_shield_warning"] == nil then
-    BUIIDatabase["tank_shield_warning"] = false
-  end
-  if BUIIDatabase["tank_shield_warning_threshold"] == nil then
-    BUIIDatabase["tank_shield_warning_threshold"] = 20
-  end
-  if BUIIDatabase["tank_shield_warning_intensity"] == nil then
-    BUIIDatabase["tank_shield_warning_intensity"] = 20
-  end
-  if BUIIDatabase["tank_shield_warning_audio"] == nil then
-    BUIIDatabase["tank_shield_warning_audio"] = true
-  end
+  MergeDefaults(BUIIDatabase, DB_DEFAULTS)
+  -- SOUNDKIT.RAID_WARNING requires runtime availability, so it can't go in the static table
   if BUIIDatabase["tank_shield_warning_sound"] == nil then
     BUIIDatabase["tank_shield_warning_sound"] = SOUNDKIT.RAID_WARNING
   end

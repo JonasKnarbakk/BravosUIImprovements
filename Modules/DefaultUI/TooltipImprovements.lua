@@ -176,10 +176,10 @@ function BUII_TooltipImprovements_Disable()
   enabled = false
 end
 
---- Initializes default DB values for Tooltip Improvements
----@return nil
+local DB_DEFAULTS = {
+  tooltip_expansion = false,
+}
+
 function BUII_TooltipImprovements_InitDB()
-  if BUIIDatabase["tooltip_expansion"] == nil then
-    BUIIDatabase["tooltip_expansion"] = false
-  end
+  MergeDefaults(BUIIDatabase, DB_DEFAULTS)
 end

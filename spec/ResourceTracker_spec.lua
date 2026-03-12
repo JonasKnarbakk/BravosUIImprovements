@@ -25,13 +25,6 @@ describe("BravosUIImprovements ResourceTracker", function()
     _G.BUIICharacterDatabase = {}
   end)
 
-  describe("BUII_ResourceTracker_InitDB", function()
-    it("initializes missing database values", function()
-      BUII_ResourceTracker_InitDB()
-      assert.is_false(_G.BUIIDatabase["resource_tracker"])
-    end)
-  end)
-
   describe("BUII_ResourceTracker_Enable", function()
     it("initializes without crashing given standard mocks", function()
       BUII_ResourceTracker_Enable()
@@ -47,6 +40,26 @@ describe("BravosUIImprovements ResourceTracker", function()
   describe("BUII_ResourceTracker_Refresh", function()
     it("refreshes without crashing", function()
       BUII_ResourceTracker_Refresh()
+    end)
+  end)
+  describe("BUII_ResourceTracker_InitDB", function()
+    it("sets defaults for nil values", function()
+      _G.BUIIDatabase = {}
+      _G.BUIICharacterDatabase = {}
+      BUII_ResourceTracker_InitDB()
+
+      assert.are.equal(false, BUIIDatabase["resource_tracker"])
+      assert.are.equal(true, BUIIDatabase["resource_tracker_shaman"])
+      assert.are.equal(false, BUIICharacterDatabase["resource_tracker_use_char_settings"])
+    end)
+
+    it("preserves existing values", function()
+      _G.BUIIDatabase = { ["resource_tracker"] = true }
+      _G.BUIICharacterDatabase = { ["resource_tracker_use_char_settings"] = true }
+      BUII_ResourceTracker_InitDB()
+
+      assert.are.equal(true, BUIIDatabase["resource_tracker"])
+      assert.are.equal(true, BUIICharacterDatabase["resource_tracker_use_char_settings"])
     end)
   end)
 end)

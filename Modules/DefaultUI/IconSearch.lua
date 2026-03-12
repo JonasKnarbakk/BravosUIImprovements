@@ -428,14 +428,6 @@ local function InitIconSearch()
   end
 end
 
---- Initializes default DB values for Icon Search
----@return nil
-function BUII_IconSearch_InitDB()
-  if BUIIDatabase["icon_search"] == nil then
-    BUIIDatabase["icon_search"] = true
-  end
-end
-
 --- Enables Icon Search
 ---@return nil
 function BUII_IconSearch_Enable()
@@ -466,4 +458,8 @@ function BUII_IconSearch_UpdateTooltips(enabled)
       frame.IconSelector:UpdateSelections()
     end
   end
+end
+
+function BUII_IconSearch_InitDB()
+  -- No module-specific defaults needed
 end

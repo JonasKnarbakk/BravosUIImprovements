@@ -418,61 +418,30 @@ function BUII_StatPanel_Refresh()
   end
 end
 
---- Initializes default DB values format
----@return nil
-function BUII_StatPanel_InitDB()
-  -- BUIIDatabase initialization
-  if BUIIDatabase["stat_panel"] == nil then
-    BUIIDatabase["stat_panel"] = false
-  end
-  if BUIIDatabase["stat_panel_width"] == nil then
-    BUIIDatabase["stat_panel_width"] = 120
-  end
-  if BUIIDatabase["stat_panel_font_size"] == nil then
-    BUIIDatabase["stat_panel_font_size"] = 12
-  end
-  if BUIIDatabase["stat_panel_row_spacing"] == nil then
-    BUIIDatabase["stat_panel_row_spacing"] = 2
-  end
-  if BUIIDatabase["stat_panel_background_opacity"] == nil then
-    BUIIDatabase["stat_panel_background_opacity"] = 0.5
-  end
-  if BUIIDatabase["stat_panel_show_title"] == nil then
-    BUIIDatabase["stat_panel_show_title"] = true
-  end
-  if BUIIDatabase["stat_panel_show_crit"] == nil then
-    BUIIDatabase["stat_panel_show_crit"] = true
-  end
-  if BUIIDatabase["stat_panel_show_haste"] == nil then
-    BUIIDatabase["stat_panel_show_haste"] = true
-  end
-  if BUIIDatabase["stat_panel_show_mastery"] == nil then
-    BUIIDatabase["stat_panel_show_mastery"] = true
-  end
-  if BUIIDatabase["stat_panel_show_vers"] == nil then
-    BUIIDatabase["stat_panel_show_vers"] = true
-  end
-  if BUIIDatabase["stat_panel_show_leech"] == nil then
-    BUIIDatabase["stat_panel_show_leech"] = true
-  end
-  if BUIIDatabase["stat_panel_show_speed"] == nil then
-    BUIIDatabase["stat_panel_show_speed"] = true
-  end
-  if BUIIDatabase["stat_panel_show_avoidance"] == nil then
-    BUIIDatabase["stat_panel_show_avoidance"] = true
-  end
-  if BUIIDatabase["stat_panel_show_dodge"] == nil then
-    BUIIDatabase["stat_panel_show_dodge"] = true
-  end
-  if BUIIDatabase["stat_panel_show_parry"] == nil then
-    BUIIDatabase["stat_panel_show_parry"] = true
-  end
-  if BUIIDatabase["stat_panel_show_block"] == nil then
-    BUIIDatabase["stat_panel_show_block"] = true
-  end
+local DB_DEFAULTS = {
+  stat_panel = false,
+  stat_panel_width = 120,
+  stat_panel_font_size = 12,
+  stat_panel_row_spacing = 2,
+  stat_panel_background_opacity = 0.5,
+  stat_panel_show_title = true,
+  stat_panel_show_crit = true,
+  stat_panel_show_haste = true,
+  stat_panel_show_mastery = true,
+  stat_panel_show_vers = true,
+  stat_panel_show_leech = true,
+  stat_panel_show_speed = true,
+  stat_panel_show_avoidance = true,
+  stat_panel_show_dodge = true,
+  stat_panel_show_parry = true,
+  stat_panel_show_block = true,
+}
 
-  -- BUIICharacterDatabase initialization
-  if BUIICharacterDatabase["stat_panel_use_char_settings"] == nil then
-    BUIICharacterDatabase["stat_panel_use_char_settings"] = false
-  end
+local CHAR_DB_DEFAULTS = {
+  stat_panel_use_char_settings = false,
+}
+
+function BUII_StatPanel_InitDB()
+  MergeDefaults(BUIIDatabase, DB_DEFAULTS)
+  MergeDefaults(BUIICharacterDatabase, CHAR_DB_DEFAULTS)
 end

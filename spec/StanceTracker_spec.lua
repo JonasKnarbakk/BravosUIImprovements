@@ -22,13 +22,6 @@ describe("BravosUIImprovements StanceTracker", function()
     _G.BUIICharacterDatabase = {}
   end)
 
-  describe("BUII_StanceTracker_InitDB", function()
-    it("initializes missing database values", function()
-      BUII_StanceTracker_InitDB()
-      assert.is_false(_G.BUIIDatabase["stance_tracker"])
-    end)
-  end)
-
   describe("BUII_StanceTracker_Enable", function()
     it("initializes without crashing given standard mocks", function()
       BUII_StanceTracker_Enable()
@@ -44,6 +37,26 @@ describe("BravosUIImprovements StanceTracker", function()
   describe("BUII_StanceTracker_Refresh", function()
     it("refreshes without crashing", function()
       BUII_StanceTracker_Refresh()
+    end)
+  end)
+  describe("BUII_StanceTracker_InitDB", function()
+    it("sets defaults for nil values", function()
+      _G.BUIIDatabase = {}
+      _G.BUIICharacterDatabase = {}
+      BUII_StanceTracker_InitDB()
+
+      assert.are.equal(false, BUIIDatabase["stance_tracker"])
+      assert.are.equal(20, BUIIDatabase["stance_tracker_icon_size"])
+      assert.are.equal(false, BUIICharacterDatabase["stance_tracker_use_char_settings"])
+    end)
+
+    it("preserves existing values", function()
+      _G.BUIIDatabase = { ["stance_tracker"] = true }
+      _G.BUIICharacterDatabase = { ["stance_tracker_use_char_settings"] = true }
+      BUII_StanceTracker_InitDB()
+
+      assert.are.equal(true, BUIIDatabase["stance_tracker"])
+      assert.are.equal(true, BUIICharacterDatabase["stance_tracker_use_char_settings"])
     end)
   end)
 end)

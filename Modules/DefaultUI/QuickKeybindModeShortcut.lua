@@ -90,10 +90,10 @@ function BUII_QuickKeybindModeShortcutDisable()
   enabled = false
 end
 
---- Initializes default DB values for Quick Keybind Shortcut
----@return nil
+local DB_DEFAULTS = {
+  quick_keybind_shortcut = false,
+}
+
 function BUII_QuickKeybindModeShortcut_InitDB()
-  if BUIIDatabase["quick_keybind_shortcut"] == nil then
-    BUIIDatabase["quick_keybind_shortcut"] = false
-  end
+  MergeDefaults(BUIIDatabase, DB_DEFAULTS)
 end

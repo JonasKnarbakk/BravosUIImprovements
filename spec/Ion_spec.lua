@@ -11,13 +11,6 @@ describe("BravosUIImprovements Ion", function()
     _G.BUIIDatabase = {}
   end)
 
-  describe("BUII_Ion_InitDB", function()
-    it("initializes missing database values", function()
-      BUII_Ion_InitDB()
-      assert.is_false(_G.BUIIDatabase["ion_mode"])
-    end)
-  end)
-
   describe("BUII_Ion_Enable", function()
     it("registers PLAYER_DEAD event and sets OnEvent script", function()
       local registerSpy = spy.on(_G.BUII_IonFrame, "RegisterEvent")
@@ -101,6 +94,21 @@ describe("BravosUIImprovements Ion", function()
 
       assert.spy(playSoundSpy).was_not_called()
       playSoundSpy:revert()
+    end)
+  end)
+  describe("BUII_Ion_InitDB", function()
+    it("sets defaults for nil values", function()
+      _G.BUIIDatabase = {}
+      BUII_Ion_InitDB()
+
+      assert.are.equal(false, BUIIDatabase["ion_mode"])
+    end)
+
+    it("preserves existing values", function()
+      _G.BUIIDatabase = { ["ion_mode"] = true }
+      BUII_Ion_InitDB()
+
+      assert.are.equal(true, BUIIDatabase["ion_mode"])
     end)
   end)
 end)

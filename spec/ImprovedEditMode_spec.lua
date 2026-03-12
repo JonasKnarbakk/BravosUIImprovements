@@ -46,14 +46,6 @@ describe("BravosUIImprovements ImprovedEditMode", function()
     _G.BUIICharacterDatabase = {}
   end)
 
-  describe("BUII_ImprovedEditMode_InitDB", function()
-    it("initializes missing database values", function()
-      BUII_ImprovedEditMode_InitDB()
-      assert.is_false(_G.BUIIDatabase["improved_edit_mode"])
-      assert.is_not_nil(_G.BUIIDatabase["queue_status_button_layouts"])
-    end)
-  end)
-
   describe("BUII_ImprovedEditModeEnable", function()
     it("initializes hooks without crashing", function()
       local status, err = pcall(BUII_ImprovedEditModeEnable)
@@ -99,6 +91,21 @@ describe("BravosUIImprovements ImprovedEditMode", function()
 
       -- We assume the C_Timer callback fired immediately via our setup mock
       assert.are.equal(_G.UIParent, _G.QueueStatusButton:GetParent())
+    end)
+  end)
+  describe("BUII_ImprovedEditMode_InitDB", function()
+    it("sets defaults for nil values", function()
+      _G.BUIIDatabase = {}
+      BUII_ImprovedEditMode_InitDB()
+
+      assert.are.equal(false, BUIIDatabase["improved_edit_mode"])
+    end)
+
+    it("preserves existing values", function()
+      _G.BUIIDatabase = { ["improved_edit_mode"] = true }
+      BUII_ImprovedEditMode_InitDB()
+
+      assert.are.equal(true, BUIIDatabase["improved_edit_mode"])
     end)
   end)
 end)

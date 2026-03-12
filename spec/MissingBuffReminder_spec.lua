@@ -22,13 +22,6 @@ describe("BravosUIImprovements MissingBuffReminder", function()
     _G.BUIICharacterDatabase = {}
   end)
 
-  describe("BUII_MissingBuffReminder_InitDB", function()
-    it("initializes missing database values", function()
-      BUII_MissingBuffReminder_InitDB()
-      assert.is_false(_G.BUIIDatabase["missing_buff_reminder"])
-    end)
-  end)
-
   describe("BUII_MissingBuffReminder_Enable", function()
     it("creates frame, registers events, and calls updateDisplay", function()
       _G.BUIIDatabase["missing_buff_reminder"] = true
@@ -150,6 +143,22 @@ describe("BravosUIImprovements MissingBuffReminder", function()
       onEvent(frame, "PLAYER_REGEN_ENABLED")
 
       assert.spy(hideSpy).was.called()
+    end)
+  end)
+  describe("BUII_MissingBuffReminder_InitDB", function()
+    it("sets defaults for nil values", function()
+      _G.BUIIDatabase = {}
+      BUII_MissingBuffReminder_InitDB()
+
+      assert.are.equal(false, BUIIDatabase["missing_buff_reminder"])
+      assert.are.equal(10, BUIIDatabase["missing_buff_intensity"])
+    end)
+
+    it("preserves existing values", function()
+      _G.BUIIDatabase = { ["missing_buff_reminder"] = true }
+      BUII_MissingBuffReminder_InitDB()
+
+      assert.are.equal(true, BUIIDatabase["missing_buff_reminder"])
     end)
   end)
 end)

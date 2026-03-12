@@ -858,11 +858,17 @@ function BUII_CallToArms_DumpIDs()
   end
 end
 
-function BUII_CallToArms_InitDB()
-  if BUIIDatabase["call_to_arms"] == nil then
-    BUIIDatabase["call_to_arms"] = false
-  end
+local DB_DEFAULTS = {
+  call_to_arms = false,
+  call_to_arms_dungeon_normal = true,
+  call_to_arms_dungeon_heroic = true,
+  call_to_arms_dungeon_timewalking = true,
+  call_to_arms_lfr = true,
+  call_to_arms_roles = { tank = true, healer = true, damage = true },
+  call_to_arms_sound_id = 17316,
+}
 
+function BUII_CallToArms_InitDB()
   -- Backwards compatibility: migrate old dungeon setting to new settings
   if BUIIDatabase["call_to_arms_dungeon"] ~= nil then
     local oldValue = BUIIDatabase["call_to_arms_dungeon"]
@@ -872,22 +878,5 @@ function BUII_CallToArms_InitDB()
     BUIIDatabase["call_to_arms_dungeon"] = nil -- Remove old key
   end
 
-  if BUIIDatabase["call_to_arms_dungeon_normal"] == nil then
-    BUIIDatabase["call_to_arms_dungeon_normal"] = true
-  end
-  if BUIIDatabase["call_to_arms_dungeon_heroic"] == nil then
-    BUIIDatabase["call_to_arms_dungeon_heroic"] = true
-  end
-  if BUIIDatabase["call_to_arms_dungeon_timewalking"] == nil then
-    BUIIDatabase["call_to_arms_dungeon_timewalking"] = true
-  end
-  if BUIIDatabase["call_to_arms_lfr"] == nil then
-    BUIIDatabase["call_to_arms_lfr"] = true
-  end
-  if BUIIDatabase["call_to_arms_roles"] == nil then
-    BUIIDatabase["call_to_arms_roles"] = { tank = true, healer = true, damage = true }
-  end
-  if BUIIDatabase["call_to_arms_sound_id"] == nil then
-    BUIIDatabase["call_to_arms_sound_id"] = 17316
-  end
+  MergeDefaults(BUIIDatabase, DB_DEFAULTS)
 end

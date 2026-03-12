@@ -422,6 +422,18 @@ function BUII_QueueStatusButton_Disable()
   end
 end
 
+local QSB_DB_DEFAULTS = {
+  queue_status_button_layouts = {
+    Default = {
+      point = "CENTER",
+      relativePoint = "CENTER",
+      offsetX = 0,
+      offsetY = 0,
+      scale = 1.0,
+    },
+  },
+}
+
 function BUII_QueueStatusButton_InitDB()
   -- Migrate old settings to new layout-based system
   if BUIIDatabase["queue_status_button_position"] then
@@ -440,17 +452,7 @@ function BUII_QueueStatusButton_InitDB()
     BUIIDatabase["queue_status_button_position"] = nil
   end
 
-  if BUIIDatabase["queue_status_button_layouts"] == nil then
-    BUIIDatabase["queue_status_button_layouts"] = {
-      Default = {
-        point = "CENTER",
-        relativePoint = "CENTER",
-        offsetX = 0,
-        offsetY = 0,
-        scale = 1.0,
-      },
-    }
-  end
+  MergeDefaults(BUIIDatabase, QSB_DB_DEFAULTS)
 end
 
 --- Add the additional settings to MainMenuBar
@@ -1226,9 +1228,10 @@ function BUII_ImprovedEditModeDisable()
   editModeImprovedEnabled = false
 end
 
+local DB_DEFAULTS = {
+  improved_edit_mode = false,
+}
+
 function BUII_ImprovedEditMode_InitDB()
-  if BUIIDatabase["improved_edit_mode"] == nil then
-    BUIIDatabase["improved_edit_mode"] = false
-  end
-  BUII_QueueStatusButton_InitDB()
+  MergeDefaults(BUIIDatabase, DB_DEFAULTS)
 end

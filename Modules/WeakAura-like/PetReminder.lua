@@ -409,25 +409,15 @@ function BUII_PetReminder_Refresh()
   end
 end
 
---- Initializes default DB values for Pet Reminder
----@return nil
+local DB_DEFAULTS = {
+  pet_reminder = false,
+  pet_reminder_intensity = 20,
+  pet_reminder_audio = false,
+  pet_reminder_sound = 0,
+  pet_reminder_idle_delay = 2,
+  pet_reminder_only_in_combat = false,
+}
+
 function BUII_PetReminder_InitDB()
-  if BUIIDatabase["pet_reminder"] == nil then
-    BUIIDatabase["pet_reminder"] = false
-  end
-  if BUIIDatabase["pet_reminder_intensity"] == nil then
-    BUIIDatabase["pet_reminder_intensity"] = 20
-  end
-  if BUIIDatabase["pet_reminder_audio"] == nil then
-    BUIIDatabase["pet_reminder_audio"] = false
-  end
-  if BUIIDatabase["pet_reminder_sound"] == nil then
-    BUIIDatabase["pet_reminder_sound"] = 0
-  end
-  if BUIIDatabase["pet_reminder_idle_delay"] == nil then
-    BUIIDatabase["pet_reminder_idle_delay"] = 2
-  end
-  if BUIIDatabase["pet_reminder_only_in_combat"] == nil then
-    BUIIDatabase["pet_reminder_only_in_combat"] = false
-  end
+  MergeDefaults(BUIIDatabase, DB_DEFAULTS)
 end

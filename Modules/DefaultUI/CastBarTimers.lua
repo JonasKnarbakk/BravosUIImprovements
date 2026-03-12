@@ -141,10 +141,10 @@ function BUII_CastBarTimersDisable()
   end
 end
 
---- Initializes CastBar timer defaults into the global DB
----@return nil
+local DB_DEFAULTS = {
+  castbar_timers = false,
+}
+
 function BUII_CastBarTimers_InitDB()
-  if BUIIDatabase["castbar_timers"] == nil then
-    BUIIDatabase["castbar_timers"] = false
-  end
+  MergeDefaults(BUIIDatabase, DB_DEFAULTS)
 end

@@ -275,20 +275,14 @@ function BUII_LootSpec_Refresh()
   end
 end
 
+local DB_DEFAULTS = {
+  loot_spec = false,
+  loot_spec_show_icon = true,
+  loot_spec_show_text = true,
+  loot_spec_icon_size = 20,
+  loot_spec_font_size = 12,
+}
+
 function BUII_LootSpec_InitDB()
-  if BUIIDatabase["loot_spec"] == nil then
-    BUIIDatabase["loot_spec"] = false
-  end
-  if BUIIDatabase["loot_spec_show_icon"] == nil then
-    BUIIDatabase["loot_spec_show_icon"] = true
-  end
-  if BUIIDatabase["loot_spec_show_text"] == nil then
-    BUIIDatabase["loot_spec_show_text"] = true
-  end
-  if BUIIDatabase["loot_spec_icon_size"] == nil then
-    BUIIDatabase["loot_spec_icon_size"] = 20
-  end
-  if BUIIDatabase["loot_spec_font_size"] == nil then
-    BUIIDatabase["loot_spec_font_size"] = 12
-  end
+  MergeDefaults(BUIIDatabase, DB_DEFAULTS)
 end

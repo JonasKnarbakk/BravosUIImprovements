@@ -330,10 +330,10 @@ function BUII_GroupTools_Refresh()
   -- To properly update buttons, we'd need to store them in frame or locals.
 end
 
---- Initializes default database values for Group Tools
----@return nil
+local DB_DEFAULTS = {
+  group_tools = false,
+}
+
 function BUII_GroupTools_InitDB()
-  if BUIIDatabase["group_tools"] == nil then
-    BUIIDatabase["group_tools"] = false
-  end
+  MergeDefaults(BUIIDatabase, DB_DEFAULTS)
 end

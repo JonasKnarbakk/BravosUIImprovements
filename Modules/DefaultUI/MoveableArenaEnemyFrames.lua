@@ -382,21 +382,19 @@ function BUII_MoveableArenaEnemyFrames_Disable()
   end
 end
 
---- Initializes default DB values for Moveable Arena Enemy Frames
----@return nil
+local DB_DEFAULTS = {
+  moveable_arena_frames = false,
+  arena_enemy_frames_layouts = {
+    Default = {
+      point = "TOPRIGHT",
+      relativePoint = "TOPRIGHT",
+      offsetX = -100,
+      offsetY = -200,
+      scale = 1.0,
+    },
+  },
+}
+
 function BUII_MoveableArenaEnemyFrames_InitDB()
-  if BUIIDatabase["moveable_arena_frames"] == nil then
-    BUIIDatabase["moveable_arena_frames"] = false
-  end
-  if BUIIDatabase["arena_enemy_frames_layouts"] == nil then
-    BUIIDatabase["arena_enemy_frames_layouts"] = {
-      Default = {
-        point = "TOPRIGHT",
-        relativePoint = "TOPRIGHT",
-        offsetX = -100,
-        offsetY = -200,
-        scale = 1.0,
-      },
-    }
-  end
+  MergeDefaults(BUIIDatabase, DB_DEFAULTS)
 end
