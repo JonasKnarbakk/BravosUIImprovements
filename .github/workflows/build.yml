@@ -6,11 +6,37 @@ on:
       - master
     tags:
       - '**'
-    paths-ignore:
-      - '.github/**'
+  pull_request:
+    branches:
+      - master
+  paths-ignore:
+    - '.github/**'
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout addon
+        uses: actions/checkout@v4
+
+      - name: Setup Lua
+        uses: leafo/gh-actions-lua@v12
+        with:
+          luaVersion: "5.1"
+
+      - name: Setup Luarocks
+        uses: leafo/gh-actions-luarocks@v6
+
+      - name: Install dependencies
+        run: |
+          luarocks install busted
+
+      - name: Run tests
+        run: busted .
+
   release:
+    needs: test
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/'))
     runs-on: ubuntu-latest
 
     steps:

@@ -2,7 +2,8 @@ package-as: BravosUIImprovements
 changelog-title: Bravo's UI Improvements
 
 ignore:
-  - package.sh
   - Screenshots
+  - package.sh
+  - spec
   - vscode-wow-api
   - wow-ui-source
