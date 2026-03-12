@@ -77,18 +77,26 @@ local function handleFocusFrameSpellBar_OnUpdate(self, arg1, ...)
   end
 end
 
+--- Resolves the correct health bar child frame from a unit frame's content area.
+--- Handles the Blizzard hierarchy variations (HealthBarArea vs HealthBarsContainer vs direct HealthBar).
+---@param contentMain table the PlayerFrameContentMain or TargetFrameContentMain frame
+---@return StatusBar|any|nil healthBar
+local function GetUnitHealthBar(contentMain)
+  if contentMain.HealthBarArea then
+    return contentMain.HealthBarArea.HealthBar
+  elseif contentMain.HealthBarsContainer then
+    return contentMain.HealthBarsContainer.HealthBar
+  else
+    return contentMain.HealthBar
+  end
+end
+
 --- Sets the player's health bar color based on their class
 ---@return nil
 local function setPlayerClassColor()
   local _, const_class = UnitClass("player")
   local r, g, b = GetClassColor(const_class)
-  local playerHealthBar
-
-  if PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarArea ~= nil then
-    playerHealthBar = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarArea.HealthBar
-  else
-    playerHealthBar = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer.HealthBar
-  end
+  local playerHealthBar = GetUnitHealthBar(PlayerFrame.PlayerFrameContent.PlayerFrameContentMain)
 
   local panel = BUIIOptionsPanel
   local defaultUIContent = panel.ScrollFrame.ScrollChild.DefaultUIContent
@@ -196,48 +204,29 @@ end
 ---@return nil
 local function handleUnitFramePortraitUpdate(self)
   local healthBar = self.HealthBar
+  local playerContentMain = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain
 
   if self.unit == "player" then
     -- If we're in a vehicle we want to color the pet frame instead
     -- as that's where the player will be
     if UnitInVehicle(self.unit) then
       healthBar = PetFrameHealthBar
-      if PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer.HealthBar ~= nil then
-        PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer.HealthBar:SetStatusBarDesaturated(
-          false
-        )
-        PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer.HealthBar:SetStatusBarColor(1, 1, 1)
-      else
-        PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBar:SetStatusBarDesaturated(false)
-        PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBar:SetStatusBarColor(1, 1, 1)
+      local playerBar = GetUnitHealthBar(playerContentMain)
+      if playerBar then
+        playerBar:SetStatusBarDesaturated(false)
+        playerBar:SetStatusBarColor(1, 1, 1)
       end
     else
-      if PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer.HealthBar ~= nil then
-        healthBar = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer.HealthBar
-      else
-        healthBar = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBar
-      end
+      healthBar = GetUnitHealthBar(playerContentMain)
     end
   elseif self.unit == "pet" then
     healthBar = PetFrameHealthBar
   elseif self.unit == "target" then
-    if TargetFrame.TargetFrameContent.TargetFrameContentMain.HealthBar ~= nil then
-      healthBar = TargetFrame.TargetFrameContent.TargetFrameContentMain.HealthBar
-    else
-      healthBar = TargetFrame.TargetFrameContent.TargetFrameContentMain.HealthBarsContainer.HealthBar
-    end
+    healthBar = GetUnitHealthBar(TargetFrame.TargetFrameContent.TargetFrameContentMain)
   elseif self.unit == "focus" then
-    if FocusFrame.TargetFrameContent.TargetFrameContentMain.HealthBar ~= nil then
-      healthBar = FocusFrame.TargetFrameContent.TargetFrameContentMain.HealthBar
-    else
-      healthBar = FocusFrame.TargetFrameContent.TargetFrameContentMain.HealthBarsContainer.HealthBar
-    end
+    healthBar = GetUnitHealthBar(FocusFrame.TargetFrameContent.TargetFrameContentMain)
   elseif self.unit == "vehicle" then
-    if PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarArea ~= nil then
-      healthBar = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarArea.HealthBar
-    else
-      healthBar = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBar
-    end
+    healthBar = GetUnitHealthBar(playerContentMain)
   end
 
   -- If we've reached this point and healthBar isn't valid bail out
@@ -589,10 +578,6 @@ function BUII_OnLoadHandler(self)
     addon.settingsCategory = mainCategory
     addon.defaultUICategory = defaultUICategory
     addon.weakAuraCategory = weakAuraCategory
-  else
-    -- Fallback for older interface
-    self.name = "Bravo's UI Improvements"
-    InterfaceOptions_AddCategory(self)
   end
 end
 

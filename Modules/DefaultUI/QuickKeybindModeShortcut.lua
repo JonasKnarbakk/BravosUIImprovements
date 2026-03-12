@@ -36,12 +36,8 @@ local function quickKeybinddModeAddButton()
     else
       -- Legacy way, will not be needed after The War Within releases (likely pre-patch)
       if not quickKeybindModeShortcutFrame then
-        quickKeybindModeShortcutFrame = CreateFrame(
-          "Button",
-          "BUII_QuickKeybindModeShortcutButton",
-          GameMenuFrame,
-          "GameMenuButtonTemplate"
-        ) --[[@as Button]]
+        quickKeybindModeShortcutFrame =
+          CreateFrame("Button", "BUII_QuickKeybindModeShortcutButton", GameMenuFrame, "GameMenuButtonTemplate") --[[@as Button]]
         quickKeybindModeShortcutFrame:SetText("Quick Keybind Mode")
         quickKeybindModeShortcutFrame:SetScript("OnClick", quickKeybindModeShortcutFrame_OnClick)
         quickKeybindModeShortcutFrame:SetPoint(

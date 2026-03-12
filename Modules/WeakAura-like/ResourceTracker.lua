@@ -16,11 +16,6 @@ local points = {}
 ---@type FontString|nil
 local counterText = nil
 
--- Ensure Enum exists
-if not Enum.EditModeSystem.BUII_ResourceTracker then
-  Enum.EditModeSystem.BUII_ResourceTracker = 9004
-end
-
 -- Configuration
 local CONFIG = {
   SHAMAN = {

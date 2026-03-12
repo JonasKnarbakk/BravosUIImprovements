@@ -28,7 +28,7 @@ describe("BravosUIImprovements TooltipImprovements", function()
       local addSpy = spy.on(_G.TooltipDataProcessor, "AddTooltipPostCall")
       BUII_TooltipImprovements_Enabled()
       assert.spy(addSpy).was.called_with(Enum.TooltipDataType.Item, match.is_function())
-      
+
       -- Extract for later tests
       postCallback = addSpy.calls[1].refs[2]
 

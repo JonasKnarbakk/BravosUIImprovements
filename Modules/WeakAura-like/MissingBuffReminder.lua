@@ -12,11 +12,6 @@ local animGroup = nil
 ---@type table|nil
 local currentMissingBuff = nil
 
--- Ensure Enum exists
-if not Enum.EditModeSystem.BUII_MissingBuffReminder then
-  Enum.EditModeSystem.BUII_MissingBuffReminder = 114
-end
-
 -- Define the global string for Edit Mode tooltip
 BUII_HUD_EDIT_MODE_MISSING_BUFF_REMINDER_LABEL = "Missing Buff Reminder"
 

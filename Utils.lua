@@ -1,19 +1,3 @@
--- Edit Mode Integration
-Enum.EditModeSystem.BUII_GroupTools = 101
-Enum.EditModeSystem.BUII_CallToArms = 102
-Enum.EditModeSystem.BUII_CombatState = 103
-Enum.EditModeSystem.BUII_GearAndTalentLoadout = 104
-Enum.EditModeSystem.BUII_ReadyCheck = 105
-Enum.EditModeSystem.BUII_StanceTracker = 106
-Enum.EditModeSystem.BUII_ResourceTracker = 107
-Enum.EditModeSystem.BUII_StatPanel = 108
-Enum.EditModeSystem.BUII_LootSpec = 109
-Enum.EditModeSystem.BUII_TankShieldWarning = 110
-Enum.EditModeSystem.BUIIQueueStatusButton = 111
-Enum.EditModeSystem.BUII_PetReminder = 112
-Enum.EditModeSystem.BUII_ArenaEnemyFrames = 113
-Enum.EditModeSystem.BUII_MissingBuffReminder = 114
-
 -- Default WoW fonts
 ---@type table[]
 local DEFAULT_FONTS = {
