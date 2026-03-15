@@ -11,4 +11,25 @@
       <Frame parentKey="Selection" inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
     </Frames>
   </Frame>
+
+  <Frame name="BUIITargetFrameSpellBarEditModeSystemTemplate" inherits="EditModeSystemTemplate" virtual="true">
+    <KeyValues>
+      <KeyValue key="system" value="Enum.EditModeSystem.BUII_TargetFrameSpellBar" type="global"/>
+      <KeyValue key="systemNameString" value="BUII_HUD_EDIT_MODE_TARGET_FRAME_SPELL_BAR_LABEL" type="global"/>
+    </KeyValues>
+    <Frames>
+      <Frame parentKey="Selection" inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
+    </Frames>
+  </Frame>
+
+  <Frame name="BUIIFocusFrameSpellBarEditModeSystemTemplate" inherits="EditModeSystemTemplate" virtual="true">
+    <KeyValues>
+      <KeyValue key="system" value="Enum.EditModeSystem.BUII_FocusFrameSpellBar" type="global"/>
+      <KeyValue key="systemNameString" value="BUII_HUD_EDIT_MODE_FOCUS_FRAME_SPELL_BAR_LABEL" type="global"/>
+    </KeyValues>
+    <Frames>
+      <Frame parentKey="Selection" inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
+    </Frames>
+  </Frame>
+
 </Ui>

@@ -55,6 +55,8 @@ Enum.EditModeSystem.BUII_TankShieldWarning = 121
 Enum.EditModeSystem.BUII_StatPanel = 122
 Enum.EditModeSystem.BUII_MissingBuffReminder = 123
 Enum.EditModeSystem.BUII_ResourceTracker = 124
+Enum.EditModeSystem.BUII_TargetFrameSpellBar = 125
+Enum.EditModeSystem.BUII_FocusFrameSpellBar = 126
 
 -- Centralized Edit Mode Labels
 _G["BUII_HUD_EDIT_MODE_GROUP_TOOLS_LABEL"] = "Group Tools"
@@ -70,6 +72,8 @@ _G["BUII_HUD_EDIT_MODE_TANK_SHIELD_WARNING_LABEL"] = "Tank Shield Warning"
 _G["BUII_HUD_EDIT_MODE_QUEUE_STATUS_BUTTON_LABEL"] = "Queue Status Button"
 _G["BUII_HUD_EDIT_MODE_ARENA_ENEMY_FRAMES_LABEL"] = "Arena Enemy Frames"
 _G["BUII_HUD_EDIT_MODE_TOTEM_FRAME_LABEL"] = "Totem Frame"
+_G["BUII_HUD_EDIT_MODE_TARGET_FRAME_SPELL_BAR_LABEL"] = "Target Castbar"
+_G["BUII_HUD_EDIT_MODE_FOCUS_FRAME_SPELL_BAR_LABEL"] = "Focus Castbar"
 
 --- Helper to get appropriate DB (Global or Character)
 ---@param dbKey string
