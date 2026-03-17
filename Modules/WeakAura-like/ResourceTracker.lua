@@ -51,6 +51,22 @@ local CONFIG = {
     progressFill = true,
     nativeFrame = "WarlockPowerFrame",
   },
+  WARRIOR = {
+    powerType = Enum.PowerType.Rage,
+    name = "Rage",
+    color = { r = 1.00, g = 0.00, b = 0.00 }, -- Rage Red
+    maxPoints = 0,
+    isBar = false,
+    hidePrimary = true,
+  },
+  PRIEST = {
+    powerType = Enum.PowerType.Mana,
+    name = "Mana",
+    color = { r = 0.00, g = 0.00, b = 1.00 }, -- Mana Blue
+    maxPoints = 0,
+    isBar = false,
+    hidePrimary = true,
+  },
   PALADIN = {
     powerType = Enum.PowerType.HolyPower,
     name = "Holy Power",
@@ -271,6 +287,16 @@ local function GetResourceState(config)
     end
     return power, partial, nil
 
+  -- Warrior Rage
+  elseif config.class == "WARRIOR" and config.powerType == Enum.PowerType.Rage then
+    local power = UnitPower("player", config.powerType)
+    return power, 0, nil
+
+  -- Priest Mana
+  elseif config.class == "PRIEST" and config.powerType == Enum.PowerType.Mana then
+    local power = UnitPower("player", config.powerType)
+    return power, 0, nil
+
     -- Rogue Combo Points
   elseif config.class == "ROGUE" and config.powerType == Enum.PowerType.ComboPoints then
     local power = UnitPower("player", config.powerType)
@@ -386,7 +412,7 @@ local function UpdateNativeFrameVisibility()
     return
   end
 
-  local shouldHide = db.resource_tracker_hide_native or false
+  -- local shouldHide = db.resource_tracker_hide_native or false
   local nativeFrame = _G[config.nativeFrame]
 
   if nativeFrame then
@@ -609,6 +635,11 @@ local function UpdatePoints()
       borderColor = { r = 0, g = 0, b = 0, a = 1 }
     end
     frame.ResourceBar:SetBackdropBorderColor(borderColor.r, borderColor.g, borderColor.b, borderColor.a)
+  elseif config and config.hidePrimary then
+    for i = 1, #points do
+      points[i]:Hide()
+    end
+    frame.ResourceBar.ProgressBar:Hide()
   else
     frame.ResourceBar:Hide()
     for i = 1, #points do
@@ -897,7 +928,7 @@ local function UpdatePoints()
   end
 
   -- Update Counter Text
-  if db.showText then
+  if db.showText and config and not config.hidePrimary then
     counterText:Show()
     counterText:ClearAllPoints()
     -- Center the text based on the total width and the height of the resource points (excluding power bar)
@@ -945,19 +976,10 @@ local function UpdatePoints()
   end
 end
 
----@type table|nil
-local updateTimer = nil
-
 --- Requests an update of points on the next frame
 ---@return nil
 local function RequestUpdatePoints()
-  if updateTimer then
-    return
-  end
-  updateTimer = C_Timer.After(0, function()
-    updateTimer = nil
-    UpdatePoints()
-  end)
+  RunNextFrame(UpdatePoints)
 end
 
 --- Event handler for resource tracker
@@ -1324,7 +1346,12 @@ local function BUII_ResourceTracker_Initialize()
     },
   }
 
-  BUII_EditModeUtils:AddScaleSetting(settingsConfig, enum_ResourceTrackerSetting_Scale, "resource_tracker_scale")
+  BUII_EditModeUtils:AddScaleSetting(
+    settingsConfig,
+    enum_ResourceTrackerSetting_Scale,
+    "Scale",
+    "resource_tracker_scale"
+  )
 
   BUII_EditModeUtils:AddCharacterSpecificSetting(settingsConfig, "resource_tracker", UpdatePoints)
 

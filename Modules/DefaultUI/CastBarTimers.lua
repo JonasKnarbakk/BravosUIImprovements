@@ -7,6 +7,8 @@ local function GetCastBarTimersDB()
   return BUII_EditModeUtils:GetDB("castbar_timers")
 end
 
+local myFormatter
+
 --- Creates a child frame specifically to hold the timer text fontstring
 ---@param parent Frame
 ---@param xOffset number
@@ -45,10 +47,12 @@ local hooks = {
   target = false,
   focus = false,
 }
-local enum_FrameSpellBarSetting_Icon = 10
-local enum_FrameSpellBarSetting_Scale = 11
 
-local function syncFrameSpellBarToOverlay(self, parent)
+local enum_FrameSpellBarSetting_Scale = 10
+local enum_FrameSpellBarSetting_Icon = 11
+local enum_FrameSpellBarSetting_CastTime = 12
+
+local function syncFrameSpellBar(self, parent)
   if not self or not parent or self.buiiTransformUpdateInProgress then
     return
   end
@@ -66,6 +70,21 @@ local function syncFrameSpellBarToOverlay(self, parent)
     return
   end
   -- self.IsUserPlaced = true
+  local showIcon = GetCastBarTimersDB()["improved_castbars_icon_" .. self:GetName()]
+  if showIcon then
+    self.Icon:Show()
+  else
+    self.Icon:Hide()
+  end
+
+  if _G["BUIICastBarTimer" .. self:GetName()] then
+    local showCastTime = GetCastBarTimersDB()["improved_castbars_cast_time_" .. self:GetName()]
+    if showCastTime then
+      _G["BUIICastBarTimer" .. self:GetName()]:Show()
+    else
+      _G["BUIICastBarTimer" .. self:GetName()]:Hide()
+    end
+  end
 
   local scale = GetCastBarTimersDB()["improved_castbars_scale_" .. self:GetName()]
   if scale then
@@ -123,10 +142,25 @@ local function detachAndSetupCastBar(frameKey, frameOverlayTemplate, systemEnum,
         db["improved_castbars_icon_" .. frame:GetName()] = (val == 1)
       end,
     },
+    {
+      setting = enum_FrameSpellBarSetting_CastTime,
+      name = "Show Cast Time",
+      type = Enum.EditModeSettingDisplayType.Checkbox,
+      key = "improved_castbars_cast_time_" .. frame:GetName(),
+      getter = function(f)
+        local db = GetCastBarTimersDB()
+        return db["improved_castbars_cast_time_" .. frame:GetName()] and 1 or 0
+      end,
+      setter = function(f, val)
+        local db = GetCastBarTimersDB()
+        db["improved_castbars_cast_time_" .. frame:GetName()] = (val == 1)
+      end,
+    },
   }
   BUII_EditModeUtils:AddScaleSetting(
     settingsConfig,
     enum_FrameSpellBarSetting_Scale,
+    "Bar Size",
     "improved_castbars_scale_" .. frames[frameKey]:GetName(),
     function(f, val)
       if frame then
@@ -134,7 +168,7 @@ local function detachAndSetupCastBar(frameKey, frameOverlayTemplate, systemEnum,
         local db = GetCastBarTimersDB()
         db["improved_castbars_scale_" .. frame:GetName()] = val
       end
-      syncFrameSpellBarToOverlay(frame, frameOverlay)
+      syncFrameSpellBar(frame, frameOverlay)
     end
   )
   BUII_EditModeUtils:RegisterSystem(
@@ -145,17 +179,17 @@ local function detachAndSetupCastBar(frameKey, frameOverlayTemplate, systemEnum,
     "improved_castbars_" .. frame:GetName(),
     {
       OnApplySettings = function()
-        syncFrameSpellBarToOverlay(frame, frameOverlay)
+        syncFrameSpellBar(frame, frameOverlay)
       end,
       OnEditModeEnter = function()
         frame:Show()
         frameOverlay:Show()
-        syncFrameSpellBarToOverlay(frame, frameOverlay)
+        syncFrameSpellBar(frame, frameOverlay)
       end,
       OnEditModeExit = function()
         -- frame:Hide()
         frameOverlay:Hide()
-        syncFrameSpellBarToOverlay(frame, frameOverlay)
+        syncFrameSpellBar(frame, frameOverlay)
       end,
     }
   )
@@ -164,12 +198,12 @@ local function detachAndSetupCastBar(frameKey, frameOverlayTemplate, systemEnum,
     -- Ensure the actual castbar follows the overlay
     overlays[frameKey]:HookScript("OnUpdate", function()
       if EditModeManagerFrame and EditModeManagerFrame:IsShown() then
-        syncFrameSpellBarToOverlay(frame, frameOverlay)
+        syncFrameSpellBar(frame, frameOverlay)
       end
     end)
     -- Prevent Blizzard from moving the frame back
     hooksecurefunc(frames[frameKey], "SetPoint", function(self)
-      syncFrameSpellBarToOverlay(self, frameOverlay)
+      syncFrameSpellBar(self, frameOverlay)
     end)
     hooks[frameKey] = true
   end
@@ -220,28 +254,45 @@ end
 ---@param timerTextFrame Frame|any
 ---@return nil
 local function setTimerText(castBarFrame, timerTextFrame)
-  local timeLeft = nil
-  local unit = castBarFrame.unit
-  if unit then
-    local currentTime = GetTime()
-    local _, _, _, _, endTime = UnitCastingInfo(unit)
-    if not endTime then
-      _, _, _, _, endTime = UnitChannelInfo(unit)
-    end
-    if endTime then
-      local success, result = pcall(calculateTimeLeft, endTime, currentTime)
-      if success then
-        timeLeft = result
+  if not timerTextFrame.text then
+    return
+  end
+
+  -- Check if the frame is actively casting, channeling, or empowering
+  if castBarFrame.casting or castBarFrame.channeling or castBarFrame.empowering then
+    local remaining
+
+    if castBarFrame.GetTimerDuration then
+      local durationObject = castBarFrame:GetTimerDuration()
+      if durationObject then
+        remaining = durationObject:GetRemainingDuration()
       end
+    end
+
+    if not remaining and castBarFrame.unit then
+      local name, _, _, _, endTimeMS = UnitCastingInfo(castBarFrame.unit)
+
+      -- If not casting, check if they are channeling
+      if not name then
+        name, _, _, _, endTimeMS = UnitChannelInfo(castBarFrame.unit)
+      end
+
+      -- If we found an active cast/channel, calculate the remaining time
+      if name and endTimeMS and not issecretvalue(endTimeMS) then
+        -- endTimeMS is in milliseconds, GetTime() is in seconds
+        remaining = (endTimeMS / 1000) - GetTime()
+      end
+    end
+
+    -- Update the text if we found a valid remaining time
+    if remaining and remaining >= 0 then
+      timerTextFrame.text:SetText(string.format("%.1f s", remaining))
+      return
     end
   end
 
-  if timeLeft then
-    timeLeft = (timeLeft < 0.1) and 0.01 or timeLeft
-    timerTextFrame.text:SetText(string.format("%.1f s", timeLeft))
-  else
-    timerTextFrame.text:SetText("")
-  end
+  -- If we aren't casting or couldn't get a time, clear the text
+  timerTextFrame.text:SetText("")
 end
 
 --- OnUpdate handler for the Player casting bar
@@ -254,17 +305,15 @@ end
 
 --- OnUpdate handler for the Target casting bar
 ---@param self Frame|any
----@param ... any
 ---@return nil
-local function handleTargetSpellBar_OnUpdate(self, ...)
+local function handleTargetSpellBar_OnUpdate(self)
   setTimerText(self, _G["BUIICastBarTimerTargetFrameSpellBar"])
 end
 
 --- OnUpdate handler for the Focus casting bar
 ---@param self Frame|any
----@param ... any
 ---@return nil
-local function handleFocusSpellBar_OnUpdate(self, ...)
+local function handleFocusSpellBar_OnUpdate(self)
   setTimerText(self, _G["BUIICastBarTimerFocusFrameSpellBar"])
 end
 
@@ -272,6 +321,16 @@ end
 ---@return nil
 function BUII_CastBarTimersEnable()
   if not castBarTimersInitialized then
+    myFormatter = CreateFromMixins(SecondsFormatterMixin)
+    myFormatter:Init(0, SecondsFormatter.Abbreviation.OneLetter, false, true, false)
+    if myFormatter.SetDesiredUnitCount then
+      myFormatter:SetDesiredUnitCount(1)
+    end
+    -- Force the formatter to show decimals when under a certain threshold
+    -- In the 12.0.5 update, this is the official way to get "8.7" style text
+    if myFormatter.SetFractionalSecondsThreshold then
+      myFormatter:SetFractionalSecondsThreshold(60) -- Show 0.1s precision if under 60 seconds
+    end
     -- PlayerCastingBarFrame.CastTimeText:SetPoint(PlayerCastingBarFrame, nil, nil, -14, -17)
     repositionPlayerCastBarText()
     detachAndSetupCastBar(
@@ -297,7 +356,7 @@ function BUII_CastBarTimersEnable()
 
     -- if targetFrameSpellBarOverlay then
     --   -- Delay unparenting to ensure it happens after Blizzard's initial layout
-    --   C_Timer.After(0, function()
+    --   RunNextFrame(function()
     --     if TargetFrameSpellBar:GetParent() ~= UIParent then
     --       TargetFrameSpellBar:SetParent(UIParent)
     --     end
@@ -313,7 +372,7 @@ function BUII_CastBarTimersEnable()
 
   -- _G["BUIICastBarTimerPlayerCastingBarFrame"]:Show()
   _G["BUIICastBarTimerTargetFrameSpellBar"]:Show()
-  _G["BUIICastBarTimerFocusFrameSpellBar"]:Show()
+  -- _G["BUIICastBarTimerFocusFrameSpellBar"]:Show()
 end
 
 --- Disables castbar timers and hides them
@@ -328,9 +387,19 @@ function BUII_CastBarTimersDisable()
 end
 
 local DB_DEFAULTS = {
-  castbar_timers = false,
-  ["improved_castbars_TargetFrameSpellBar"] = { scale = 1, pos = { point = "CENTER", x = 0, y = 0 } },
-  ["improved_castbars_FocusFrameSpellBar"] = { scale = 1, pos = { point = "CENTER", x = 0, y = 0 } },
+  improved_castbars = false,
+  ["improved_castbars_icon_TargetFrameSpellBar"] = {
+    cast_time = false,
+    icon = true,
+    scale = 1,
+    pos = { point = "CENTER", x = 0, y = 0 },
+  },
+  ["improved_castbars_icon_FocusFrameSpellBar"] = {
+    cast_time = false,
+    icon = true,
+    scale = 1,
+    pos = { point = "CENTER", x = 0, y = 0 },
+  },
 }
 
 function BUII_CastBarTimers_InitDB()

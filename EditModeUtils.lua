@@ -72,6 +72,7 @@ _G["BUII_HUD_EDIT_MODE_TANK_SHIELD_WARNING_LABEL"] = "Tank Shield Warning"
 _G["BUII_HUD_EDIT_MODE_QUEUE_STATUS_BUTTON_LABEL"] = "Queue Status Button"
 _G["BUII_HUD_EDIT_MODE_ARENA_ENEMY_FRAMES_LABEL"] = "Arena Enemy Frames"
 _G["BUII_HUD_EDIT_MODE_TOTEM_FRAME_LABEL"] = "Totem Frame"
+_G["BUII_HUD_EDIT_MODE_PLAYER_FRAME_HIDE_POWER_LABEL"] = "Hide Power Bar"
 _G["BUII_HUD_EDIT_MODE_TARGET_FRAME_SPELL_BAR_LABEL"] = "Target Castbar"
 _G["BUII_HUD_EDIT_MODE_FOCUS_FRAME_SPELL_BAR_LABEL"] = "Focus Castbar"
 
@@ -117,10 +118,10 @@ end
 ---@param settingIndex number
 ---@param key? string
 ---@param onUpdateFunc? function
-function BUII_EditModeUtils:AddScaleSetting(settingsConfig, settingIndex, key, onUpdateFunc)
+function BUII_EditModeUtils:AddScaleSetting(settingsConfig, settingIndex, name, key, onUpdateFunc)
   table.insert(settingsConfig, {
     setting = settingIndex or 100,
-    name = "Scale",
+    name = name or "Scale",
     key = key or "scale",
     type = Enum.EditModeSettingDisplayType.Slider,
     minValue = 0.5,
@@ -753,9 +754,11 @@ function BUII_EditModeUtils:RegisterSystem(frame, systemEnum, systemName, settin
     if frame.Selection.SetSystem then
       frame.Selection:SetSystem(frame)
     end
-    frame.Selection.Label:SetText(systemName)
-    frame.Selection.GetLabelText = function()
-      return systemName
+    if not frame.Selection.HorizontalLabel then
+      frame.Selection.Label:SetText(systemName)
+      frame.Selection.GetLabelText = function()
+        return systemName
+      end
     end
   end
 

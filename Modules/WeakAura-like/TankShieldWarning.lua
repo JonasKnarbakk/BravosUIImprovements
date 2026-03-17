@@ -302,7 +302,7 @@ local function BUII_TankShieldWarning_Initialize()
     },
   }
 
-  BUII_EditModeUtils:AddScaleSetting(settingsConfig, enum_TankShieldWarningSetting_Scale, "scale")
+  BUII_EditModeUtils:AddScaleSetting(settingsConfig, enum_TankShieldWarningSetting_Scale, "Scale", "scale")
 
   BUII_EditModeUtils:RegisterSystem(
     frame,

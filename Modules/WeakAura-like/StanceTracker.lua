@@ -444,7 +444,7 @@ local function BUII_StanceTracker_Initialize()
     },
   }
 
-  BUII_EditModeUtils:AddScaleSetting(settingsConfig, enum_StanceTrackerSetting_Scale, "scale")
+  BUII_EditModeUtils:AddScaleSetting(settingsConfig, enum_StanceTrackerSetting_Scale, "Scale", "scale")
 
   BUII_EditModeUtils:AddCharacterSpecificSetting(settingsConfig, "stance_tracker", updateDisplay)
 

@@ -344,12 +344,18 @@ local function setupQueueStatusButton()
   queueStatusButtonOverlay.defaultPoint = "CENTER"
 
   local settingsConfig = {}
-  BUII_EditModeUtils:AddScaleSetting(settingsConfig, enum_QueueStatusButtonSetting_Scale, "scale", function(f, val)
-    if QueueStatusButton then
-      QueueStatusButton:SetScale(val)
+  BUII_EditModeUtils:AddScaleSetting(
+    settingsConfig,
+    enum_QueueStatusButtonSetting_Scale,
+    "Scale",
+    "scale",
+    function(f, val)
+      if QueueStatusButton then
+        QueueStatusButton:SetScale(val)
+      end
+      syncButtonToOverlay()
     end
-    syncButtonToOverlay()
-  end)
+  )
 
   BUII_EditModeUtils:RegisterSystem(queueStatusButtonOverlay, systemEnum, systemName, settingsConfig, dbKey, {
     OnApplySettings = syncButtonToOverlay,
@@ -396,7 +402,7 @@ function BUII_QueueStatusButton_Enable()
   setupQueueStatusButton()
   if queueStatusButtonOverlay then
     -- Delay unparenting to ensure it happens after Blizzard's initial layout
-    C_Timer.After(0, function()
+    RunNextFrame(function()
       if QueueStatusButton:GetParent() ~= UIParent then
         QueueStatusButton:SetParent(UIParent)
       end
@@ -1064,8 +1070,8 @@ local function setupActionBarSettingsHooks()
     -- Hook SelectLayout to load settings for the new layout
     hooksecurefunc(EditModeManagerFrame, "SelectLayout", function()
       if editModeImprovedEnabled then
-        -- Delay slightly to ensure layout info is updated
-        C_Timer.After(0, function()
+        -- Delay to next frame to ensure layout info is updated
+        RunNextFrame(function()
           local layoutName = getActiveLayoutKey()
           loadActionBarSettingsForLayout(layoutName)
           frameVisibilitySettings_OnUpdate()

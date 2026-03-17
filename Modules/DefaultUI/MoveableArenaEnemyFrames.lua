@@ -241,12 +241,18 @@ local function setupArenaEnemyFrameOverlay()
   createPreviewFrames(arenaEnemyFrameOverlay)
 
   local settingsConfig = {}
-  BUII_EditModeUtils:AddScaleSetting(settingsConfig, enum_ArenaEnemyFramesSetting_Scale, "scale", function(f, val)
-    if ArenaEnemyFramesContainer and not InCombatLockdown() then
-      ArenaEnemyFramesContainer:SetScale(val)
+  BUII_EditModeUtils:AddScaleSetting(
+    settingsConfig,
+    enum_ArenaEnemyFramesSetting_Scale,
+    "Scale",
+    "scale",
+    function(f, val)
+      if ArenaEnemyFramesContainer and not InCombatLockdown() then
+        ArenaEnemyFramesContainer:SetScale(val)
+      end
+      syncContainerToOverlay()
     end
-    syncContainerToOverlay()
-  end)
+  )
 
   BUII_EditModeUtils:RegisterSystem(arenaEnemyFrameOverlay, systemEnum, systemName, settingsConfig, dbKey, {
     OnApplySettings = function()
@@ -289,7 +295,7 @@ local function hookContainerIfExists()
   -- Hook SetParent in case Blizzard tries to reparent it back
   hooksecurefunc(ArenaEnemyFramesContainer, "SetParent", function()
     if moveableArenaEnemyFramesEnabled and arenaEnemyFrameOverlay and not isSyncing then
-      C_Timer.After(0, function()
+      RunNextFrame(function()
         if
           moveableArenaEnemyFramesEnabled
           and arenaEnemyFrameOverlay
@@ -340,7 +346,7 @@ function BUII_MoveableArenaEnemyFrames_Enable()
   setupArenaEnemyFrameOverlay()
 
   if arenaEnemyFrameOverlay then
-    C_Timer.After(0, function()
+    RunNextFrame(function()
       BUII_EditModeUtils:ApplySavedPosition(arenaEnemyFrameOverlay, "arena_enemy_frames")
       hookContainerIfExists()
       syncContainerToOverlay()

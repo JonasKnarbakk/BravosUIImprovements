@@ -224,7 +224,7 @@ local function BUII_GearAndTalentLoadout_Initialize()
     },
   }
 
-  BUII_EditModeUtils:AddScaleSetting(settingsConfig, enum_GearTalentSetting_Scale, "scale")
+  BUII_EditModeUtils:AddScaleSetting(settingsConfig, enum_GearTalentSetting_Scale, "Scale", "scale")
 
   BUII_EditModeUtils:RegisterSystem(
     frame,

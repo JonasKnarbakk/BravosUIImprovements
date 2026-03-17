@@ -743,7 +743,7 @@ local function BUII_CallToArms_Initialize()
     },
   }
 
-  BUII_EditModeUtils:AddScaleSetting(settingsConfig, enum_CallToArmsSetting_Scale, "scale")
+  BUII_EditModeUtils:AddScaleSetting(settingsConfig, enum_CallToArmsSetting_Scale, "Scale", "scale")
 
   BUII_EditModeUtils:RegisterSystem(
     frame,

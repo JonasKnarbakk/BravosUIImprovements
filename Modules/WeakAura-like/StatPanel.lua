@@ -306,7 +306,7 @@ local function BUII_StatPanel_Initialize()
     },
   }
 
-  BUII_EditModeUtils:AddScaleSetting(settingsConfig, enum_StatPanelSetting_Scale, "stat_panel_scale")
+  BUII_EditModeUtils:AddScaleSetting(settingsConfig, enum_StatPanelSetting_Scale, "Scale", "stat_panel_scale")
 
   -- Add stats checkboxes
   for i, statDef in ipairs(STATS) do

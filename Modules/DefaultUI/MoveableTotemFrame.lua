@@ -39,11 +39,17 @@ local function setupTotemFrameOverlay()
   totemFrameOverlay:SetDontSavePosition(true)
 
   local settingsConfig = {}
-  BUII_EditModeUtils:AddScaleSetting(settingsConfig, enum_MoveableTotemFrameSetting_Scale, "scale", function(f, val)
-    if TotemFrame then
-      TotemFrame:SetScale(val)
+  BUII_EditModeUtils:AddScaleSetting(
+    settingsConfig,
+    enum_MoveableTotemFrameSetting_Scale,
+    "Scale",
+    "scale",
+    function(f, val)
+      if TotemFrame then
+        TotemFrame:SetScale(val)
+      end
     end
-  end)
+  )
 
   BUII_EditModeUtils:RegisterSystem(
     totemFrameOverlay,
@@ -107,7 +113,7 @@ function BUII_MoveableTotemFrame_Enable()
   TotemFrame:SetParent(UIParent)
 
   setupTotemFrameOverlay()
-  C_Timer.After(0, function()
+  RunNextFrame(function()
     -- Apply saved position
     if totemFrameOverlay then
       BUII_EditModeUtils:ApplySavedPosition(totemFrameOverlay, "moveable_totem_frame")

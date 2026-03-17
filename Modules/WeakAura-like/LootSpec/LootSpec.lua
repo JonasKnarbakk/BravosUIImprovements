@@ -220,7 +220,7 @@ local function BUII_LootSpec_Initialize()
     },
   }
 
-  BUII_EditModeUtils:AddScaleSetting(settingsConfig, enum_LootSpecSetting_Scale, "scale")
+  BUII_EditModeUtils:AddScaleSetting(settingsConfig, enum_LootSpecSetting_Scale, "Scale", "scale")
 
   BUII_EditModeUtils:RegisterSystem(
     frame,

@@ -82,7 +82,7 @@ local function BUII_CombatState_Initialize()
 
   -- Register System
   local settingsConfig = {}
-  BUII_EditModeUtils:AddScaleSetting(settingsConfig, enum_CombatStateSetting_Scale, "scale")
+  BUII_EditModeUtils:AddScaleSetting(settingsConfig, enum_CombatStateSetting_Scale, "Scale", "scale")
 
   BUII_EditModeUtils:RegisterSystem(
     frame,
@@ -105,7 +105,7 @@ local function BUII_CombatState_Initialize()
       end,
       OnEditModeExit = function(f)
         -- Explicitly restore position after edit mode exits
-        C_Timer.After(0.1, function()
+        RunNextFrame(function()
           if frame then
             BUII_EditModeUtils:ApplySavedPosition(frame, "combat_state", true)
           end

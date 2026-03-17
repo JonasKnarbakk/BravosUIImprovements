@@ -20,7 +20,15 @@
         "spy",
         "mock",
         "match",
-        "assert"
+        "assert",
+        "CAST_BAR_CAST_TIME",
+        "PlayerFrame",
+        "AlternatePowerBar",
+        "InsanityBarFrame",
+        "MonkStaggerBar",
+        "addonTable",
+        "DemonHunterSoulFragmentsBar",
+        "EvokerEbonMightBar"
     ],
     "workspace.library": [
         "wow-ui-source",

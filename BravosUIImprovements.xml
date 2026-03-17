@@ -1,15 +1,16 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/..\FrameXML\UI.xsd">
 
+  <Include file="Modules\DefaultUI\ImprovedEditMode.xml"/>
+  <Include file="Modules\WeakAura-like\LootSpec\LootSpec.xml"/>
+  <Include file="Modules\WeakAura-like\ResourceTracker.xml"/>
   <Script file="Modules\DefaultUI\ActionBarsImproved.lua"/>
   <Script file="Modules\DefaultUI\CastBarTimers.lua"/>
   <Script file="Modules\DefaultUI\IconSearch.lua"/>
-  <Include file="Modules\DefaultUI\ImprovedEditMode.xml"/>
   <Script file="Modules\DefaultUI\MoveableArenaEnemyFrames.lua"/>
   <Script file="Modules\DefaultUI\MoveableTotemFrame.lua"/>
   <Script file="Modules\DefaultUI\QuickKeybindModeShortcut.lua"/>
   <Script file="Modules\DefaultUI\TooltipImprovements.lua"/>
-  <Include file="Modules\WeakAura-like\LootSpec\LootSpec.xml"/>
-  <Include file="Modules\WeakAura-like\ResourceTracker.xml"/>
+  <Script file="Modules\DefaultUI\UnitFrames\ImprovedUnitFrames.lua"/>
   <Script file="Modules\WeakAura-like\CallToArms.lua"/>
   <Script file="Modules\WeakAura-like\CombatState.lua"/>
   <Script file="Modules\WeakAura-like\GearAndTalentLoadout.lua"/>
@@ -230,9 +231,27 @@
         </Scripts>
       </CheckButton>
 
-      <CheckButton name="$parentCastBarTimers" parentKey="CastBarTimers" inherits="InterfaceOptionsCheckButtonTemplate">
+      <CheckButton name="$parentImprovedUnitFrames" parentKey="ImprovedUnitFrames" inherits="InterfaceOptionsCheckButtonTemplate">
         <Anchors>
           <Anchor point="TOPLEFT" relativeKey="$parent.HealthClassColor" relativePoint="BOTTOMLEFT" x="0" y="0"/>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString name="$parentLabel" text="ImprovedUnitFrames" inherits="GameFontNormalSmall">
+              <Anchors>
+                <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnClick function="BUII_CastBarTimersCheckButton_OnClick"/>
+        </Scripts>
+      </CheckButton>
+
+      <CheckButton name="$parentCastBarTimers" parentKey="CastBarTimers" inherits="InterfaceOptionsCheckButtonTemplate">
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeKey="$parent.ImprovedUnitFrames" relativePoint="BOTTOMLEFT" x="0" y="0"/>
         </Anchors>
         <Layers>
           <Layer level="ARTWORK">
