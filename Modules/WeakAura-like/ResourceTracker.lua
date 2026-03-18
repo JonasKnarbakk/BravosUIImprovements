@@ -493,24 +493,23 @@ local function UpdatePoints()
     end
     frame:Show()
   elseif config then
-    -- Determine max points dynamically if possible
-    if config.powerType then
+    -- Determine max points for point-based resources (boxes)
+    if config.maxPoints then
+      maxPoints = config.maxPoints
+    elseif config.isBar or config.hidePrimary then
+      maxPoints = 0
+    elseif config.powerType then
       maxPoints = UnitPowerMax("player", config.powerType) or 0
     else
-      maxPoints = config.maxPoints or 5
+      maxPoints = 5
     end
 
-    -- For bar-based resources, we always want at least 1 maxPoint to pass visibility checks
-    if config.isBar and maxPoints == 0 then
-      maxPoints = 1
-    end
-
-    -- If we have no max points (e.g. Druid not in cat form), hide unless in Edit Mode
-    -- Also specific check for Druid: must have Energy power type (Cat Form)
+    -- If we have no max points, hide unless it's a bar, hidden primary (power bar only), or in Edit Mode
     local shouldShow = true
-    if maxPoints == 0 then
+    if maxPoints == 0 and not config.isBar and not config.hidePrimary and not db.resource_tracker_show_power_bar then
       shouldShow = false
     end
+
     if config.class == "DRUID" then
       local powerType = UnitPowerType("player")
       if powerType ~= Enum.PowerType.Energy then
@@ -523,28 +522,18 @@ local function UpdatePoints()
       return
     end
 
-    -- Safety check for maxPoints after we've confirmed we should be showing
-    if maxPoints == 0 then
-      maxPoints = 5
-    end
-
     color = config.color
-
     color2 = config.color2
-
     layered = config.layered
 
     local extraData
-
     currentStacks, partialFill, extraData = GetResourceState(config)
 
     -- If extraData is a color table (Stagger), apply it
-
     if extraData and type(extraData) == "table" and extraData.r then
       color = extraData
     else
       -- Otherwise it might be chargedPoints (Rogue)
-
       chargedPoints = extraData
     end
 
@@ -558,15 +547,12 @@ local function UpdatePoints()
     UpdateNativeFrameVisibility()
   end
 
-  -- Safety check for maxPoints
-  if maxPoints == 0 then
-    maxPoints = 5
-  end
-
   -- Ensure we have enough points created
-  for i = 1, maxPoints do
-    if not points[i] then
-      points[i] = CreateFrame("Frame", nil, frame, "BUII_ResourcePointTemplate") --[[@as BUII_ResourcePointTemplate]]
+  if maxPoints > 0 then
+    for i = 1, maxPoints do
+      if not points[i] then
+        points[i] = CreateFrame("Frame", nil, frame, "BUII_ResourcePointTemplate") --[[@as BUII_ResourcePointTemplate]]
+      end
     end
   end
 
@@ -588,7 +574,10 @@ local function UpdatePoints()
     end
   end
 
-  local pointWidth = (totalWidth - (spacing * (maxPoints - 1))) / maxPoints
+  local pointWidth = 0
+  if maxPoints > 0 then
+    pointWidth = (totalWidth - (spacing * (maxPoints - 1))) / maxPoints
+  end
   local currentStacksIsSecret = issecretvalue(currentStacks)
 
   local showPowerBar = db.resource_tracker_show_power_bar
