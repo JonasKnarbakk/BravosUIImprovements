@@ -19,13 +19,32 @@ local counterText = nil
 -- Configuration
 local CONFIG = {
   SHAMAN = {
-    spec = 263, -- Enhancement
-    buffs = { 344179, 384088 }, -- Maelstrom Weapon
-    name = "Maelstrom Weapon",
-    maxPoints = 5, -- Show 5, the extra 5 will be layered
-    color = { r = 0.447, g = 0.780, b = 1.0 }, -- Light Blue #72C7FF
-    color2 = { r = 1.0, g = 0.4, b = 0.4 }, -- Red #FF6666
-    layered = true, -- Stack count > 5 changes color
+    {
+      spec = 262, -- Elemental
+      powerType = Enum.PowerType.Maelstrom,
+      name = "Maelstrom",
+      color = { r = 0.447, g = 0.780, b = 1.0 }, -- Light Blue #72C7FF
+      isBar = true,
+      powerId = 0,
+      powerKey = "MANA",
+    },
+    {
+      spec = 263, -- Enhancement
+      buffs = { 344179, 384088 }, -- Maelstrom Weapon
+      name = "Maelstrom Weapon",
+      maxPoints = 5, -- Show 5, the extra 5 will be layered
+      color = { r = 0.447, g = 0.780, b = 1.0 }, -- Light Blue #72C7FF
+      color2 = { r = 1.0, g = 0.4, b = 0.4 }, -- Red #FF6666
+      layered = true, -- Stack count > 5 changes color
+    },
+    {
+      spec = 264, -- Restoration
+      powerType = Enum.PowerType.Mana,
+      name = "Mana",
+      color = { r = 0.00, g = 0.00, b = 1.00 }, -- Mana Blue
+      isBar = false,
+      hidePrimary = true,
+    },
   },
   DEMONHUNTER = {
     {
@@ -60,12 +79,31 @@ local CONFIG = {
     hidePrimary = true,
   },
   PRIEST = {
-    powerType = Enum.PowerType.Mana,
-    name = "Mana",
-    color = { r = 0.00, g = 0.00, b = 1.00 }, -- Mana Blue
-    maxPoints = 0,
-    isBar = false,
-    hidePrimary = true,
+    {
+      spec = 256, -- Discepline
+      powerType = Enum.PowerType.Mana,
+      name = "Mana",
+      color = { r = 0.00, g = 0.00, b = 1.00 }, -- Mana Blue
+      isBar = false,
+      hidePrimary = true,
+    },
+    {
+      spec = 257, -- Holy
+      powerType = Enum.PowerType.Mana,
+      name = "Mana",
+      color = { r = 0.00, g = 0.00, b = 1.00 }, -- Mana Blue
+      isBar = false,
+      hidePrimary = true,
+    },
+    {
+      spec = 258, -- Shadow
+      powerType = Enum.PowerType.Insanity,
+      name = "Insanity",
+      color = { r = 0.50, g = 0.00, b = 1.00 }, -- Insanity Purple
+      isBar = true,
+      powerId = 0,
+      powerKey = "MANA",
+    },
   },
   PALADIN = {
     powerType = Enum.PowerType.HolyPower,
@@ -548,7 +586,7 @@ local function UpdatePoints()
   end
 
   -- Ensure we have enough points created
-  if maxPoints > 0 then
+  if config.maxPoints and config.maxPoints > 0 then
     for i = 1, maxPoints do
       if not points[i] then
         points[i] = CreateFrame("Frame", nil, frame, "BUII_ResourcePointTemplate") --[[@as BUII_ResourcePointTemplate]]
@@ -880,15 +918,22 @@ local function UpdatePoints()
     frame.PowerBar.ProgressBar:SetStatusBarTexture(BUII_GetTexturePath())
 
     local powerType, powerToken = UnitPowerType("player")
+    if config.powerId then
+      powerType = config.powerId
+    end
+    if config.powerKey then
+      powerToken = config.powerKey
+    end
     local powerColor = PowerBarColor[powerToken] or PowerBarColor[powerType] or { r = 1, g = 1, b = 1 }
     frame.PowerBar.ProgressBar:SetStatusBarColor(powerColor.r, powerColor.g, powerColor.b)
 
     local current = UnitPower("player", powerType)
     local max = UnitPowerMax("player", powerType)
 
-    if UnitPowerPercent then
+    local powerPercent = UnitPowerPercent("player")
+    if not issecretvalue(powerPercent) then
       frame.PowerBar.ProgressBar:SetMinMaxValues(0, 1)
-      frame.PowerBar.ProgressBar:SetValue(UnitPowerPercent("player"))
+      frame.PowerBar.ProgressBar:SetValue(powerPercent)
     else
       frame.PowerBar.ProgressBar:SetMinMaxValues(0, max)
       frame.PowerBar.ProgressBar:SetValue(current)
@@ -896,7 +941,7 @@ local function UpdatePoints()
 
     if db.resource_tracker_power_bar_show_text then
       frame.PowerBar.PowerText:Show()
-      frame.PowerBar.PowerText:SetText(current)
+      frame.PowerBar.PowerText:SetText(BUII_FormatNumber(current))
       frame.PowerBar.PowerText:SetFont(
         BUII_GetFontPath(),
         db.resource_tracker_power_bar_font_size or 12,

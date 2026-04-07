@@ -234,7 +234,7 @@ function BUII_FormatNumber(number)
   end
 
   if issecretvalue(number) then
-    return "???"
+    return number
   end
 
   if number >= 1000000 then
