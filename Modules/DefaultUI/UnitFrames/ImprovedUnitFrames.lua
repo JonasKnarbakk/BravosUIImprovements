@@ -10,6 +10,8 @@ local editModeSettingsDialog = EditModeSystemSettingsDialog
 local editModeManagerFrame = EditModeManagerFrame
 ---@type boolean
 local unitFrameSettingsHasChanges = false
+---@type Frame|nil
+local combatWatcher = nil
 
 ---@type table
 local coords = {
@@ -108,11 +110,18 @@ local function settingsDialogPlayerFrameAddOptions()
   )
 end
 
+local isSyncPending = false
+
 --- Sync the PlayerFrame with applied settings
 ---@type frame
 ---@return nil
 local function syncPlayerFrame()
-  if not initialized or InCombatLockdown() then
+  if not initialized then
+    return
+  end
+
+  if InCombatLockdown() then
+    isSyncPending = true
     return
   end
 
@@ -154,6 +163,8 @@ local function syncPlayerFrame()
     healthTextMiddle:SetPoint("CENTER", healthBar, "CENTER")
     healthTextRight:SetPoint("RIGHT", healthBar, "RIGHT")
   end
+
+  isSyncPending = false
 end
 
 -- Mark UnitFrame settings as having unsaved changes
@@ -235,6 +246,21 @@ function BUII_ImprovedUnitFramesEnable()
 
     if GetImprovedUnitFramesDB()["PlayerFrame"]["hide_power"] then
       AlternatePowerBar:UnregisterEvent("UNIT_DISPLAYPOWER")
+    end
+
+    -- Combat watcher to sync frame after combat in case we're unable to update it
+    if not combatWatcher then
+      combatWatcher = CreateFrame("Frame")
+
+      RegisterStateDriver(combatWatcher, "combatstate", "[combat] true; false")
+
+      combatWatcher:SetScript("OnAttributeChanged", function(self, name, value)
+        if name == "combatstate" and value == "false" then
+          if isSyncPending then
+            syncPlayerFrame()
+          end
+        end
+      end)
     end
 
     syncPlayerFrame()
