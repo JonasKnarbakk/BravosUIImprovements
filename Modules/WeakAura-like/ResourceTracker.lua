@@ -74,7 +74,6 @@ local CONFIG = {
     powerType = Enum.PowerType.Rage,
     name = "Rage",
     color = { r = 1.00, g = 0.00, b = 0.00 }, -- Rage Red
-    maxPoints = 0,
     isBar = false,
     hidePrimary = true,
   },
@@ -325,13 +324,12 @@ local function GetResourceState(config)
     end
     return power, partial, nil
 
-  -- Warrior Rage
-  elseif config.class == "WARRIOR" and config.powerType == Enum.PowerType.Rage then
-    local power = UnitPower("player", config.powerType)
-    return power, 0, nil
-
-  -- Priest Mana
-  elseif config.class == "PRIEST" and config.powerType == Enum.PowerType.Mana then
+  -- Generic resource Mana, Rage and Focus
+  elseif
+    config.powerType == Enum.PowerType.Mana
+    or config.powerType == Enum.PowerType.Rage
+    or config.powerType == Enum.PowerType.Focus
+  then
     local power = UnitPower("player", config.powerType)
     return power, 0, nil
 
@@ -534,7 +532,7 @@ local function UpdatePoints()
     -- Determine max points for point-based resources (boxes)
     if config.maxPoints then
       maxPoints = config.maxPoints
-    elseif config.isBar or config.hidePrimary then
+    elseif config.isBar or config.hidePrimary or config.powerType == Enum.PowerType.Mana then
       maxPoints = 0
     elseif config.powerType then
       maxPoints = UnitPowerMax("player", config.powerType) or 0
@@ -586,7 +584,7 @@ local function UpdatePoints()
   end
 
   -- Ensure we have enough points created
-  if config.maxPoints and config.maxPoints > 0 then
+  if maxPoints > 0 then
     for i = 1, maxPoints do
       if not points[i] then
         points[i] = CreateFrame("Frame", nil, frame, "BUII_ResourcePointTemplate") --[[@as BUII_ResourcePointTemplate]]
