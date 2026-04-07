@@ -322,7 +322,7 @@ function BUII_CastBarTimersEnable()
     repositionPlayerCastBarText()
     detachAndSetupCastBar(
       "target",
-      "BUIITargecastFrameSpellBarEditModeSystemTemplate",
+      "BUIITargetFrameSpellBarEditModeSystemTemplate",
       Enum.EditModeSystem.BUII_TargetFrameSpellBar,
       BUII_HUD_EDIT_MODE_TARGET_FRAME_SPELL_BAR_LABEL
     )
