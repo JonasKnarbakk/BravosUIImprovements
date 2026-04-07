@@ -1447,6 +1447,7 @@ function BUII_ResourceTracker_Enable()
   frame:RegisterEvent("RUNE_POWER_UPDATE")
   frame:RegisterEvent("PLAYER_ENTERING_WORLD")
   frame:SetScript("OnEvent", onEvent)
+  frame:Show()
 
   BUII_EditModeUtils:ApplySavedPosition(frame, "resource_tracker")
   UpdatePoints()
@@ -1459,6 +1460,7 @@ function BUII_ResourceTracker_Disable()
   if not frame then
     return
   end
+
   frame:UnregisterAllEvents()
   frame:SetScript("OnEvent", nil)
   frame:Hide()
@@ -1488,9 +1490,11 @@ local DB_DEFAULTS = {
   resource_tracker_demonhunter = true,
   resource_tracker_warlock = true,
   resource_tracker_paladin = true,
+  resource_tracker_priest = true,
   resource_tracker_monk = true,
   resource_tracker_deathknight = true,
   resource_tracker_evoker = true,
+  resource_tracker_hunter = true,
   resource_tracker_rogue = true,
   resource_tracker_druid = true,
   resource_tracker_mage = true,

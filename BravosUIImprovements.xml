@@ -800,7 +800,7 @@
         </Scripts>
       </CheckButton>
 
-      <!-- Row 1: DK, DH, Druid, Evoker, Mage -->
+      <!-- Row 1: DK, DH, Druid, Evoker, Hunter, Mage -->
       <CheckButton name="$parentResourceTrackerDeathKnight" parentKey="ResourceTrackerDeathKnight" inherits="InterfaceOptionsCheckButtonTemplate">
         <Anchors>
           <Anchor point="TOPLEFT" relativeKey="$parent.ResourceTracker" relativePoint="BOTTOMLEFT" x="20" y="0"/>
@@ -873,9 +873,27 @@
         </Scripts>
       </CheckButton>
 
-      <CheckButton name="$parentResourceTrackerMage" parentKey="ResourceTrackerMage" inherits="InterfaceOptionsCheckButtonTemplate">
+      <CheckButton name="$parentResourceTrackerHunter" parentKey="ResourceTrackerHunter" inherits="InterfaceOptionsCheckButtonTemplate">
         <Anchors>
           <Anchor point="LEFT" relativeKey="$parent.ResourceTrackerEvoker" relativePoint="RIGHT" x="65" y="0"/>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString name="$parentLabel" text="Hunter" inherits="GameFontNormalSmall">
+              <Anchors>
+                <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnClick function="BUII_ResourceTrackerHunter_OnClick"/>
+        </Scripts>
+      </CheckButton>
+
+      <CheckButton name="$parentResourceTrackerMage" parentKey="ResourceTrackerMage" inherits="InterfaceOptionsCheckButtonTemplate">
+        <Anchors>
+          <Anchor point="LEFT" relativeKey="$parent.ResourceTrackerHunter" relativePoint="RIGHT" x="65" y="0"/>
         </Anchors>
         <Layers>
           <Layer level="ARTWORK">
@@ -928,9 +946,27 @@
         </Scripts>
       </CheckButton>
 
-      <CheckButton name="$parentResourceTrackerRogue" parentKey="ResourceTrackerRogue" inherits="InterfaceOptionsCheckButtonTemplate">
+      <CheckButton name="$parentResourceTrackerPriest" parentKey="ResourceTrackerPriest" inherits="InterfaceOptionsCheckButtonTemplate">
         <Anchors>
           <Anchor point="LEFT" relativeKey="$parent.ResourceTrackerPaladin" relativePoint="RIGHT" x="65" y="0"/>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString name="$parentLabel" text="Priest" inherits="GameFontNormalSmall">
+              <Anchors>
+                <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnClick function="BUII_ResourceTrackerPriest_OnClick"/>
+        </Scripts>
+      </CheckButton>
+
+      <CheckButton name="$parentResourceTrackerRogue" parentKey="ResourceTrackerRogue" inherits="InterfaceOptionsCheckButtonTemplate">
+        <Anchors>
+          <Anchor point="LEFT" relativeKey="$parent.ResourceTrackerPriest" relativePoint="RIGHT" x="65" y="0"/>
         </Anchors>
         <Layers>
           <Layer level="ARTWORK">

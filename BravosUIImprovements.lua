@@ -39,9 +39,11 @@ local castingBarHookSet = false
 ---@field resource_tracker_mage boolean
 ---@field resource_tracker_warlock boolean
 ---@field resource_tracker_paladin boolean
+---@field resource_tracker_priest boolean
 ---@field resource_tracker_monk boolean
 ---@field resource_tracker_deathknight boolean
 ---@field resource_tracker_evoker boolean
+---@field resource_tracker_hunter boolean
 ---@field stance_tracker_druid boolean
 ---@field stance_tracker_paladin boolean
 _G.BUIIDatabase = BUIIDatabase or {}
@@ -760,9 +762,11 @@ function BUII_OnEventHandler(self, event, arg1, ...)
     weakAura.ResourceTrackerMage:SetChecked(BUIIDatabase["resource_tracker_mage"] or false)
     weakAura.ResourceTrackerWarlock:SetChecked(BUIIDatabase["resource_tracker_warlock"] or false)
     weakAura.ResourceTrackerPaladin:SetChecked(BUIIDatabase["resource_tracker_paladin"] or false)
+    weakAura.ResourceTrackerPriest:SetChecked(BUIIDatabase["resource_tracker_priest"] or false)
     weakAura.ResourceTrackerMonk:SetChecked(BUIIDatabase["resource_tracker_monk"] or false)
     weakAura.ResourceTrackerDeathKnight:SetChecked(BUIIDatabase["resource_tracker_deathknight"] or false)
     weakAura.ResourceTrackerEvoker:SetChecked(BUIIDatabase["resource_tracker_evoker"] or false)
+    weakAura.ResourceTrackerHunter:SetChecked(BUIIDatabase["resource_tracker_hunter"] or false)
 
     -- Sub-toggles: stance tracker per-class checkboxes
     weakAura.StanceTrackerDruid:SetChecked(BUIIDatabase["stance_tracker_druid"] or false)
@@ -985,100 +989,180 @@ end
 ---@param self CheckButton|any
 ---@return nil
 function BUII_ResourceTrackerShaman_OnClick(self)
-  BUIIDatabase["resource_tracker_shaman"] = self:GetChecked()
-  if BUIIDatabase["resource_tracker"] then
-    BUII_ResourceTracker_Enable()
-  end
+  BUII_CreateToggleHandler("resource_tracker_shaman", function()
+    if BUIIDatabase["resource_tracker"] then
+      BUII_ResourceTracker_Enable()
+    end
+  end, function()
+    if BUIIDatabase["resource_tracker"] then
+      BUII_ResourceTracker_Disable()
+    end
+  end)(self)
 end
 
 --- Toggle handler for Demon Hunter Resource Tracker check button
 ---@param self CheckButton|any
 ---@return nil
 function BUII_ResourceTrackerDemonHunter_OnClick(self)
-  BUIIDatabase["resource_tracker_demonhunter"] = self:GetChecked()
-  if BUIIDatabase["resource_tracker"] then
-    BUII_ResourceTracker_Enable()
-  end
+  BUII_CreateToggleHandler("resource_tracker_demonhunter", function()
+    if BUIIDatabase["resource_tracker"] then
+      BUII_ResourceTracker_Enable()
+    end
+  end, function()
+    if BUIIDatabase["resource_tracker"] then
+      BUII_ResourceTracker_Disable()
+    end
+  end)(self)
 end
 
 --- Toggle handler for Rogue Resource Tracker check button
 ---@param self CheckButton|any
 ---@return nil
 function BUII_ResourceTrackerRogue_OnClick(self)
-  BUIIDatabase["resource_tracker_rogue"] = self:GetChecked()
-  if BUIIDatabase["resource_tracker"] then
-    BUII_ResourceTracker_Enable()
-  end
+  BUII_CreateToggleHandler("resource_tracker_rogue", function()
+    if BUIIDatabase["resource_tracker"] then
+      BUII_ResourceTracker_Enable()
+    end
+  end, function()
+    if BUIIDatabase["resource_tracker"] then
+      BUII_ResourceTracker_Disable()
+    end
+  end)(self)
 end
 
 --- Toggle handler for Druid Resource Tracker check button
 ---@param self CheckButton|any
 ---@return nil
 function BUII_ResourceTrackerDruid_OnClick(self)
-  BUIIDatabase["resource_tracker_druid"] = self:GetChecked()
-  if BUIIDatabase["resource_tracker"] then
-    BUII_ResourceTracker_Enable()
-  end
+  BUII_CreateToggleHandler("resource_tracker_druid", function()
+    if BUIIDatabase["resource_tracker"] then
+      BUII_ResourceTracker_Enable()
+    end
+  end, function()
+    if BUIIDatabase["resource_tracker"] then
+      BUII_ResourceTracker_Disable()
+    end
+  end)(self)
 end
 
 --- Toggle handler for Mage Resource Tracker check button
 ---@param self CheckButton|any
 ---@return nil
 function BUII_ResourceTrackerMage_OnClick(self)
-  BUIIDatabase["resource_tracker_mage"] = self:GetChecked()
-  if BUIIDatabase["resource_tracker"] then
-    BUII_ResourceTracker_Enable()
-  end
+  BUII_CreateToggleHandler("resource_tracker_mage", function()
+    if BUIIDatabase["resource_tracker"] then
+      BUII_ResourceTracker_Enable()
+    end
+  end, function()
+    if BUIIDatabase["resource_tracker"] then
+      BUII_ResourceTracker_Disable()
+    end
+  end)(self)
 end
 
 --- Toggle handler for Warlock Resource Tracker check button
 ---@param self CheckButton|any
 ---@return nil
 function BUII_ResourceTrackerWarlock_OnClick(self)
-  BUIIDatabase["resource_tracker_warlock"] = self:GetChecked()
-  if BUIIDatabase["resource_tracker"] then
-    BUII_ResourceTracker_Enable()
-  end
+  BUII_CreateToggleHandler("resource_tracker_warlock", function()
+    if BUIIDatabase["resource_tracker"] then
+      BUII_ResourceTracker_Enable()
+    end
+  end, function()
+    if BUIIDatabase["resource_tracker"] then
+      BUII_ResourceTracker_Disable()
+    end
+  end)(self)
 end
 
 --- Toggle handler for Paladin Resource Tracker check button
 ---@param self CheckButton|any
 ---@return nil
 function BUII_ResourceTrackerPaladin_OnClick(self)
-  BUIIDatabase["resource_tracker_paladin"] = self:GetChecked()
-  if BUIIDatabase["resource_tracker"] then
-    BUII_ResourceTracker_Enable()
-  end
+  BUII_CreateToggleHandler("resource_tracker_paladin", function()
+    if BUIIDatabase["resource_tracker"] then
+      BUII_ResourceTracker_Enable()
+    end
+  end, function()
+    if BUIIDatabase["resource_tracker"] then
+      BUII_ResourceTracker_Disable()
+    end
+  end)(self)
+end
+
+--- Toggle handler for Priest Resource Tracker check button
+---@param self CheckButton|any
+---@return nil
+function BUII_ResourceTrackerPriest_OnClick(self)
+  BUII_CreateToggleHandler("resource_tracker_priest", function()
+    if BUIIDatabase["resource_tracker"] then
+      BUII_ResourceTracker_Enable()
+    end
+  end, function()
+    if BUIIDatabase["resource_tracker"] then
+      BUII_ResourceTracker_Disable()
+    end
+  end)(self)
 end
 
 --- Toggle handler for Monk Resource Tracker check button
 ---@param self CheckButton|any
 ---@return nil
 function BUII_ResourceTrackerMonk_OnClick(self)
-  BUIIDatabase["resource_tracker_monk"] = self:GetChecked()
-  if BUIIDatabase["resource_tracker"] then
-    BUII_ResourceTracker_Enable()
-  end
+  BUII_CreateToggleHandler("resource_tracker_monk", function()
+    if BUIIDatabase["resource_tracker"] then
+      BUII_ResourceTracker_Enable()
+    end
+  end, function()
+    if BUIIDatabase["resource_tracker"] then
+      BUII_ResourceTracker_Disable()
+    end
+  end)(self)
 end
 
 --- Toggle handler for Death Knight Resource Tracker check button
 ---@param self CheckButton|any
 ---@return nil
 function BUII_ResourceTrackerDeathKnight_OnClick(self)
-  BUIIDatabase["resource_tracker_deathknight"] = self:GetChecked()
-  if BUIIDatabase["resource_tracker"] then
-    BUII_ResourceTracker_Enable()
-  end
+  BUII_CreateToggleHandler("resource_tracker_deathknight", function()
+    if BUIIDatabase["resource_tracker"] then
+      BUII_ResourceTracker_Enable()
+    end
+  end, function()
+    if BUIIDatabase["resource_tracker"] then
+      BUII_ResourceTracker_Disable()
+    end
+  end)(self)
 end
 
 --- Toggle handler for Evoker Resource Tracker check button
 ---@param self CheckButton|any
 ---@return nil
 function BUII_ResourceTrackerEvoker_OnClick(self)
-  BUIIDatabase["resource_tracker_evoker"] = self:GetChecked()
-  if BUIIDatabase["resource_tracker"] then
-    BUII_ResourceTracker_Enable()
-  end
+  BUII_CreateToggleHandler("resource_tracker_evoker", function()
+    if BUIIDatabase["resource_tracker"] then
+      BUII_ResourceTracker_Enable()
+    end
+  end, function()
+    if BUIIDatabase["resource_tracker"] then
+      BUII_ResourceTracker_Disable()
+    end
+  end)(self)
+end
+
+--- Toggle handler for Hunter Resource Tracker check button
+---@param self CheckButton|any
+---@return nil
+function BUII_ResourceTrackerHunter_OnClick(self)
+  BUII_CreateToggleHandler("resource_tracker_hunter", function()
+    if BUIIDatabase["resource_tracker"] then
+      BUII_ResourceTracker_Enable()
+    end
+  end, function()
+    if BUIIDatabase["resource_tracker"] then
+      BUII_ResourceTracker_Disable()
+    end
+  end)(self)
 end
 
 --- Toggle handler for Stat Panel check button (XML global shim)
