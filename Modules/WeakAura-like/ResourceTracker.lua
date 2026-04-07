@@ -48,6 +48,14 @@ local CONFIG = {
   },
   DEMONHUNTER = {
     {
+      spec = 577, -- Havoc
+      powerType = Enum.PowerType.Fury,
+      name = "Fury",
+      color = { r = 0.8, g = 0.2, b = 0.8 }, -- Soul Purple
+      isBar = false,
+      hidePrimary = true,
+    },
+    {
       spec = 581, -- Vengeance
       abilityStacks = 228477, -- Soul Cleave
       name = "Soul Fragments",
@@ -62,6 +70,13 @@ local CONFIG = {
       color = { r = 0.33, g = 0.08, b = 0.76 },
       nativeFrame = "DemonHunterSoulFragmentsBarFrame",
     },
+  },
+  HUNTER = {
+    powerType = Enum.PowerType.Focus,
+    name = "Focus",
+    color = { r = 1.00, g = 0.56, b = 0.26 }, -- Focus Orange
+    isBar = false,
+    hidePrimary = true,
   },
   WARLOCK = {
     powerType = Enum.PowerType.SoulShards,
@@ -124,6 +139,14 @@ local CONFIG = {
       name = "Chi",
       color = { r = 0.0, g = 0.78, b = 0.86 }, -- Monk Chi
       nativeFrame = "MonkHarmonyBarFrame",
+    },
+    {
+      spec = 270, -- Mistweaver
+      powerType = Enum.PowerType.Mana,
+      name = "Mana",
+      color = { r = 0.00, g = 0.00, b = 1.00 }, -- Mana Blue
+      isBar = false,
+      hidePrimary = true,
     },
   },
   DEATHKNIGHT = {
