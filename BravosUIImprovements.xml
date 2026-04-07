@@ -237,7 +237,7 @@
         </Anchors>
         <Layers>
           <Layer level="ARTWORK">
-            <FontString name="$parentLabel" text="ImprovedUnitFrames" inherits="GameFontNormalSmall">
+            <FontString name="$parentLabel" text="Improved Unit Frames" inherits="GameFontNormalSmall">
               <Anchors>
                 <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
               </Anchors>
@@ -245,7 +245,7 @@
           </Layer>
         </Layers>
         <Scripts>
-          <OnClick function="BUII_CastBarTimersCheckButton_OnClick"/>
+          <OnClick function="BUII_ImprovedUnitFramesCheckButton_OnClick"/>
         </Scripts>
       </CheckButton>
 

@@ -790,6 +790,10 @@ function BUII_HealthClassColorCheckButton_OnClick(self)
   setPlayerClassColor()
 end
 
+function BUII_ImprovedUnitFramesCheckButton_OnClick(self)
+  BUII_CreateToggleHandler("improved_unitframes", BUII_ImprovedUnitFramesEnable, BUII_ImprovedUnitFramesDisable)(self)
+end
+
 --- Toggle handler for Cast Bar Timers check button (XML global shim)
 function BUII_CastBarTimersCheckButton_OnClick(self)
   BUII_CreateToggleHandler("castbar_timers", BUII_CastBarTimersEnable, BUII_CastBarTimersDisable)(self)

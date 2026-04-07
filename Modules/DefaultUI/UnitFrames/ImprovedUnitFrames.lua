@@ -12,46 +12,36 @@ local editModeManagerFrame = EditModeManagerFrame
 local unitFrameSettingsHasChanges = false
 
 ---@type table
-local textures = {
+local coords = {
   frameTexture = {
-    coords = {
-      0.00048828125, --left
-      0.19384765625, --right
-      0.1669921875, --top
-      0.3056640625, -- bottom
-    },
+    0.00048828125, --left
+    0.19384765625, --right
+    0.1669921875, --top
+    0.3056640625, -- bottom
   },
   frameFlash = {
-    coords = {
-      0.57568359375, --left
-      0.76318359375, --right
-      0.1669921875, --top
-      0.3056640625, -- bottom
-    },
+    0.57568359375, --left
+    0.76318359375, --right
+    0.1669921875, --top
+    0.3056640625, -- bottom
   },
   alternateFrameTexture = {
-    coords = {
-      0.78466796875, --left
-      0.97802734375, --right
-      0.0009765625, --top
-      0.1455078125, -- bottom
-    },
+    0.78466796875, --left
+    0.97802734375, --right
+    0.0009765625, --top
+    0.1455078125, -- bottom
   },
   alternateFrameFlash = {
-    coords = {
-      0.38720703125, --left
-      0.57470703125, --right
-      0.1669921875, --top
-      0.3056640625, -- bottom
-    },
+    0.38720703125, --left
+    0.57470703125, --right
+    0.1669921875, --top
+    0.3056640625, -- bottom
   },
   healthBarMask = {
-    coords = {
-      2 / 128, --left
-      126 / 128, --right
-      15 / 64, --top
-      52 / 64, -- bottom
-    },
+    2 / 128, --left
+    126 / 128, --right
+    15 / 64, --top
+    52 / 64, -- bottom
   },
 }
 
@@ -71,7 +61,7 @@ local enum_ImprovedUnitFramesSetting_HidePower = 20
 --- Gets the ImprovedUnitFrames database settings
 ---@return table|nil
 local function GetImprovedUnitFramesDB()
-  return BUII_EditModeUtils:GetDB(databaseKey)[databaseKey]
+  return BUII_EditModeUtils:GetDB(databaseKey)
 end
 
 --- Add a setting type to the EditModeSystemSettingsDialog for the given Frame
@@ -122,55 +112,47 @@ end
 ---@type frame
 ---@return nil
 local function syncPlayerFrame()
+  if not initialized or InCombatLockdown() then
+    return
+  end
+
   if GetImprovedUnitFramesDB()["PlayerFrame"]["hide_power"] then
     for i = 1, #resourceBars do
       local statusBar = resourceBars[i]
       statusBar:SetAlpha(0)
-      PlayerFrame:HookScript("OnShow", function()
-        statusBar:SetAlpha(0)
-      end)
-
-      if InCombatLockdown() then
-        return
-      end
-
-      local isAlterntePowerFrame = PlayerFrame.activeAlternatePowerBar
-      local frameTexture = isAlterntePowerFrame and PlayerFrame.PlayerFrameContainer.AlternatePowerFrameTexture
-        or PlayerFrame.PlayerFrameContainer.FrameTexture
-      local frameFlash = PlayerFrame.PlayerFrameContainer.FrameFlash
-      local mask = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer.HealthBarMask
-      local healthBar = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer.HealthBar
-
-      frameTexture:SetTexture("Interface\\AddOns\\BravosUIImprovements\\Media\\Textures\\PlayerFrameHealthOnly.tga")
-      frameFlash:SetTexture("Interface\\AddOns\\BravosUIImprovements\\Media\\Textures\\PlayerFrameHealthOnly.tga")
-      mask:SetTexture("Interface\\AddOns\\BravosUIImprovements\\Media\\Textures\\PlayerFrameHealthOnlyMask.tga")
-      if isAlterntePowerFrame then
-        frameTexture:SetTexCoord(unpack(textures.alternateFrameTexture.coords))
-        frameFlash:SetTexCoord(unpack(textures.alternateFrameFlash.coords))
-        -- mask:SetTexCoord(unpack(textures.healthBarMask.coords))
-      else
-        frameTexture:SetTexCoord(unpack(textures.frameTexture.coords))
-        frameFlash:SetTexCoord(unpack(textures.frameFlash.coords))
-        -- mask:SetTexCoord(unpack(textures.healthBarMask.coords))
-      end
-      mask:SetPoint("TOPLEFT", healthBar, -3, 7)
-      mask:SetPoint("BOTTOMRIGHT", healthBar, 2, -12)
-      mask:Show()
-      healthBar:SetHeight(30.5)
-      -- Font since tww the halth text is anchored to the container.
-      local healthTextLeft = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer.LeftText
-      local healthTextMiddle = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer.HealthBarText
-      local healthTextRight = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer.RightText
-      healthTextLeft:SetPoint("LEFT", healthBar, "LEFT")
-      healthTextMiddle:SetPoint("CENTER", healthBar, "CENTER")
-      healthTextRight:SetPoint("RIGHT", healthBar, "RIGHT")
-
-      -- PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer.HealthBarMask:Hide()
-      -- PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.ManaBarArea:Hide()
-      -- PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer:SetHeight(30.5)
     end
-  else
-    -- TODO: do something
+
+    local isAlterntePowerFrame = PlayerFrame.activeAlternatePowerBar
+    local frameTexture = isAlterntePowerFrame and PlayerFrame.PlayerFrameContainer.AlternatePowerFrameTexture
+      or PlayerFrame.PlayerFrameContainer.FrameTexture
+    local frameFlash = PlayerFrame.PlayerFrameContainer.FrameFlash
+
+    frameTexture:SetTexture("Interface\\AddOns\\BravosUIImprovements\\Media\\Textures\\PlayerFrameHealthOnly.tga")
+    frameFlash:SetTexture("Interface\\AddOns\\BravosUIImprovements\\Media\\Textures\\PlayerFrameHealthOnly.tga")
+
+    if isAlterntePowerFrame then
+      frameTexture:SetTexCoord(unpack(coords.alternateFrameTexture))
+      frameFlash:SetTexCoord(unpack(coords.alternateFrameFlash))
+    else
+      frameTexture:SetTexCoord(unpack(coords.frameTexture))
+      frameFlash:SetTexCoord(unpack(coords.frameFlash))
+    end
+
+    local mask = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer.HealthBarMask
+    local healthBar = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer.HealthBar
+    mask:SetTexture("Interface\\AddOns\\BravosUIImprovements\\Media\\Textures\\PlayerFrameHealthOnlyMask.tga")
+    mask:SetPoint("TOPLEFT", healthBar, -3, 7)
+    mask:SetPoint("BOTTOMRIGHT", healthBar, 2, -12)
+    mask:Show()
+    healthBar:SetHeight(30.5)
+
+    local healthTextLeft = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer.LeftText
+    local healthTextMiddle = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer.HealthBarText
+    local healthTextRight = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer.RightText
+
+    healthTextLeft:SetPoint("LEFT", healthBar, "LEFT")
+    healthTextMiddle:SetPoint("CENTER", healthBar, "CENTER")
+    healthTextRight:SetPoint("RIGHT", healthBar, "RIGHT")
   end
 end
 
@@ -214,6 +196,7 @@ local function editModeSystemSettingsDialog_OnSettingValueChanged(self, setting,
   if not initialized then
     return
   end
+
   local currentFrame = self.attachedToSystem
   local currentFrameName = currentFrame:GetName()
 
@@ -222,12 +205,11 @@ local function editModeSystemSettingsDialog_OnSettingValueChanged(self, setting,
   end
 
   if currentFrameName == "PlayerFrame" then
-    -- Mark as having unsaved changes instead of saving immediately
-    print("PlayerFrame setting changes, setting: ", setting, " value: ", value)
     if setting == enum_ImprovedUnitFramesSetting_HidePower then
       GetImprovedUnitFramesDB()["PlayerFrame"]["hide_power"] = value == 1 and true or false
       syncPlayerFrame()
     end
+    -- Mark as having unsaved changes instead of saving immediately
     markUnitFrameSettingsDirty()
   end
 end
@@ -235,8 +217,8 @@ end
 --- Enables and initializes ImprovedUnitFrames
 ---@return nil
 function BUII_ImprovedUnitFramesEnable()
+  print("enable called, initialized: ", initialized)
   if not initialized then
-    -- init
     initialized = true
 
     if not secureHooksInstalled then
@@ -246,7 +228,13 @@ function BUII_ImprovedUnitFramesEnable()
         "OnSettingValueChanged",
         editModeSystemSettingsDialog_OnSettingValueChanged
       )
+      -- Prevent the PlayerFrame from changing back
+      hooksecurefunc("PlayerFrame_Update", syncPlayerFrame)
       secureHooksInstalled = true
+    end
+
+    if GetImprovedUnitFramesDB()["PlayerFrame"]["hide_power"] then
+      AlternatePowerBar:UnregisterEvent("UNIT_DISPLAYPOWER")
     end
 
     syncPlayerFrame()
@@ -256,23 +244,45 @@ end
 --- Disables ImprovedUnitFrames and undos any applied setting
 ---@return nil
 function BUII_ImprovedUnitFramesDisable()
+  print("disable called, initialized: ", initialized)
   if initialized then
     -- de-init
     initialized = false
 
-    -- TODO: cleanup
+    local isAlterntePowerFrame = PlayerFrame.activeAlternatePowerBar
+    local frameTexture = isAlterntePowerFrame and PlayerFrame.PlayerFrameContainer.AlternatePowerFrameTexture
+      or PlayerFrame.PlayerFrameContainer.FrameTexture
+    local frameFlash = PlayerFrame.PlayerFrameContainer.FrameFlash
+    local mask = addonTable.globalUnitVariables.player.healthBarMask
+    local healthBar = addonTable.globalUnitVariables.player.healthBar
+    if isAlterntePowerFrame then
+      frameTexture:SetAtlas("UI-HUD-UnitFrame-Player-PortraitOn-ClassResource")
+      frameTexture:SetTexCoord(0, 1, 0, 1)
+      frameFlash:SetAtlas("UI-HUD-UnitFrame-Player-PortraitOn-ClassResource-InCombat")
+      frameFlash:SetTexCoord(0, 1, 0, 1)
+    else
+      frameTexture:SetAtlas("UI-HUD-UnitFrame-Player-PortraitOn")
+      frameTexture:SetTexCoord(0, 1, 0, 1)
+      frameFlash:SetAtlas("UI-HUD-UnitFrame-Player-PortraitOn-InCombat")
+      frameFlash:SetTexCoord(0, 1, 0, 1)
+    end
+    mask:SetAtlas("UI-HUD-UnitFrame-Player-PortraitOn-Bar-Health-Mask")
+
+    AlternatePowerBar:RegisterEvent("UNIT_DISPLAYPOWER")
+
+    healthBar:SetHeight(20)
+    for i = 1, #resourceBars do
+      resourceBars[i]:SetAlpha(1)
+    end
   end
 end
 
 local DB_DEFAULTS = {
-  improved_unitframes = {
-    enabled = false,
-    PlayerFrame = {
-      hide_power = false,
-    },
-    TargetFrame = {
-      hide_power = false,
-    },
+  PlayerFrame = {
+    hide_power = false,
+  },
+  TargetFrame = {
+    hide_power = false,
   },
 }
 

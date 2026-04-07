@@ -412,7 +412,7 @@ local function UpdateNativeFrameVisibility()
     return
   end
 
-  -- local shouldHide = db.resource_tracker_hide_native or false
+  local shouldHide = db.resource_tracker_hide_native or false
   local nativeFrame = _G[config.nativeFrame]
 
   if nativeFrame then
