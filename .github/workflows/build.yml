@@ -9,8 +9,8 @@ on:
   pull_request:
     branches:
       - master
-  paths-ignore:
-    - '.github/**'
+    paths-ignore:
+      - '.github/**'
 
 jobs:
   test:
