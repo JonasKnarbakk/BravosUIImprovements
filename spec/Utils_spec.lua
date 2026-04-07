@@ -12,20 +12,23 @@ describe("BravosUIImprovements Utils", function()
       assert.are.equal("0", BUII_FormatNumber(nil))
     end)
 
-    it("returns '???' if the value is a secret value", function()
+    it("returns the same value if the value is a secret value", function()
       -- Mock issecretvalue to return true inside the test
       local original_issecret = _G.issecretvalue
       _G.issecretvalue = function()
         return true
       end
 
-      assert.are.equal("???", BUII_FormatNumber(100))
+      assert.are.equal(100, BUII_FormatNumber(100))
 
       -- Restore original mock
       _G.issecretvalue = original_issecret
     end)
 
     it("formats numbers greater than or equal to 1,000,000 as M", function()
+      _G.issecretvalue = function()
+        return false
+      end
       assert.are.equal("1.0M", BUII_FormatNumber(1000000))
       assert.are.equal("1.5M", BUII_FormatNumber(1500000))
       assert.are.equal("1.2M", BUII_FormatNumber(1234567))

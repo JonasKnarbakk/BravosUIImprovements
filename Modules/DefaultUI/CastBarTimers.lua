@@ -7,8 +7,6 @@ local function GetCastBarTimersDB()
   return BUII_EditModeUtils:GetDB("castbar_timers")
 end
 
-local myFormatter
-
 --- Creates a child frame specifically to hold the timer text fontstring
 ---@param parent Frame
 ---@param xOffset number
@@ -321,21 +319,10 @@ end
 ---@return nil
 function BUII_CastBarTimersEnable()
   if not castBarTimersInitialized then
-    myFormatter = CreateFromMixins(SecondsFormatterMixin)
-    myFormatter:Init(0, SecondsFormatter.Abbreviation.OneLetter, false, true, false)
-    if myFormatter.SetDesiredUnitCount then
-      myFormatter:SetDesiredUnitCount(1)
-    end
-    -- Force the formatter to show decimals when under a certain threshold
-    -- In the 12.0.5 update, this is the official way to get "8.7" style text
-    if myFormatter.SetFractionalSecondsThreshold then
-      myFormatter:SetFractionalSecondsThreshold(60) -- Show 0.1s precision if under 60 seconds
-    end
-    -- PlayerCastingBarFrame.CastTimeText:SetPoint(PlayerCastingBarFrame, nil, nil, -14, -17)
     repositionPlayerCastBarText()
     detachAndSetupCastBar(
       "target",
-      "BUIITargetFrameSpellBarEditModeSystemTemplate",
+      "BUIITargecastFrameSpellBarEditModeSystemTemplate",
       Enum.EditModeSystem.BUII_TargetFrameSpellBar,
       BUII_HUD_EDIT_MODE_TARGET_FRAME_SPELL_BAR_LABEL
     )

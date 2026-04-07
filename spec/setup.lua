@@ -7,6 +7,7 @@ dofile("Utils.lua")
 _G.GetTime = function()
   return 1000
 end
+_G.RunNextFrame = function() end
 _G.CreateFrame = function(frameType, name, parent, template)
   local frame = {
     GetName = function()
