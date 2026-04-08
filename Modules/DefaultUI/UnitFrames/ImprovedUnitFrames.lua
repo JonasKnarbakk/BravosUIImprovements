@@ -228,7 +228,6 @@ end
 --- Enables and initializes ImprovedUnitFrames
 ---@return nil
 function BUII_ImprovedUnitFramesEnable()
-  print("enable called, initialized: ", initialized)
   if not initialized then
     initialized = true
 
