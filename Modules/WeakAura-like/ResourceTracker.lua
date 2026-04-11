@@ -182,11 +182,27 @@ local CONFIG = {
     nativeFrame = "DruidComboPointBarFrame",
   },
   MAGE = {
-    spec = 62, -- Arcane
-    powerType = Enum.PowerType.ArcaneCharges,
-    name = "Arcane Charges",
-    color = { r = 0.56, g = 0.24, b = 0.85 }, -- Arcane Purple/Magenta
-    nativeFrame = "MageArcaneChargesFrame",
+    {
+      spec = 62, -- Arcane
+      powerType = Enum.PowerType.ArcaneCharges,
+      name = "Arcane Charges",
+      color = { r = 0.56, g = 0.24, b = 0.85 }, -- Arcane Purple/Magenta
+      nativeFrame = "MageArcaneChargesFrame",
+    },
+    {
+      spec = 63, -- Fire
+      charges = 108853, -- Fire Blast
+      name = "Fire Blast",
+      maxPoints = 3,
+      color = { r = 0.91, g = 0.49, b = 0.25 }, -- Fire Orange #E87D41
+    },
+    {
+      spec = 64, -- Frost
+      buffs = { 205473 }, -- Icicles
+      name = "Flurry",
+      maxPoints = 5,
+      color = { r = 0.447, g = 0.780, b = 1.0 }, -- Light Blue #72C7FF
+    },
   },
 }
 
@@ -432,6 +448,9 @@ local function GetResourceState(config)
       end
     end
     return count, 0, nil
+  elseif config.charges then
+    local chargeInfo = C_Spell.GetSpellCharges(config.charges)
+    return chargeInfo.currentCharges, 0, nil
   elseif config.abilityStacks then
     local count = 0
     if config.abilityStacks then
