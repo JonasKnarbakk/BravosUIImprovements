@@ -249,13 +249,16 @@
         </Scripts>
       </CheckButton>
 
-      <CheckButton name="$parentCastBarTimers" parentKey="CastBarTimers" inherits="InterfaceOptionsCheckButtonTemplate">
+      <CheckButton name="$parentImprovedCastbars" parentKey="ImprovedCastbars" inherits="InterfaceOptionsCheckButtonTemplate">
+        <KeyValues>
+          <KeyValue key="tooltipText" value="Add icon option and move timer text on player castbar. Detach target and focus castbars, add additional options." type="string"/>
+        </KeyValues>
         <Anchors>
           <Anchor point="TOPLEFT" relativeKey="$parent.ImprovedUnitFrames" relativePoint="BOTTOMLEFT" x="0" y="0"/>
         </Anchors>
         <Layers>
           <Layer level="ARTWORK">
-            <FontString name="$parentLabel" text="Castbar Timers" inherits="GameFontNormalSmall">
+            <FontString name="$parentLabel" text="Improved Castbars" inherits="GameFontNormalSmall">
               <Anchors>
                 <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
               </Anchors>
@@ -263,67 +266,69 @@
           </Layer>
         </Layers>
         <Scripts>
+          <OnEnter>
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+            GameTooltip:SetText(self.tooltipText, nil, nil, nil, nil, true);
+            GameTooltip:Show();
+          </OnEnter>
+          <OnLeave function="GameTooltip_Hide"/>
           <OnClick function="BUII_CastBarTimersCheckButton_OnClick"/>
         </Scripts>
       </CheckButton>
 
-      <CheckButton name="$parentCastBarIcon" parentKey="CastBarIcon" inherits="InterfaceOptionsCheckButtonTemplate">
-        <Anchors>
-          <Anchor point="TOPLEFT" relativeKey="$parent.CastBarTimers" relativePoint="BOTTOMLEFT" x="0" y="0"/>
-        </Anchors>
-        <Layers>
-          <Layer level="ARTWORK">
-            <FontString name="$parentLabel" text="Player Castbar Spell Icon" inherits="GameFontNormalSmall">
-              <Anchors>
-                <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
-              </Anchors>
-            </FontString>
-          </Layer>
-        </Layers>
-        <Scripts>
-          <OnClick function="BUII_CastBarIconCheckButton_OnClick"/>
-        </Scripts>
-      </CheckButton>
+      <!-- <CheckButton name="$parentCastBarOnTop" parentKey="CastBarOnTop" inherits="InterfaceOptionsCheckButtonTemplate"> -->
+      <!--   <Anchors> -->
+      <!--     <Anchor point="TOPLEFT" relativeKey="$parent.ImprovedCastbars" relativePoint="BOTTOMLEFT" x="0" y="0"/> -->
+      <!--   </Anchors> -->
+      <!--   <Layers> -->
+      <!--     <Layer level="ARTWORK"> -->
+      <!--       <FontString name="$parentLabel" text="Target and Focus castbar on top" inherits="GameFontNormalSmall"> -->
+      <!--         <Anchors> -->
+      <!--           <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/> -->
+      <!--         </Anchors> -->
+      <!--       </FontString> -->
+      <!--     </Layer> -->
+      <!--   </Layers> -->
+      <!--   <Scripts> -->
+      <!--     <OnClick function="BUII_CastBarOnTopCheckButton_OnClick"/> -->
+      <!--   </Scripts> -->
+      <!-- </CheckButton> -->
 
-      <CheckButton name="$parentCastBarOnTop" parentKey="CastBarOnTop" inherits="InterfaceOptionsCheckButtonTemplate">
+      <!-- <CheckButton name="$parentSaneCombinedBagSorting" parentKey="SaneCombinedBagSorting" inherits="InterfaceOptionsCheckButtonTemplate"> -->
+      <!--   <Anchors> -->
+      <!--     <Anchor point="TOPLEFT" relativeKey="$parent.CastBarOnTop" relativePoint="BOTTOMLEFT" x="0" y="0"/> -->
+      <!--   </Anchors> -->
+      <!--   <Layers> -->
+      <!--     <Layer level="ARTWORK"> -->
+      <!--       <FontString name="$parentLabel" text="Sane sorting for combined bags" inherits="GameFontNormalSmall"> -->
+      <!--         <Anchors> -->
+      <!--           <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/> -->
+      <!--         </Anchors> -->
+      <!--       </FontString> -->
+      <!--     </Layer> -->
+      <!--   </Layers> -->
+      <!--   <Scripts> -->
+      <!--     <OnClick function="BUII_SaneCombinedBagSortingCheckButton_OnClick"/> -->
+      <!--   </Scripts> -->
+      <!-- </CheckButton> -->
+      <Button name="$parentBagSortDropdown" parentKey="BagSortDropdown" inherits="UIDropDownMenuTemplate">
         <Anchors>
-          <Anchor point="TOPLEFT" relativeKey="$parent.CastBarIcon" relativePoint="BOTTOMLEFT" x="0" y="0"/>
+          <Anchor point="TOPLEFT" relativeKey="$parent.ImprovedCastbars" relativePoint="BOTTOMLEFT" x="120" y="0"/>
         </Anchors>
         <Layers>
           <Layer level="ARTWORK">
-            <FontString name="$parentLabel" text="Target and Focus castbar on top" inherits="GameFontNormalSmall">
+            <FontString name="$parentLabel" text="Bag Sorting Direction" inherits="GameFontNormalSmall">
               <Anchors>
-                <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
+                <Anchor point="RIGHT" relativePoint="LEFT" x="-6" y="0"/>
               </Anchors>
             </FontString>
           </Layer>
         </Layers>
-        <Scripts>
-          <OnClick function="BUII_CastBarOnTopCheckButton_OnClick"/>
-        </Scripts>
-      </CheckButton>
-
-      <CheckButton name="$parentSaneCombinedBagSorting" parentKey="SaneCombinedBagSorting" inherits="InterfaceOptionsCheckButtonTemplate">
-        <Anchors>
-          <Anchor point="TOPLEFT" relativeKey="$parent.CastBarOnTop" relativePoint="BOTTOMLEFT" x="0" y="0"/>
-        </Anchors>
-        <Layers>
-          <Layer level="ARTWORK">
-            <FontString name="$parentLabel" text="Sane sorting for combined bags" inherits="GameFontNormalSmall">
-              <Anchors>
-                <Anchor point="LEFT" relativePoint="RIGHT" x="0" y="0"/>
-              </Anchors>
-            </FontString>
-          </Layer>
-        </Layers>
-        <Scripts>
-          <OnClick function="BUII_SaneCombinedBagSortingCheckButton_OnClick"/>
-        </Scripts>
-      </CheckButton>
+      </Button>
 
       <CheckButton name="$parentHideStanceBar" parentKey="HideStanceBar" inherits="InterfaceOptionsCheckButtonTemplate">
         <Anchors>
-          <Anchor point="TOPLEFT" relativeKey="$parent.SaneCombinedBagSorting" relativePoint="BOTTOMLEFT" x="0" y="0"/>
+          <Anchor point="TOPLEFT" relativeKey="$parent.BagSortDropdown" relativePoint="BOTTOMLEFT" x="-120" y="0"/>
         </Anchors>
         <Layers>
           <Layer level="ARTWORK">

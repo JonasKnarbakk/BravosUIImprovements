@@ -8,7 +8,6 @@ local castingBarHookSet = false
 ---@field class_color boolean
 ---@field castbar_icon boolean
 ---@field castbar_on_top boolean
----@field sane_bag_sort boolean
 ---@field font_name string
 ---@field font_outline string
 ---@field font_shadow boolean
@@ -61,7 +60,6 @@ local BUII_CORE_DB_DEFAULTS = {
   class_color = false,
   castbar_icon = false,
   castbar_on_top = false,
-  sane_bag_sort = false,
   font_name = "Friz Quadrata TT",
   font_outline = "OUTLINE",
   font_shadow = true,
@@ -156,36 +154,21 @@ local function setPlayerClassColor()
   end
 end
 
---- Toggles cast bar positioning on top of the target/focus frames
----@param setOnTop boolean
----@return nil
-local function setCastBarOnTop(setOnTop)
-  if setOnTop then
-    if not spellBarHookSet then
-      TargetFrameSpellBar:HookScript("OnUpdate", handleTargetFrameSpellBar_OnUpdate)
-      FocusFrameSpellBar:HookScript("OnUpdate", handleFocusFrameSpellBar_OnUpdate)
-      spellBarHookSet = true
-    end
-    BUIIDatabase["castbar_on_top"] = true
-  else
-    BUIIDatabase["castbar_on_top"] = false
-  end
-end
-
---- Toggles sane bag sorting (right-to-left)
----@param setSane boolean
----@return nil
-local function setSaneBagSorting(setSane)
-  if setSane then
-    C_Container.SetSortBagsRightToLeft(true)
-    C_Container.SetInsertItemsLeftToRight(false)
-    BUIIDatabase["sane_bag_sort"] = true
-  else
-    C_Container.SetSortBagsRightToLeft(false)
-    C_Container.SetInsertItemsLeftToRight(false)
-    BUIIDatabase["sane_bag_sort"] = false
-  end
-end
+--- --- Toggles cast bar positioning on top of the target/focus frames
+--- ---@param setOnTop boolean
+--- ---@return nil
+--- local function setCastBarOnTop(setOnTop)
+---   if setOnTop then
+---     if not spellBarHookSet then
+---       TargetFrameSpellBar:HookScript("OnUpdate", handleTargetFrameSpellBar_OnUpdate)
+---       FocusFrameSpellBar:HookScript("OnUpdate", handleFocusFrameSpellBar_OnUpdate)
+---       spellBarHookSet = true
+---     end
+---     BUIIDatabase["castbar_on_top"] = true
+---   else
+---     BUIIDatabase["castbar_on_top"] = false
+---   end
+--- end
 
 --- Helper to show or hide stance buttons
 ---@param shouldHide boolean
@@ -708,23 +691,24 @@ function BUII_OnEventHandler(self, event, arg1, ...)
 
     if BUIIDatabase["castbar_timers"] then
       BUII_CastBarTimersEnable()
-      defaultUI.CastBarTimers:SetChecked(true)
+      defaultUI.ImprovedCastbars:SetChecked(true)
     end
 
-    if BUIIDatabase["castbar_icon"] then
-      showPlayerCastBarIcon(true)
-      defaultUI.CastBarIcon:SetChecked(true)
-    end
+    UIDropDownMenu_Initialize(defaultUI.BagSortDropdown, BUII_BagSortDropdown_Initialize)
+    UIDropDownMenu_SetSelectedValue(
+      defaultUI.BagSortDropdown,
+      C_Container.GetSortBagsRightToLeft() and not C_Container.GetInsertItemsLeftToRight() and "TOP" or "BOTTOM"
+    )
 
-    if BUIIDatabase["castbar_on_top"] then
-      setCastBarOnTop(true)
-      defaultUI.CastBarOnTop:SetChecked(true)
-    end
+    -- if BUIIDatabase["castbar_icon"] then
+    --   showPlayerCastBarIcon(true)
+    --   defaultUI.CastBarIcon:SetChecked(true)
+    -- end
 
-    if BUIIDatabase["sane_bag_sort"] then
-      setSaneBagSorting(true)
-      defaultUI.SaneCombinedBagSorting:SetChecked(true)
-    end
+    -- if BUIIDatabase["castbar_on_top"] then
+    --   setCastBarOnTop(true)
+    --   defaultUI.CastBarOnTop:SetChecked(true)
+    -- end
 
     if BUIICharacterDatabase["hide_stance_bar"] then
       setHideStanceBar(true)
@@ -825,11 +809,40 @@ function BUII_CastBarOnTopCheckButton_OnClick(self)
   end
 end
 
---- Toggle handler for Sane Bag Sorting check button
----@param self CheckButton|any
----@return nil
-function BUII_SaneCombinedBagSortingCheckButton_OnClick(self)
-  setSaneBagSorting(self:GetChecked())
+function BUII_BagSortDropdown_Initialize(self, level, menuList)
+  local info = UIDropDownMenu_CreateInfo()
+  info.func = BUII_BagSortDropdown_OnClick
+
+  -- Option 1: Top
+  info.text = "Top"
+  info.value = "TOP"
+  -- Ensure the checkmark logic works correctly
+  info.checked = (UIDropDownMenu_GetSelectedValue(self) == info.value)
+  UIDropDownMenu_AddButton(info)
+
+  -- IMPORTANT: Wipe the info table before reusing it for the next button
+  info = UIDropDownMenu_CreateInfo()
+  info.func = BUII_BagSortDropdown_OnClick
+
+  -- Option 2: Bottom
+  info.text = "Bottom"
+  info.value = "BOTTOM"
+  info.checked = (UIDropDownMenu_GetSelectedValue(self) == info.value)
+  UIDropDownMenu_AddButton(info)
+end
+
+function BUII_BagSortDropdown_OnClick(self)
+  UIDropDownMenu_SetSelectedValue(BUIIOptionsPanel.ScrollFrame.ScrollChild.DefaultUIContent.BagSortDropdown, self.value)
+
+  if self.value == "TOP" then
+    UIDropDownMenu_SetText(BUIIOptionsPanel.ScrollFrame.ScrollChild.DefaultUIContent.BagSortDropdown, "Top")
+    C_Container.SetSortBagsRightToLeft(true)
+    C_Container.SetInsertItemsLeftToRight(true)
+  else
+    UIDropDownMenu_SetText(BUIIOptionsPanel.ScrollFrame.ScrollChild.DefaultUIContent.BagSortDropdown, "Bottom")
+    C_Container.SetSortBagsRightToLeft(false)
+    C_Container.SetInsertItemsLeftToRight(false)
+  end
 end
 
 --- Toggle handler for Hide Stance Bar check button
