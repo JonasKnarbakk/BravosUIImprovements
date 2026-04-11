@@ -252,44 +252,49 @@ end
 ---@param timerTextFrame Frame|any
 ---@return nil
 local function setTimerText(castBarFrame, timerTextFrame)
-  if not timerTextFrame.text then
+  if not timerTextFrame.text or not castBarFrame.unit then
     return
   end
 
-  -- Check if the frame is actively casting, channeling, or empowering
   if castBarFrame.casting or castBarFrame.channeling or castBarFrame.empowering then
-    local remaining
+    local durationObject = nil
 
     if castBarFrame.GetTimerDuration then
-      local durationObject = castBarFrame:GetTimerDuration()
-      if durationObject then
-        remaining = durationObject:GetRemainingDuration()
+      durationObject = castBarFrame:GetTimerDuration()
+    end
+
+    if not durationObject then
+      if castBarFrame.channeling then
+        durationObject = UnitChannelDuration(castBarFrame.unit)
+      else
+        durationObject = UnitCastingDuration(castBarFrame.unit)
       end
     end
 
-    if not remaining and castBarFrame.unit then
-      local name, _, _, _, endTimeMS = UnitCastingInfo(castBarFrame.unit)
-
-      -- If not casting, check if they are channeling
-      if not name then
-        name, _, _, _, endTimeMS = UnitChannelInfo(castBarFrame.unit)
-      end
-
-      -- If we found an active cast/channel, calculate the remaining time
-      if name and endTimeMS and not issecretvalue(endTimeMS) then
-        -- endTimeMS is in milliseconds, GetTime() is in seconds
-        remaining = (endTimeMS / 1000) - GetTime()
+    if durationObject then
+      local remaining = durationObject:GetRemainingDuration()
+      if remaining then
+        timerTextFrame.text:SetText(format("%.1f s", remaining))
+        return
       end
     end
 
-    -- Update the text if we found a valid remaining time
-    if remaining and remaining >= 0 then
-      timerTextFrame.text:SetText(string.format("%.1f s", remaining))
-      return
+    local name, _, _, _, endTimeMS
+    if castBarFrame.channeling then
+      name, _, _, _, endTimeMS = UnitChannelInfo(castBarFrame.unit)
+    else
+      name, _, _, _, endTimeMS = UnitCastingInfo(castBarFrame.unit)
+    end
+
+    if name and endTimeMS and not issecretvalue(endTimeMS) then
+      local remaining = (endTimeMS / 1000) - GetTime()
+      if remaining >= 0 then
+        timerTextFrame.text:SetText(string.format("%.1f s", remaining))
+        return
+      end
     end
   end
 
-  -- If we aren't casting or couldn't get a time, clear the text
   timerTextFrame.text:SetText("")
 end
 
