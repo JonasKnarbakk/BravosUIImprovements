@@ -178,6 +178,13 @@ local function markUnitFrameSettingsDirty()
   end
 end
 
+-- Called when the player leaves combat
+local function combat_OnExit()
+  if isSyncPending then
+    syncPlayerFrame()
+  end
+end
+
 --- Hooked to EditModeSystemSettingsDialog:UpdateSettings
 ---@param self table EditModeSystemSettingsDialog
 ---@param systemFrame table The frame the settings belong to e.g MainMenuBar
@@ -248,19 +255,11 @@ function BUII_ImprovedUnitFramesEnable()
     end
 
     -- Combat watcher to sync frame after combat in case we're unable to update it
-    if not combatWatcher then
-      combatWatcher = CreateFrame("Frame")
-
-      RegisterStateDriver(combatWatcher, "combatstate", "[combat] true; false")
-
-      combatWatcher:SetScript("OnAttributeChanged", function(self, name, value)
-        if name == "combatstate" and value == "false" then
-          if isSyncPending then
-            syncPlayerFrame()
-          end
-        end
-      end)
-    end
+    EventRegistry:RegisterFrameEventAndCallback(
+      "PLAYER_REGEN_ENABLED",
+      combat_OnExit,
+      "BUII_ImprovedUnitFrames_OnCombatLeave"
+    )
 
     syncPlayerFrame()
   end
