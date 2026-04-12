@@ -341,12 +341,11 @@ local function GetResourceState(config)
   elseif config.class == "EVOKER" and config.powerType == Enum.PowerType.Essence then
     local power = UnitPower("player", config.powerType)
     local partial = (UnitPartialPower("player", config.powerType) or 0) / 1000
-    local regen = GetPowerRegenForPowerType(Enum.PowerType.Essence)
-    -- print("DEBUG: Evoker State", power, partial, regen)
-    if not regen or regen == 0 then
+    local regen = GetPowerRegenForPowerType(Enum.PowerType.Essence) or 0.2
+    -- -- print("DEBUG: Evoker State", power, partial, regen)
+    if not regen or issecretvalue(regen) or regen == 0 then
       regen = 0.2 -- Default fallback matching Blizzard UI
     end
-
     local duration = 1 / regen
     return power, { { progress = partial, duration = duration } }, nil
 
