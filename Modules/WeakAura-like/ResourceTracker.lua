@@ -141,11 +141,10 @@ local CONFIG = {
     },
     {
       spec = 270, -- Mistweaver
-      powerType = Enum.PowerType.Mana,
-      name = "Mana",
-      color = { r = 0.00, g = 0.00, b = 1.00 }, -- Mana Blue
-      isBar = false,
-      hidePrimary = true,
+      name = "Renewing Mist",
+      charges = 115151, -- Renewing Mist
+      maxPoints = 3,
+      color = { r = 0.20, g = 0.90, b = 0.50 }, -- Renewing Mist Jade
     },
   },
   DEATHKNIGHT = {
