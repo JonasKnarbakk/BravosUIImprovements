@@ -39,11 +39,10 @@ local CONFIG = {
     },
     {
       spec = 264, -- Restoration
-      powerType = Enum.PowerType.Mana,
-      name = "Mana",
-      color = { r = 0.00, g = 0.00, b = 1.00 }, -- Mana Blue
-      isBar = false,
-      hidePrimary = true,
+      name = "Riptide",
+      charges = 61295, -- Riptide
+      maxPoints = 3,
+      color = { r = 0.10, g = 0.75, b = 0.65 }, -- Riptide Blue
     },
   },
   DEMONHUNTER = {
@@ -1484,6 +1483,7 @@ function BUII_ResourceTracker_Enable()
   frame:RegisterUnitEvent("UNIT_MAXHEALTH", "player")
   frame:RegisterUnitEvent("UNIT_ABSORB_AMOUNT_CHANGED", "player")
   frame:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", "player")
+  frame:RegisterEvent("SPELL_UPDATE_CHARGES")
   frame:RegisterEvent("RUNE_POWER_UPDATE")
   frame:RegisterEvent("PLAYER_ENTERING_WORLD")
   frame:SetScript("OnEvent", onEvent)
