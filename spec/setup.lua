@@ -213,9 +213,11 @@ _G.CreateFrame = function(frameType, name, parent, template)
   if template == "BUII_PowerBarTemplate" then
     frame.ProgressBar = _G.CreateFrame("Frame")
     frame.Background = { SetTexture = function() end, SetVertexColor = function() end }
+    frame.SetBackdropBorderColor = function() end
   elseif template == "BUII_ResourcePointTemplate" then
     frame.ProgressBar = _G.CreateFrame("Frame")
     frame.Background = { SetTexture = function() end, SetVertexColor = function() end }
+    frame.SetBackdropBorderColor = function() end
   end
 
   if name then
