@@ -16,195 +16,9 @@ local points = {}
 ---@type FontString|nil
 local counterText = nil
 
--- Configuration
-local CONFIG = {
-  SHAMAN = {
-    {
-      spec = 262, -- Elemental
-      powerType = Enum.PowerType.Maelstrom,
-      name = "Maelstrom",
-      color = { r = 0.447, g = 0.780, b = 1.0 }, -- Light Blue #72C7FF
-      isBar = true,
-      powerId = 0,
-      powerKey = "MANA",
-    },
-    {
-      spec = 263, -- Enhancement
-      buffs = { 344179, 384088 }, -- Maelstrom Weapon
-      name = "Maelstrom Weapon",
-      maxPoints = 5, -- Show 5, the extra 5 will be layered
-      color = { r = 0.447, g = 0.780, b = 1.0 }, -- Light Blue #72C7FF
-      color2 = { r = 1.0, g = 0.4, b = 0.4 }, -- Red #FF6666
-      layered = true, -- Stack count > 5 changes color
-    },
-    {
-      spec = 264, -- Restoration
-      name = "Riptide",
-      charges = 61295, -- Riptide
-      maxPoints = 3,
-      color = { r = 0.10, g = 0.75, b = 0.65 }, -- Riptide Blue
-    },
-  },
-  DEMONHUNTER = {
-    {
-      spec = 577, -- Havoc
-      powerType = Enum.PowerType.Fury,
-      name = "Fury",
-      color = { r = 0.8, g = 0.2, b = 0.8 }, -- Soul Purple
-      isBar = false,
-      hidePrimary = true,
-    },
-    {
-      spec = 581, -- Vengeance
-      abilityStacks = 228477, -- Soul Cleave
-      name = "Soul Fragments",
-      maxPoints = 6, -- Goes to 6 stacks in Midnight prepatch
-      color = { r = 0.8, g = 0.2, b = 0.8 }, -- Soul Purple
-    },
-    {
-      spec = 1480, -- Devourer
-      name = "Soul Fragments",
-      isBar = true,
-      isDevourerSoulFragments = true,
-      color = { r = 0.33, g = 0.08, b = 0.76 },
-      nativeFrame = "DemonHunterSoulFragmentsBarFrame",
-    },
-  },
-  HUNTER = {
-    powerType = Enum.PowerType.Focus,
-    name = "Focus",
-    color = { r = 1.00, g = 0.56, b = 0.26 }, -- Focus Orange
-    isBar = false,
-    hidePrimary = true,
-  },
-  WARLOCK = {
-    powerType = Enum.PowerType.SoulShards,
-    name = "Soul Shards",
-    color = { r = 0.64, g = 0.00, b = 0.94 }, -- Soul Shard Purple
-    progressFill = true,
-    nativeFrame = "WarlockPowerFrame",
-  },
-  WARRIOR = {
-    powerType = Enum.PowerType.Rage,
-    name = "Rage",
-    color = { r = 1.00, g = 0.00, b = 0.00 }, -- Rage Red
-    isBar = false,
-    hidePrimary = true,
-  },
-  PRIEST = {
-    {
-      spec = 256, -- Discepline
-      powerType = Enum.PowerType.Mana,
-      name = "Mana",
-      color = { r = 0.00, g = 0.00, b = 1.00 }, -- Mana Blue
-      isBar = false,
-      hidePrimary = true,
-    },
-    {
-      spec = 257, -- Holy
-      powerType = Enum.PowerType.Mana,
-      name = "Mana",
-      color = { r = 0.00, g = 0.00, b = 1.00 }, -- Mana Blue
-      isBar = false,
-      hidePrimary = true,
-    },
-    {
-      spec = 258, -- Shadow
-      powerType = Enum.PowerType.Insanity,
-      name = "Insanity",
-      color = { r = 0.50, g = 0.00, b = 1.00 }, -- Insanity Purple
-      isBar = true,
-      powerId = 0,
-      powerKey = "MANA",
-    },
-  },
-  PALADIN = {
-    powerType = Enum.PowerType.HolyPower,
-    name = "Holy Power",
-    color = { r = 0.95, g = 0.9, b = 0.1 }, -- Holy Power Gold
-    nativeFrame = "PaladinPowerBarFrame",
-  },
-  MONK = {
-    {
-      spec = 268, -- Brewmaster
-      name = "Stagger",
-      isBar = true,
-      isStagger = true,
-      color = { r = 0.0, g = 1.0, b = 0.0 }, -- Dynamic color handled in logic?
-    },
-    {
-      spec = 269, -- Windwalker
-      powerType = Enum.PowerType.Chi,
-      name = "Chi",
-      color = { r = 0.0, g = 0.78, b = 0.86 }, -- Monk Chi
-      nativeFrame = "MonkHarmonyBarFrame",
-    },
-    {
-      spec = 270, -- Mistweaver
-      name = "Renewing Mist",
-      charges = 115151, -- Renewing Mist
-      maxPoints = 3,
-      color = { r = 0.20, g = 0.90, b = 0.50 }, -- Renewing Mist Jade
-    },
-  },
-  DEATHKNIGHT = {
-    powerType = Enum.PowerType.Runes,
-    name = "Runes",
-    color = { r = 0.77, g = 0.12, b = 0.23 }, -- Death Knight Red
-    progressFill = true,
-    nativeFrame = "RuneFrame",
-    specs = {
-      [250] = { r = 0.77, g = 0.12, b = 0.23 }, -- Blood: Red
-      [251] = { r = 0.0, g = 0.8, b = 1.0 }, -- Frost: Cyan
-      [252] = { r = 0.2, g = 0.8, b = 0.2 }, -- Unholy: Green
-    },
-  },
-  EVOKER = {
-    powerType = Enum.PowerType.Essence,
-    name = "Essence",
-    color = { r = 0.4, g = 0.8, b = 1.0 }, -- Evoker Essence Blue/Cyan
-    progressFill = true,
-    nativeFrame = "EssencePlayerFrame",
-  },
-  ROGUE = {
-    powerType = Enum.PowerType.ComboPoints,
-    name = "Combo Points",
-    color = { r = 1.0, g = 0.1, b = 0.1 }, -- Rogue Combo Red
-    colorCharged = { r = 0.0, g = 0.8, b = 1.0 }, -- Anima Blue/Cyan
-    nativeFrame = "RogueComboPointBarFrame",
-  },
-  DRUID = {
-    powerType = Enum.PowerType.ComboPoints,
-    name = "Combo Points",
-    color = { r = 1.0, g = 0.1, b = 0.1 }, -- Druid Combo Red
-    nativeFrame = "DruidComboPointBarFrame",
-  },
-  MAGE = {
-    {
-      spec = 62, -- Arcane
-      powerType = Enum.PowerType.ArcaneCharges,
-      name = "Arcane Charges",
-      color = { r = 0.56, g = 0.24, b = 0.85 }, -- Arcane Purple/Magenta
-      nativeFrame = "MageArcaneChargesFrame",
-    },
-    {
-      spec = 63, -- Fire
-      charges = 108853, -- Fire Blast
-      name = "Fire Blast",
-      maxPoints = 3,
-      color = { r = 0.91, g = 0.49, b = 0.25 }, -- Fire Orange #E87D41
-    },
-    {
-      spec = 64, -- Frost
-      buffs = { 205473 }, -- Icicles
-      name = "Flurry",
-      maxPoints = 5,
-      color = { r = 0.447, g = 0.780, b = 1.0 }, -- Light Blue #72C7FF
-    },
-  },
-}
+-- Configuration is now in Core.lua as BUII_ResourceTracker_CONFIG
+-- Use BUII_ResourceTracker_GetActiveConfig() to get the current config
 
--- Settings Constants
 local enum_ResourceTrackerSetting_Scale = 60
 local enum_ResourceTrackerSetting_TotalWidth = 61
 local enum_ResourceTrackerSetting_Spacing = 62
@@ -224,7 +38,6 @@ local enum_ResourceTrackerSetting_PowerBarPadding = 75
 local enum_ResourceTrackerSetting_PowerBarShowText = 76
 local enum_ResourceTrackerSetting_PowerBarFontSize = 77
 
--- Frame Strata Options
 local FRAME_STRATA_OPTIONS = {
   { text = "Background", value = 1 },
   { text = "Low", value = 2 },
@@ -241,253 +54,21 @@ local FRAME_STRATA_VALUES = {
   [5] = "DIALOG",
 }
 
---- Gets the Resource Tracker database settings
----@return table
-local function GetResourceTrackerDB()
-  return BUII_EditModeUtils:GetDB("resource_tracker") or {}
-end
+local GetResourceTrackerDB = BUII_ResourceTracker_GetDB
+local GetActiveConfig = BUII_ResourceTracker_GetActiveConfig
 
---- Gets the active configuration based on player class and spec
----@return table|nil
-local function GetActiveConfig()
-  local db = GetResourceTrackerDB()
-  local _, classFilename = UnitClass("player")
-  local specId = PlayerUtil.GetCurrentSpecID()
-  local specIndex = GetSpecialization()
+local GetResourceState = BUII_ResourceTracker_GetResourceState
 
-  -- Check if class is disabled in settings
-  local settingKey = "resource_tracker_" .. string.lower(classFilename)
-  if db and db[settingKey] == false then
-    return nil
-  end
-
-  local configs = CONFIG[classFilename]
-  if not configs then
-    return nil
-  end
-
-  -- Support both single config table and array of configs
-  if not configs[1] then
-    configs = { configs }
-  end
-
-  for _, config in ipairs(configs) do
-    -- If config has a spec requirement, check if we're in that spec (support ID or Index)
-    if not config.spec or config.spec == specId or config.spec == specIndex then
-      local activeConfig = CopyTable(config)
-      activeConfig.class = classFilename
-
-      -- Apply Spec Specific Colors (e.g. DK Runes)
-      if classFilename == "DEATHKNIGHT" and activeConfig.specs and activeConfig.specs[specId] then
-        activeConfig.color = activeConfig.specs[specId]
-      end
-
-      return activeConfig
-    end
-  end
-
-  return nil
-end
-
---- Helper to get resource state (current whole points, partial progress 0-1, charged points table)
----@param config table|nil
----@return number currentStacks, number|table partialFill, any extraData
-local function GetResourceState(config)
-  if not config then
-    return 0, 0, nil
-  end
-
-  -- Death Knight Runes
-  if config.class == "DEATHKNIGHT" and config.powerType == Enum.PowerType.Runes then
-    local ready = 0
-    local progressList = {}
-    local time = GetTime()
-    local maxRunes = UnitPowerMax("player", config.powerType) or 6
-
-    for i = 1, maxRunes do
-      local start, duration, runeReady = GetRuneCooldown(i)
-      if not start then
-        break
-      end
-
-      if runeReady then
-        ready = ready + 1
-      else
-        if duration > 0 then
-          local prog = (time - start) / duration
-          table.insert(progressList, {
-            progress = math.max(0, math.min(1, prog)),
-            start = start,
-            duration = duration,
-            endTime = start + duration,
-          })
-        else
-          table.insert(progressList, { progress = 0, start = 0, duration = 0, endTime = math.huge })
-        end
-      end
-    end
-    -- Sort by estimated completion time (soonest first) to ensure Left-to-Right filling order
-    table.sort(progressList, function(a, b)
-      return a.endTime < b.endTime
-    end)
-
-    -- Death Knights can only recharge 3 runes at a time. Mark the rest as queued.
-    for i = 4, #progressList do
-      progressList[i].isQueued = true
-    end
-
-    return ready, progressList, nil
-    -- Evoker Essence
-  elseif config.class == "EVOKER" and config.powerType == Enum.PowerType.Essence then
-    local power = UnitPower("player", config.powerType)
-    local partial = UnitPartialPower("player", config.powerType) or 0
-
-    if issecretvalue(power) and UnitPowerPercent then
-      local percent = UnitPowerPercent("player", config.powerType)
-      if percent and not issecretvalue(percent) then
-        local max = UnitPowerMax("player", config.powerType)
-        if not max or issecretvalue(max) then
-          max = config.maxPoints or 5
-        end
-        local floatPower = percent * max
-        power = math.floor(floatPower)
-        partial = (floatPower - power) * 1000
-      end
-    end
-
-    if not issecretvalue(partial) then
-      partial = partial / 1000
-    else
-      partial = 0
-    end
-
-    return power, partial, nil
-
-    -- Warlock Soul Shards
-  elseif config.class == "WARLOCK" and config.powerType == Enum.PowerType.SoulShards then
-    local power = UnitPower("player", config.powerType)
-    local precise = UnitPower("player", config.powerType, true)
-    local mod = UnitPowerDisplayMod(config.powerType)
-    local partial = 0
-    if mod > 1 then
-      partial = (precise % mod) / mod
-    end
-    return power, partial, nil
-
-  -- Generic resource Mana, Rage and Focus
-  elseif
-    config.powerType == Enum.PowerType.Mana
-    or config.powerType == Enum.PowerType.Rage
-    or config.powerType == Enum.PowerType.Focus
-  then
-    local power = UnitPower("player", config.powerType)
-    return power, 0, nil
-
-    -- Rogue Combo Points
-  elseif config.class == "ROGUE" and config.powerType == Enum.PowerType.ComboPoints then
-    local power = UnitPower("player", config.powerType)
-    local chargedPoints = GetUnitChargedPowerPoints("player")
-    return power, 0, chargedPoints
-
-    -- Generic Power (Holy Power, Chi, Fury, etc.)
-  elseif config.powerType then
-    local power = UnitPower("player", config.powerType)
-    local partial = 0
-    if config.isBar then
-      if UnitPowerPercent then
-        partial = UnitPowerPercent("player", config.powerType)
-      else
-        local max = UnitPowerMax("player", config.powerType)
-        if max and max > 0 and not issecretvalue(power) then
-          partial = power / max
-        end
-      end
-    end
-    return power, partial, nil
-
-    -- Stagger (Brewmaster Monk)
-  elseif config.isStagger then
-    local stagger = UnitStagger("player") or 0
-    local maxHealth = UnitHealthMax("player")
-    local percent = 0
-    local colorOverride = nil
-
-    if maxHealth and maxHealth > 0 and not issecretvalue(stagger) and not issecretvalue(maxHealth) then
-      percent = stagger / maxHealth
-
-      -- Calculate color based on thresholds (30%, 60%)
-      if percent >= 0.60 then
-        colorOverride = { r = 1.0, g = 0.2, b = 0.2 } -- Red
-      elseif percent >= 0.30 then
-        colorOverride = { r = 1.0, g = 1.0, b = 0.2 } -- Yellow
-      else
-        colorOverride = { r = 0.2, g = 1.0, b = 0.2 } -- Green
-      end
-    end
-    -- For Stagger, we want the "current whole" to be the raw number, and partial to be 0-1
-    return stagger, percent, colorOverride
-
-    -- Devourer Soul Fragments (Demon Hunter)
-  elseif config.isDevourerSoulFragments then
-    local inVoidMeta = C_UnitAuras.GetPlayerAuraBySpellID(1217607) ~= nil
-    local current, max = 0, 0
-    if inVoidMeta then
-      local aura = C_UnitAuras.GetPlayerAuraBySpellID(1227702) -- Silence the Whispers
-      current = aura and aura.applications or 0
-      max = (GetCollapsingStarCost and GetCollapsingStarCost()) or 1
-    else
-      local aura = C_UnitAuras.GetPlayerAuraBySpellID(1225789) -- Dark Heart
-      current = aura and aura.applications or 0
-      max = C_Spell.GetSpellMaxCumulativeAuraApplications(1225789) or 1
-    end
-
-    local percent = 0
-    if max > 0 and not issecretvalue(current) and not issecretvalue(max) then
-      percent = current / max
-    end
-    return current, percent, nil
-
-    -- Buff/Stack Tracking (Shaman, DH Vengeance)
-  elseif config.buffs then
-    local count = 0
-
-    for _, buffId in ipairs(config.buffs) do
-      local aura = C_UnitAuras.GetPlayerAuraBySpellID(buffId)
-      if aura then
-        count = aura.applications
-        break
-      end
-    end
-    return count, 0, nil
-  elseif config.charges then
-    local chargeInfo = C_Spell.GetSpellCharges(config.charges)
-    return chargeInfo.currentCharges, 0, nil
-  elseif config.abilityStacks then
-    local count = 0
-    if config.abilityStacks then
-      count = C_Spell.GetSpellCastCount(config.abilityStacks) or 0
-    end
-
-    return count, 0, nil
-  end
-
-  return 0, 0, nil
-end
-
--- Handle hiding/showing native resource frames
 ---@type boolean|nil
 local nativeFrameHideHook = nil
 
---- Updates the visibility of the native resource frame
----@return nil
 local function UpdateNativeFrameVisibility()
   local db = GetResourceTrackerDB()
   local config = GetActiveConfig()
 
   if not config then
-    -- If disabled, ensure native frame is shown
     local _, classFilename = UnitClass("player")
-    local rawConfig = CONFIG[classFilename]
+    local rawConfig = BUII_ResourceTracker_CONFIG[classFilename]
     if rawConfig and rawConfig.nativeFrame then
       local nativeFrame = _G[rawConfig.nativeFrame]
       if nativeFrame then
@@ -507,7 +88,6 @@ local function UpdateNativeFrameVisibility()
   if nativeFrame then
     if shouldHide then
       nativeFrame:Hide()
-      -- Hook the Show method to keep it hidden
       if not nativeFrameHideHook then
         nativeFrameHideHook = true
         hooksecurefunc(nativeFrame, "Show", function(self)
@@ -518,14 +98,11 @@ local function UpdateNativeFrameVisibility()
         end)
       end
     else
-      -- Let it show normally
       nativeFrame:Show()
     end
   end
 end
 
---- Main update function for resource points and bars
----@return nil
 local function UpdatePoints()
   if not frame or frame.isApplyingSettings then
     return
@@ -535,8 +112,7 @@ local function UpdatePoints()
   local config = GetActiveConfig()
   local isEditMode = EditModeManagerFrame and EditModeManagerFrame:IsShown()
 
-  -- Apply frame strata
-  local strataIndex = db.resource_tracker_frame_strata or 2 -- Default to LOW
+  local strataIndex = db.resource_tracker_frame_strata or 2
   local strataValue = FRAME_STRATA_VALUES[strataIndex] or "LOW"
   frame:SetFrameStrata(strataValue)
 
@@ -554,7 +130,6 @@ local function UpdatePoints()
   local layered = false
 
   if isEditMode then
-    -- Mock data for Edit Mode
     currentStacks = 3
     partialFill = 0.5
     maxPoints = 5
@@ -570,19 +145,17 @@ local function UpdatePoints()
       color = config.color
       color2 = config.color2
       layered = config.layered
-      -- Show "Overcharge" effect in Edit Mode if applicable
       if layered then
         currentStacks = 7
       end
       if config.class == "ROGUE" then
-        chargedPoints = { 2, 4 } -- Mock charged points
+        chargedPoints = { 2, 4 }
       end
     else
-      color = { r = 1, g = 1, b = 0 } -- Default Yellow
+      color = { r = 1, g = 1, b = 0 }
     end
     frame:Show()
   elseif config then
-    -- Determine max points for point-based resources (boxes)
     if config.maxPoints then
       maxPoints = config.maxPoints
     elseif config.isBar or config.hidePrimary or config.powerType == Enum.PowerType.Mana then
@@ -593,7 +166,6 @@ local function UpdatePoints()
       maxPoints = 5
     end
 
-    -- If we have no max points, hide unless it's a bar, hidden primary (power bar only), or in Edit Mode
     local shouldShow = true
     if maxPoints == 0 and not config.isBar and not config.hidePrimary and not db.resource_tracker_show_power_bar then
       shouldShow = false
@@ -618,15 +190,12 @@ local function UpdatePoints()
     local extraData
     currentStacks, partialFill, extraData = GetResourceState(config)
 
-    -- If extraData is a color table (Stagger), apply it
     if extraData and type(extraData) == "table" and extraData.r then
       color = extraData
     else
-      -- Otherwise it might be chargedPoints (Rogue)
       chargedPoints = extraData
     end
 
-    -- Ensure currentStacks is a number for display
     local currentStacksIsSecret = issecretvalue(currentStacks)
     if not currentStacksIsSecret and type(currentStacks) ~= "number" then
       currentStacks = 0
@@ -636,7 +205,6 @@ local function UpdatePoints()
     UpdateNativeFrameVisibility()
   end
 
-  -- Ensure we have enough points created
   if maxPoints > 0 then
     for i = 1, maxPoints do
       if not points[i] then
@@ -645,7 +213,6 @@ local function UpdatePoints()
     end
   end
 
-  -- Update Points Visibility and Color
   local spacing = db.currentSpacing or 2
   local totalWidth = db.currentTotalWidth or 174
   local height = db.currentHeight or 12
@@ -653,7 +220,6 @@ local function UpdatePoints()
   local useClassColor = db.resource_tracker_use_class_color or false
   local bgOpacity = tonumber(db.resource_tracker_background_opacity) or 0.5
 
-  -- Get class color if needed
   local classColor = nil
   if useClassColor then
     local _, classFilename = UnitClass("player")
@@ -672,7 +238,6 @@ local function UpdatePoints()
   local showPowerBar = db.resource_tracker_show_power_bar
 
   if config and config.isBar then
-    -- Hide all points
     for i = 1, #points do
       points[i]:Hide()
     end
@@ -698,7 +263,6 @@ local function UpdatePoints()
 
     frame.ResourceBar.ProgressBar:SetStatusBarColor(drawColor.r, drawColor.g, drawColor.b, db.currentOpacity or 1)
 
-    -- Midnight: Use UnitPowerPercent for secret-safe filling if it's a standard power type
     if UnitPowerPercent and config.powerType then
       frame.ResourceBar.ProgressBar:SetMinMaxValues(0, 1)
       frame.ResourceBar.ProgressBar:SetValue(UnitPowerPercent("player", config.powerType))
@@ -707,7 +271,6 @@ local function UpdatePoints()
       frame.ResourceBar.ProgressBar:SetValue(partialFill)
     end
 
-    -- Apply border color to Resource Bar
     local borderColor = { r = 0, g = 0, b = 0, a = 0 }
     if showBorder then
       borderColor = { r = 0, g = 0, b = 0, a = 1 }
@@ -738,7 +301,6 @@ local function UpdatePoints()
           point:SetPoint("LEFT", points[i - 1], "RIGHT", spacing, 0)
         end
 
-        -- Check if point is charged
         local isCharged = false
         if chargedPoints then
           for _, cpIndex in ipairs(chargedPoints) do
@@ -749,7 +311,6 @@ local function UpdatePoints()
           end
         end
 
-        -- Update State
         local drawColor = color
         local isOvercharge = false
         if not currentStacksIsSecret and layered and currentStacks > maxPoints and i <= (currentStacks - maxPoints) then
@@ -757,20 +318,16 @@ local function UpdatePoints()
           isOvercharge = true
         end
 
-        -- Use class color if enabled (but not for overcharge layer)
         if classColor and not isOvercharge then
           drawColor = classColor
         end
 
-        -- Apply Charged Color override
         if isCharged and config and config.colorCharged then
           drawColor = config.colorCharged
         end
 
-        -- Update Border visibility and color
         local borderColor = { r = 0, g = 0, b = 0, a = 0 }
         if isCharged and config and config.colorCharged then
-          -- Always show border for charged points to make them distinct even when empty
           borderColor = { r = config.colorCharged.r, g = config.colorCharged.g, b = config.colorCharged.b, a = 1 }
         elseif showBorder then
           borderColor = { r = 0, g = 0, b = 0, a = 1 }
@@ -778,25 +335,8 @@ local function UpdatePoints()
 
         point:SetBackdropBorderColor(borderColor.r, borderColor.g, borderColor.b, borderColor.a)
 
-        local myPartial = 0
-        local myPartialData = nil
-        if not currentStacksIsSecret then
-          if type(partialFill) == "table" then
-            if type(partialFill[i - currentStacks]) == "table" then
-              myPartialData = partialFill[i - currentStacks]
-              myPartial = myPartialData.progress
-            else
-              myPartial = partialFill[i - currentStacks] or 0
-            end
-          elseif i == currentStacks + 1 then
-            myPartial = partialFill
-          end
-        end
-
-        -- Update ProgressBar
         point.ProgressBar:SetStatusBarTexture(BUII_GetTexturePath())
 
-        -- Ensure AnimTexture exists for DK smooth filling without OnUpdate
         if not point.AnimTexture then
           point.AnimTexture = point:CreateTexture(nil, "ARTWORK")
           point.AnimTexture:SetPoint("TOPLEFT", point, "TOPLEFT", 1, -1)
@@ -813,9 +353,21 @@ local function UpdatePoints()
           isFull = (i <= currentStacks)
         end
 
+        local myPartial = 0
+        local myPartialData = nil
+        if type(partialFill) == "table" then
+          if partialFill[i] then
+            if type(partialFill[i]) == "table" then
+              myPartialData = partialFill[i]
+            elseif type(partialFill[i]) == "number" then
+              myPartial = partialFill[i]
+            end
+          end
+        elseif type(partialFill) == "number" and i == currentStacks + 1 then
+          myPartial = partialFill
+        end
+
         if currentStacksIsSecret then
-          -- Midnight Secret-safe: set range to [i-1, i].
-          -- If currentStacks >= i, bar is full. If currentStacks <= i-1, bar is empty.
           point.ProgressBar:SetMinMaxValues(i - 1, i)
           point.ProgressBar:SetValue(currentStacks)
           point.ProgressBar:SetStatusBarColor(drawColor.r, drawColor.g, drawColor.b, db.currentOpacity or 1)
@@ -826,7 +378,6 @@ local function UpdatePoints()
           point.lastStart = nil
           point.lastDuration = nil
         elseif isFull then
-          -- Full point
           point.ProgressBar:SetMinMaxValues(0, 1)
           if point.ProgressBar.ResetSmoothedValue then
             point.ProgressBar:ResetSmoothedValue(1)
@@ -842,7 +393,6 @@ local function UpdatePoints()
           point.lastDuration = nil
         elseif myPartialData then
           if myPartialData.isQueued then
-            -- Queued rune (waiting for recharge slot)
             if point.ProgressBar.ResetSmoothedValue then
               point.ProgressBar:ResetSmoothedValue(0)
             else
@@ -854,13 +404,11 @@ local function UpdatePoints()
             point.lastStart = nil
             point.lastDuration = nil
           else
-            -- Time-based fill (DK Runes, Evoker Essence)
             point.ProgressBar:Hide()
             point.AnimTexture:Show()
             point.AnimTexture:SetVertexColor(drawColor.r, drawColor.g, drawColor.b, (db.currentOpacity or 1) * 0.7)
 
             if myPartialData.start then
-              -- DK Logic (Strict Time Sync)
               if
                 point.lastStart ~= myPartialData.start
                 or math.abs((point.lastDuration or 0) - myPartialData.duration) > 0.01
@@ -877,14 +425,12 @@ local function UpdatePoints()
                 point.ScaleAnim:SetScaleFrom(0, 1)
                 point.ScaleAnim:SetScaleTo(1, 1)
                 point.ScaleAnim:SetDuration(myPartialData.duration)
-                -- point.ScaleAnim:SetSmoothing("NONE")
 
                 point.AnimGroup:Restart(false, offset)
               end
             end
           end
         elseif myPartial > 0 then
-          -- Partial point (Generic / Others)
           point.AnimGroup:Stop()
           point.AnimTexture:Hide()
           point.lastStart = nil
@@ -901,7 +447,6 @@ local function UpdatePoints()
           point.ProgressBar:SetStatusBarColor(drawColor.r, drawColor.g, drawColor.b, (db.currentOpacity or 1) * 0.7)
           point.ProgressBar:Show()
         else
-          -- Empty point
           if point.ProgressBar.ResetSmoothedValue then
             point.ProgressBar:ResetSmoothedValue(0)
           else
@@ -936,15 +481,12 @@ local function UpdatePoints()
 
     frame.PowerBar:Show()
 
-    -- Apply border color to Power Bar
-
     local borderColor = { r = 0, g = 0, b = 0, a = 0 }
     if showBorder then
       borderColor = { r = 0, g = 0, b = 0, a = 1 }
     end
     frame.PowerBar:SetBackdropBorderColor(borderColor.r, borderColor.g, borderColor.b, borderColor.a)
 
-    -- Update Textures
     frame.PowerBar.Background:SetTexture(BUII_GetTexturePath())
     frame.PowerBar.Background:SetVertexColor(0.1, 0.1, 0.1, bgOpacity)
     frame.PowerBar.ProgressBar:SetStatusBarTexture(BUII_GetTexturePath())
@@ -993,11 +535,9 @@ local function UpdatePoints()
     end
   end
 
-  -- Update Counter Text
   if db.showText and config and not config.hidePrimary then
     counterText:Show()
     counterText:ClearAllPoints()
-    -- Center the text based on the total width and the height of the resource points (excluding power bar)
     if config and config.isBar then
       counterText:SetPoint("CENTER", frame.ResourceBar, "CENTER", 0, 0)
     else
@@ -1013,12 +553,10 @@ local function UpdatePoints()
 
     if not config or not config.isBar then
       if db.resource_tracker_show_decimal then
-        -- Calculate decimal value from partial fill
         local decimalPart = 0
         if type(partialFill) == "number" then
           decimalPart = partialFill
         elseif type(partialFill) == "table" and partialFill[1] then
-          -- For table-based partials (DK Runes, Evoker), get the first entry's progress
           if type(partialFill[1]) == "table" and partialFill[1].progress then
             decimalPart = partialFill[1].progress
           elseif type(partialFill[1]) == "number" then
@@ -1026,7 +564,6 @@ local function UpdatePoints()
           end
         end
 
-        -- Midnight: Check for secret values before adding
         if issecretvalue(currentStacks) or issecretvalue(decimalPart) then
           displayText = tostring(currentStacks)
         else
@@ -1042,22 +579,14 @@ local function UpdatePoints()
   end
 end
 
---- Requests an update of points on the next frame
----@return nil
 local function RequestUpdatePoints()
   RunNextFrame(UpdatePoints)
 end
 
---- Event handler for resource tracker
----@param self Frame|any
----@param event string
----@param ... any
 local function onEvent(self, event, ...)
   UpdatePoints()
 end
 
---- Initializes the Resource Tracker frame and edit mode settings
----@return nil
 local function BUII_ResourceTracker_Initialize()
   if frame then
     return
@@ -1074,19 +603,16 @@ local function BUII_ResourceTracker_Initialize()
   -- Expose DB selector for EditModeUtils
   frame.GetSettingsDB = GetResourceTrackerDB
 
-  -- Create Power Bar
   frame.PowerBar = CreateFrame("Frame", nil, frame, "BUII_PowerBarTemplate")
   frame.PowerBar:SetHeight(4)
   frame.PowerBar.ProgressBar:SetStatusBarTexture(BUII_GetTexturePath())
   frame.PowerBar:Hide()
 
-  -- Create Main Resource Bar (for bar-based resources like Stagger/Fury)
   frame.ResourceBar = CreateFrame("Frame", nil, frame, "BUII_PowerBarTemplate")
   frame.ResourceBar:SetAllPoints(frame)
   frame.ResourceBar.ProgressBar:SetStatusBarTexture(BUII_GetTexturePath())
   frame.ResourceBar:Hide()
 
-  -- Create a container frame for text to ensure it stays on top of points
   local textFrame = CreateFrame("Frame", nil, frame)
   textFrame:SetAllPoints(frame)
   textFrame:SetFrameLevel(frame:GetFrameLevel() + 10)
@@ -1135,7 +661,6 @@ local function BUII_ResourceTracker_Initialize()
     end)
   end
 
-  -- Register System
   local settingsConfig = {
     {
       setting = enum_ResourceTrackerSetting_TotalWidth,
@@ -1438,7 +963,7 @@ local function BUII_ResourceTracker_Initialize()
       name = "Frame Strata",
       key = "resource_tracker_frame_strata",
       type = Enum.EditModeSettingDisplayType.Dropdown,
-      defaultValue = 2, -- LOW
+      defaultValue = 2,
       options = FRAME_STRATA_OPTIONS,
       getter = function(f)
         local db = GetResourceTrackerDB()
@@ -1478,7 +1003,7 @@ local function BUII_ResourceTracker_Initialize()
         db.currentFontSize = 12
         db.resource_tracker_show_border = false
         db.resource_tracker_use_class_color = false
-        db.resource_tracker_frame_strata = 2 -- LOW
+        db.resource_tracker_frame_strata = 2
         db.resource_tracker_background_opacity = 0.5
         db.resource_tracker_show_power_bar = false
         db.resource_tracker_power_bar_height = 4
@@ -1495,7 +1020,6 @@ local function BUII_ResourceTracker_Initialize()
         UpdatePoints()
       end,
       OnEditModeExit = function(f)
-        -- Don't update during combat to avoid taint when Edit Mode system calls SelectSystem
         if not InCombatLockdown() then
           UpdatePoints()
         end
@@ -1504,8 +1028,6 @@ local function BUII_ResourceTracker_Initialize()
   )
 end
 
---- Enables the Resource Tracker feature
----@return nil
 function BUII_ResourceTracker_Enable()
   BUII_ResourceTracker_Initialize()
 
@@ -1527,8 +1049,6 @@ function BUII_ResourceTracker_Enable()
   UpdateNativeFrameVisibility()
 end
 
---- Disables the Resource Tracker feature
----@return nil
 function BUII_ResourceTracker_Disable()
   if not frame then
     return
@@ -1538,9 +1058,8 @@ function BUII_ResourceTracker_Disable()
   frame:SetScript("OnEvent", nil)
   frame:Hide()
 
-  -- Restore native frame if it exists
   local _, classFilename = UnitClass("player")
-  local config = CONFIG[classFilename]
+  local config = BUII_ResourceTracker_CONFIG[classFilename]
   if config and config.nativeFrame then
     local nativeFrame = _G[config.nativeFrame]
     if nativeFrame then
@@ -1549,8 +1068,6 @@ function BUII_ResourceTracker_Disable()
   end
 end
 
---- Refreshes the display configuration
----@return nil
 function BUII_ResourceTracker_Refresh()
   if frame then
     UpdatePoints()

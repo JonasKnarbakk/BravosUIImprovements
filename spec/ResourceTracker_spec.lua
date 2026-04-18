@@ -41,7 +41,23 @@ local originals = {
   CreateFrame = _G.CreateFrame,
 }
 
-pcall(dofile, "Modules/WeakAura-like/ResourceTracker.lua")
+-- Load ResourceTracker modules in dependency order
+pcall(dofile, "Modules/WeakAura-like/ResourceTracker/Core.lua")
+pcall(dofile, "Modules/WeakAura-like/ResourceTracker/Handlers.lua")
+pcall(dofile, "Modules/WeakAura-like/ResourceTracker/Classes/DeathKnight.lua")
+pcall(dofile, "Modules/WeakAura-like/ResourceTracker/Classes/DemonHunter.lua")
+pcall(dofile, "Modules/WeakAura-like/ResourceTracker/Classes/Druid.lua")
+pcall(dofile, "Modules/WeakAura-like/ResourceTracker/Classes/Evoker.lua")
+pcall(dofile, "Modules/WeakAura-like/ResourceTracker/Classes/Hunter.lua")
+pcall(dofile, "Modules/WeakAura-like/ResourceTracker/Classes/Mage.lua")
+pcall(dofile, "Modules/WeakAura-like/ResourceTracker/Classes/Monk.lua")
+pcall(dofile, "Modules/WeakAura-like/ResourceTracker/Classes/Paladin.lua")
+pcall(dofile, "Modules/WeakAura-like/ResourceTracker/Classes/Priest.lua")
+pcall(dofile, "Modules/WeakAura-like/ResourceTracker/Classes/Rogue.lua")
+pcall(dofile, "Modules/WeakAura-like/ResourceTracker/Classes/Shaman.lua")
+pcall(dofile, "Modules/WeakAura-like/ResourceTracker/Classes/Warlock.lua")
+pcall(dofile, "Modules/WeakAura-like/ResourceTracker/Classes/Warrior.lua")
+pcall(dofile, "Modules/WeakAura-like/ResourceTracker/ResourceTracker.lua")
 
 describe("BravosUIImprovements ResourceTracker", function()
   -- Helper to reset all mocks
