@@ -340,14 +340,28 @@ local function GetResourceState(config)
     -- Evoker Essence
   elseif config.class == "EVOKER" and config.powerType == Enum.PowerType.Essence then
     local power = UnitPower("player", config.powerType)
-    local partial = (UnitPartialPower("player", config.powerType) or 0) / 1000
-    local regen = GetPowerRegenForPowerType(Enum.PowerType.Essence) or 0.2
-    -- -- print("DEBUG: Evoker State", power, partial, regen)
-    if not regen or issecretvalue(regen) or regen == 0 then
-      regen = 0.2 -- Default fallback matching Blizzard UI
+    local partial = UnitPartialPower("player", config.powerType) or 0
+
+    if issecretvalue(power) and UnitPowerPercent then
+      local percent = UnitPowerPercent("player", config.powerType)
+      if percent and not issecretvalue(percent) then
+        local max = UnitPowerMax("player", config.powerType)
+        if not max or issecretvalue(max) then
+          max = config.maxPoints or 5
+        end
+        local floatPower = percent * max
+        power = math.floor(floatPower)
+        partial = (floatPower - power) * 1000
+      end
     end
-    local duration = 1 / regen
-    return power, { { progress = partial, duration = duration } }, nil
+
+    if not issecretvalue(partial) then
+      partial = partial / 1000
+    else
+      partial = 0
+    end
+
+    return power, partial, nil
 
     -- Warlock Soul Shards
   elseif config.class == "WARLOCK" and config.powerType == Enum.PowerType.SoulShards then
@@ -867,28 +881,6 @@ local function UpdatePoints()
 
                 point.AnimGroup:Restart(false, offset)
               end
-            else
-              -- Evoker Logic (Continuous Regen Sync)
-              local serverProgress = myPartialData.progress
-              local durationChanged = math.abs((point.lastDuration or 0) - myPartialData.duration) > 0.01
-              local isPlaying = point.AnimGroup:IsPlaying()
-
-              -- Trust the animation speed (derived from regen). Only restart if stopped or speed changes.
-              if durationChanged or not isPlaying then
-                point.lastDuration = myPartialData.duration
-
-                local offset = serverProgress * myPartialData.duration
-
-                local totalWidth = pointWidth - 2
-                point.AnimTexture:SetWidth(totalWidth)
-
-                point.ScaleAnim:SetScaleFrom(0, 1)
-                point.ScaleAnim:SetScaleTo(1, 1)
-                point.ScaleAnim:SetDuration(myPartialData.duration)
-                -- point.ScaleAnim:SetSmoothing("NONE")
-
-                point.AnimGroup:Restart(false, offset)
-              end
             end
           end
         elseif myPartial > 0 then
@@ -898,7 +890,10 @@ local function UpdatePoints()
           point.lastStart = nil
           point.lastDuration = nil
 
-          if point.ProgressBar.SetSmoothedValue then
+          if
+            point.ProgressBar.SetSmoothedValue
+            and not (config.class == "EVOKER" and config.powerType == Enum.PowerType.Essence)
+          then
             point.ProgressBar:SetSmoothedValue(myPartial)
           else
             point.ProgressBar:SetValue(myPartial)
@@ -1099,6 +1094,46 @@ local function BUII_ResourceTracker_Initialize()
   counterText = textFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
   counterText:SetPoint("CENTER", textFrame, "TOPLEFT", 85, -10)
   counterText:SetText("0")
+
+  local config = GetActiveConfig()
+  if config and config.class == "EVOKER" and config.powerType == Enum.PowerType.Essence then
+    frame:SetScript("OnUpdate", function(self, elapsed)
+      if not frame or frame.isApplyingSettings then
+        return
+      end
+      local power = UnitPower("player", config.powerType)
+      local partial = 0
+      local maxPoints = UnitPowerMax("player", config.powerType)
+      if not maxPoints or issecretvalue(maxPoints) then
+        maxPoints = config.maxPoints or 5
+      end
+
+      if issecretvalue(power) and UnitPowerPercent then
+        local percent = UnitPowerPercent("player", config.powerType)
+        if percent and not issecretvalue(percent) then
+          local floatPower = percent * maxPoints
+          power = math.floor(floatPower)
+          partial = floatPower - power
+        else
+          return
+        end
+      else
+        partial = UnitPartialPower("player", config.powerType) or 0
+        if issecretvalue(partial) then
+          return
+        end
+        partial = partial / 1000
+      end
+
+      local fillIndex = power + 1
+      if fillIndex <= maxPoints then
+        local point = points[fillIndex]
+        if point and point.ProgressBar and point.ProgressBar:IsShown() then
+          point.ProgressBar:SetValue(partial)
+        end
+      end
+    end)
+  end
 
   -- Register System
   local settingsConfig = {
