@@ -13,6 +13,64 @@ local FrameVisibility = {}
 local hideMacroTextEnabled = {}
 local abbreviatedKeybindingsEnabled = {}
 
+-- Pending (preview) tables for action-bar settings. nil = no pending change
+-- for that bar. Populated lazily when the user toggles a setting in the
+-- Edit Mode dialog; committed to the active tables on Save and discarded on
+-- Revert. Mirrors the pendingCastBarIconValue pattern below.
+local pendingFrameVisibility = {}
+local pendingHideMacroText = {}
+local pendingAbbreviateKeybindings = {}
+
+--- Resolve effective value for an action-bar setting: pending if set, else active.
+local function effectiveVisibility(frameName)
+  if pendingFrameVisibility[frameName] ~= nil then
+    return pendingFrameVisibility[frameName]
+  end
+  return FrameVisibility[frameName]
+end
+
+local function effectiveHideMacroText(frameName)
+  if pendingHideMacroText[frameName] ~= nil then
+    return pendingHideMacroText[frameName]
+  end
+  return hideMacroTextEnabled[frameName]
+end
+
+local function effectiveAbbreviateKeybindings(frameName)
+  if pendingAbbreviateKeybindings[frameName] ~= nil then
+    return pendingAbbreviateKeybindings[frameName]
+  end
+  return abbreviatedKeybindingsEnabled[frameName]
+end
+
+--- Discard pending changes for a single bar (per-system Revert).
+local function discardPendingForFrame(frameName)
+  pendingFrameVisibility[frameName] = nil
+  pendingHideMacroText[frameName] = nil
+  pendingAbbreviateKeybindings[frameName] = nil
+end
+
+--- Discard ALL pending action-bar changes (full RevertAllChanges).
+local function discardAllPendingActionBarSettings()
+  pendingFrameVisibility = {}
+  pendingHideMacroText = {}
+  pendingAbbreviateKeybindings = {}
+end
+
+--- Commit pending action-bar changes into the active tables (called on Save).
+local function commitPendingActionBarSettings()
+  for frameName, value in pairs(pendingFrameVisibility) do
+    FrameVisibility[frameName] = value
+  end
+  for frameName, value in pairs(pendingHideMacroText) do
+    hideMacroTextEnabled[frameName] = value
+  end
+  for frameName, value in pairs(pendingAbbreviateKeybindings) do
+    abbreviatedKeybindingsEnabled[frameName] = value
+  end
+  discardAllPendingActionBarSettings()
+end
+
 local frameHookSet = {
   MainMenuBar = false,
   MainActionBar = false,
@@ -96,8 +154,75 @@ local HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING_ON_HOVER = "On Hover"
 local HUD_EDIT_MODE_SETTING_ACTION_BAR_HIDE_MACRO_TEXT = "Hide Macro Text"
 local HUD_EDIT_MODE_SETTING_ACTION_BAR_ABBREVIATE_KEYBINDINGS = "Abbreviate Keybindings"
 
+-- Player CastingBar extra setting: show the spell icon on the player castbar.
+-- Setting index just needs to be unique among the indices we inject for that
+-- frame's settings dialog; PlayerCastingBarFrame ships with no other extra
+-- settings so any non-conflicting positive number works.
+local enum_EditModePlayerCastBarSetting_ShowIcon = 50
+local HUD_EDIT_MODE_SETTING_PLAYER_CAST_BAR_SHOW_ICON = "Show Icon"
+
+-- State for the player castbar icon Edit Mode setting.
+-- pendingCastBarIconValue buffers the in-progress value so toggling in the
+-- dialog only previews the change; it isn't committed to BUIIDatabase until
+-- the user clicks Save (and is reverted on Revert).
+local castBarIconHookInstalled = false
+local castBarIconAnchored = false
+local pendingCastBarIconValue = nil
+
+--- Resolve the value the icon should display: pending (preview) takes priority.
+local function effectiveCastBarIconValue()
+  if pendingCastBarIconValue ~= nil then
+    return pendingCastBarIconValue
+  end
+  return BUIIDatabase and BUIIDatabase["castbar_icon"] == true
+end
+
+--- Apply player castbar icon visibility. Module-local; the only callers are
+--- inside this module (Edit Mode value-change, save/revert, enter, enable).
+---
+--- We hook PlayerCastingBarFrame:UpdateIconShown -- the single chokepoint
+--- through which Blizzard re-evaluates Icon visibility (cast start/end,
+--- SetLook transitions, etc.). The hook re-asserts our preference so the
+--- icon stays visible across reloads, Edit Mode entry, and look transitions
+--- without needing a cast event to fire.
+---@param shouldShow boolean
+local function applyPlayerCastBarIcon(shouldShow)
+  if not PlayerCastingBarFrame or not PlayerCastingBarFrame.Icon then
+    return
+  end
+
+  if not castBarIconHookInstalled then
+    -- Instance hook on PlayerCastingBarFrame:UpdateIconShown. Fires after
+    -- Blizzard's body so our visibility preference always wins.
+    hooksecurefunc(PlayerCastingBarFrame, "UpdateIconShown", function(self)
+      if effectiveCastBarIconValue() then
+        self.Icon:Show()
+      else
+        self.Icon:Hide()
+      end
+    end)
+    castBarIconHookInstalled = true
+  end
+
+  if shouldShow and not castBarIconAnchored then
+    PlayerCastingBarFrame.Icon:SetSize(24, 24)
+    PlayerCastingBarFrame.Icon:ClearAllPoints()
+    PlayerCastingBarFrame.Icon:SetPoint("RIGHT", PlayerCastingBarFrame, "LEFT", -2, -6)
+    castBarIconAnchored = true
+  end
+
+  if shouldShow then
+    PlayerCastingBarFrame.Icon:Show()
+  else
+    PlayerCastingBarFrame.Icon:Hide()
+  end
+
+  if PlayerCastingBarFrame.UpdateIconShown then
+    PlayerCastingBarFrame:UpdateIconShown()
+  end
+end
+
 -- Action bar settings per-layout system
-local actionBarSettingsHasChanges = false
 local actionBarSettingsHooksInitialized = false
 
 -- Default settings template (used for new layouts or missing values)
@@ -217,14 +342,18 @@ local function saveActionBarSettingsForLayout(layoutName)
   actionBarSettingsHasChanges = false
 end
 
--- Mark action bar settings as having unsaved changes
-local function markActionBarSettingsDirty()
-  if actionBarSettingsHasChanges then
-    return
-  end
-  actionBarSettingsHasChanges = true
-  if EditModeManagerFrame then
+-- Mark action bar settings as having unsaved changes. Pass the specific
+-- systemFrame the user just edited so the per-system Revert button enables
+-- (Blizzard reads attachedToSystem:HasActiveChanges()).
+local function markActionBarSettingsDirty(systemFrame)
+  if EditModeManagerFrame and EditModeManagerFrame.SetHasActiveChanges then
     EditModeManagerFrame:SetHasActiveChanges(true)
+  end
+  if systemFrame and systemFrame.SetHasActiveChanges then
+    systemFrame:SetHasActiveChanges(true)
+  end
+  if editModeSettingsDialog and editModeSettingsDialog.UpdateButtons and systemFrame then
+    editModeSettingsDialog:UpdateButtons(systemFrame)
   end
 end
 
@@ -232,7 +361,6 @@ end
 local function revertActionBarSettings()
   local layoutName = getActiveLayoutKey()
   loadActionBarSettingsForLayout(layoutName)
-  actionBarSettingsHasChanges = false
 end
 
 --- Add a setting type to the EditModeSystemSettingsDialog for the given Frame
@@ -271,6 +399,12 @@ local function editMode_OnEnter()
       frame:SetAlpha(1)
     end
   end
+
+  -- Re-apply player castbar icon state on Edit Mode entry. Blizzard's edit-mode
+  -- preview state for PlayerCastingBarFrame doesn't fire any cast event, so the
+  -- UpdateIconShown hook only catches a Blizzard-driven re-evaluation; do it
+  -- explicitly here to ensure the icon reflects our preference immediately.
+  applyPlayerCastBarIcon(effectiveCastBarIconValue())
 end
 
 --- Called when EditMode is disabled
@@ -471,7 +605,7 @@ local function settingsDialogMainMenuBarAddOptions()
 
   local hideMacroTextData = {
     displayInfo = hideMacroText,
-    currentValue = hideMacroTextEnabled["MainMenuBar"] == true and 1 or 0,
+    currentValue = effectiveHideMacroText("MainMenuBar") == true and 1 or 0,
     settingName = HUD_EDIT_MODE_SETTING_ACTION_BAR_HIDE_MACRO_TEXT,
   }
 
@@ -489,7 +623,7 @@ local function settingsDialogMainMenuBarAddOptions()
 
   local abbreviateKeybindingsData = {
     displayInfo = abbreviateKeybindings,
-    currentValue = abbreviatedKeybindingsEnabled["MainMenuBar"] == true and 1 or 0,
+    currentValue = effectiveAbbreviateKeybindings("MainMenuBar") == true and 1 or 0,
     settingName = HUD_EDIT_MODE_SETTING_ACTION_BAR_ABBREVIATE_KEYBINDINGS,
   }
 
@@ -529,7 +663,7 @@ local function settingsDialogMainMenuBarAddOptions()
 
   local barVisibilityData = {
     displayInfo = barVisibility,
-    currentValue = FrameVisibility["MainMenuBar"],
+    currentValue = effectiveVisibility("MainMenuBar"),
     settingName = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING,
   }
 
@@ -550,7 +684,7 @@ local function settingsDialogMainActionBarAddOptions()
 
   local hideMacroTextData = {
     displayInfo = hideMacroText,
-    currentValue = hideMacroTextEnabled["MainActionBar"] == true and 1 or 0,
+    currentValue = effectiveHideMacroText("MainActionBar") == true and 1 or 0,
     settingName = HUD_EDIT_MODE_SETTING_ACTION_BAR_HIDE_MACRO_TEXT,
   }
 
@@ -568,7 +702,7 @@ local function settingsDialogMainActionBarAddOptions()
 
   local abbreviateKeybindingsData = {
     displayInfo = abbreviateKeybindings,
-    currentValue = abbreviatedKeybindingsEnabled["MainActionBar"] == true and 1 or 0,
+    currentValue = effectiveAbbreviateKeybindings("MainActionBar") == true and 1 or 0,
     settingName = HUD_EDIT_MODE_SETTING_ACTION_BAR_ABBREVIATE_KEYBINDINGS,
   }
 
@@ -608,7 +742,7 @@ local function settingsDialogMainActionBarAddOptions()
 
   local barVisibilityData = {
     displayInfo = barVisibility,
-    currentValue = FrameVisibility["MainActionBar"],
+    currentValue = effectiveVisibility("MainActionBar"),
     settingName = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING,
   }
 
@@ -629,7 +763,7 @@ local function settingsDialogMultiBarAddOptions(frameName)
   }
   local hideMacroTextData = {
     displayInfo = hideMacroText,
-    currentValue = hideMacroTextEnabled[frameName] == true and 1 or 0,
+    currentValue = effectiveHideMacroText(frameName) == true and 1 or 0,
     settingName = HUD_EDIT_MODE_SETTING_ACTION_BAR_HIDE_MACRO_TEXT,
   }
   addOptionToSettingsDialog(
@@ -646,7 +780,7 @@ local function settingsDialogMultiBarAddOptions(frameName)
 
   local abbreviateKeybindingsData = {
     displayInfo = abbreviateKeybindings,
-    currentValue = abbreviatedKeybindingsEnabled[frameName] == true and 1 or 0,
+    currentValue = effectiveAbbreviateKeybindings(frameName) == true and 1 or 0,
     settingName = HUD_EDIT_MODE_SETTING_ACTION_BAR_ABBREVIATE_KEYBINDINGS,
   }
 
@@ -689,7 +823,7 @@ local function settingsDialogBagBarAddOptions()
 
   local barVisibilityData = {
     displayInfo = barVisibility,
-    currentValue = FrameVisibility["BagsBar"],
+    currentValue = effectiveVisibility("BagsBar"),
     settingName = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING,
   }
 
@@ -732,7 +866,7 @@ local function settingsDialogMicroMenuAddOptions()
 
   local barVisibilityData = {
     displayInfo = barVisibility,
-    currentValue = FrameVisibility["MicroMenu"],
+    currentValue = effectiveVisibility("MicroMenu"),
     settingName = HUD_EDIT_MODE_SETTING_ACTION_BAR_VISIBLE_SETTING,
   }
 
@@ -740,6 +874,27 @@ local function settingsDialogMicroMenuAddOptions()
     enum_EditModeActionBarSetting_BarVisibility,
     Enum.ChrCustomizationOptionType.Dropdown,
     barVisibilityData
+  )
+end
+
+--- Inject our "Show Icon" checkbox into the PlayerCastingBarFrame Edit Mode dialog.
+local function settingsDialogPlayerCastBarAddOptions()
+  local showIcon = {
+    setting = enum_EditModePlayerCastBarSetting_ShowIcon,
+    name = HUD_EDIT_MODE_SETTING_PLAYER_CAST_BAR_SHOW_ICON,
+    type = Enum.EditModeSettingDisplayType.Checkbox,
+  }
+
+  local showIconData = {
+    displayInfo = showIcon,
+    currentValue = effectiveCastBarIconValue() and 1 or 0,
+    settingName = HUD_EDIT_MODE_SETTING_PLAYER_CAST_BAR_SHOW_ICON,
+  }
+
+  addOptionToSettingsDialog(
+    enum_EditModePlayerCastBarSetting_ShowIcon,
+    Enum.ChrCustomizationOptionType.Checkbox,
+    showIconData
   )
 end
 
@@ -768,6 +923,8 @@ local function editModeSystemSettingsDialog_OnUpdateSettings(self, systemFrame)
       settingsDialogBagBarAddOptions()
     elseif currentFrameName == "MicroMenuContainer" then
       settingsDialogMicroMenuAddOptions()
+    elseif currentFrameName == "PlayerCastingBarFrame" then
+      settingsDialogPlayerCastBarAddOptions()
     end
   end
 end
@@ -919,7 +1076,8 @@ end
 --- When the FrameVisibility table is updated this function should be called
 --- to apply the settings if needed
 local function frameVisibilitySettings_OnUpdate()
-  for frameName, mode in pairs(FrameVisibility) do
+  for frameName in pairs(FrameVisibility) do
+    local mode = effectiveVisibility(frameName)
     local frame = _G[frameName]
     if frame then
       if mode == VisibilityMode.ON_HOVER then
@@ -937,12 +1095,14 @@ end
 --- When the hideMacroTextEnabled table is updated this function should be called
 --- to apply the settings if needed
 local function hideMacroTextSettings_OnUpdate()
-  for frameName, enabled in pairs(hideMacroTextEnabled) do
+  for frameName in pairs(hideMacroTextEnabled) do
+    local enabled = effectiveHideMacroText(frameName)
     for i = 12, 1, -1 do
-      if frameName == "MainMenuBar" or frameName == "MainActionBar" then
-        frameName = "Action"
+      local resolved = frameName
+      if resolved == "MainMenuBar" or resolved == "MainActionBar" then
+        resolved = "Action"
       end
-      local button = _G[frameName .. "Button" .. i .. "Name"]
+      local button = _G[resolved .. "Button" .. i .. "Name"]
       if button then
         if enabled then
           button:SetAlpha(0)
@@ -957,12 +1117,14 @@ end
 --- When the abbreviatedKeybindingsEnabled table is updated this function should be called
 --- to apply the settings if needed
 local function abbreviatedKeybinginsSettings_OnUpdate()
-  for frameName, enabled in pairs(abbreviatedKeybindingsEnabled) do
+  for frameName in pairs(abbreviatedKeybindingsEnabled) do
+    local enabled = effectiveAbbreviateKeybindings(frameName)
     for i = 12, 1, -1 do
-      if frameName == "MainMenuBar" or frameName == "MainActionBar" then
-        frameName = "Action"
+      local resolved = frameName
+      if resolved == "MainMenuBar" or resolved == "MainActionBar" then
+        resolved = "Action"
       end
-      local button = _G[frameName .. "Button" .. i]
+      local button = _G[resolved .. "Button" .. i]
       if button then
         frameSetAbbreviatedText(button, enabled)
         if not button.BUIIOnUpdateHotkeyHooked then
@@ -992,6 +1154,30 @@ local function editModeSystemSettingsDialog_OnSettingValueChanged(self, setting,
     currentFrameName = "MicroMenu"
   end
 
+  -- PlayerCastingBarFrame: only setting we add is the "Show Icon" checkbox.
+  -- Buffer the change as pending and apply for live preview; the value is
+  -- only committed to BUIIDatabase on Save (and discarded on Revert).
+  if currentFrameName == "PlayerCastingBarFrame" then
+    if setting == enum_EditModePlayerCastBarSetting_ShowIcon then
+      local enabled = value == 1
+      pendingCastBarIconValue = enabled
+      applyPlayerCastBarIcon(enabled)
+      -- Mark BOTH the system frame and the manager dirty so the per-system
+      -- Revert button enables (it reads systemFrame:HasActiveChanges) AND
+      -- the manager-level Save / Revert All buttons enable.
+      if currentFrame.SetHasActiveChanges then
+        currentFrame:SetHasActiveChanges(true)
+      end
+      if EditModeManagerFrame and EditModeManagerFrame.SetHasActiveChanges then
+        EditModeManagerFrame:SetHasActiveChanges(true)
+      end
+      if editModeSettingsDialog and editModeSettingsDialog.UpdateButtons then
+        editModeSettingsDialog:UpdateButtons(currentFrame)
+      end
+    end
+    return
+  end
+
   -- small hack to align setting value with action bars enum
   if
     ((currentFrameName == "BagsBar" or currentFrameName == "MicroMenu") and setting == 3)
@@ -1005,40 +1191,40 @@ local function editModeSystemSettingsDialog_OnSettingValueChanged(self, setting,
 
   if FrameVisibility[currentFrameName] ~= nil then
     if setting == enum_EditModeActionBarSetting_HideMacroText then
-      hideMacroTextEnabled[currentFrameName] = value == 1 and true or false
+      pendingHideMacroText[currentFrameName] = value == 1 and true or false
       hideMacroTextSettings_OnUpdate()
     elseif setting == enum_EditModeActionBarSetting_AbbreviateKeybindings then
-      abbreviatedKeybindingsEnabled[currentFrameName] = value == 1 and true or false
+      pendingAbbreviateKeybindings[currentFrameName] = value == 1 and true or false
       abbreviatedKeybinginsSettings_OnUpdate()
     elseif setting == Enum.EditModeActionBarSetting.VisibleSetting and value == Enum.ActionBarVisibleSetting.Always then
-      FrameVisibility[currentFrameName] = VisibilityMode.ALWAYS_VISIBLE
+      pendingFrameVisibility[currentFrameName] = VisibilityMode.ALWAYS_VISIBLE
       frameVisibilitySettings_OnUpdate()
       editModeSettingsDialog:UpdateSettings(currentFrame)
     elseif
       setting == Enum.EditModeActionBarSetting.VisibleSetting and value == Enum.ActionBarVisibleSetting.InCombat
     then
-      FrameVisibility[currentFrameName] = VisibilityMode.IN_COMBAT
+      pendingFrameVisibility[currentFrameName] = VisibilityMode.IN_COMBAT
       frameVisibilitySettings_OnUpdate()
       editModeSettingsDialog:UpdateSettings(currentFrame)
     elseif
       setting == Enum.EditModeActionBarSetting.VisibleSetting and value == Enum.ActionBarVisibleSetting.OutOfCombat
     then
-      FrameVisibility[currentFrameName] = VisibilityMode.OUT_OF_COMBAT
+      pendingFrameVisibility[currentFrameName] = VisibilityMode.OUT_OF_COMBAT
       frameVisibilitySettings_OnUpdate()
       editModeSettingsDialog:UpdateSettings(currentFrame)
     elseif setting == Enum.EditModeActionBarSetting.VisibleSetting and value == Enum.ActionBarVisibleSetting.Hidden then
-      FrameVisibility[currentFrameName] = VisibilityMode.HIDDEN
+      pendingFrameVisibility[currentFrameName] = VisibilityMode.HIDDEN
       frameVisibilitySettings_OnUpdate()
       editModeSettingsDialog:UpdateSettings(currentFrame)
     elseif
       setting == Enum.EditModeActionBarSetting.VisibleSetting and value == enum_ActionBarVisibleSetting_OnHover
     then
-      FrameVisibility[currentFrameName] = VisibilityMode.ON_HOVER
+      pendingFrameVisibility[currentFrameName] = VisibilityMode.ON_HOVER
       frameVisibilitySettings_OnUpdate()
       editModeSettingsDialog:UpdateSettings(currentFrame)
     end
     -- Mark as having unsaved changes instead of saving immediately
-    markActionBarSettingsDirty()
+    markActionBarSettingsDirty(currentFrame)
   end
 end
 
@@ -1052,18 +1238,75 @@ local function setupActionBarSettingsHooks()
     -- Hook SaveLayouts to commit action bar settings
     hooksecurefunc(EditModeManagerFrame, "SaveLayouts", function()
       if editModeImprovedEnabled then
+        -- Flush pending action-bar previews into active tables before persisting.
+        commitPendingActionBarSettings()
         local layoutName = getActiveLayoutKey()
         saveActionBarSettingsForLayout(layoutName)
+      end
+      -- Commit pending player castbar icon change to saved variable.
+      if pendingCastBarIconValue ~= nil then
+        if BUIIDatabase then
+          BUIIDatabase["castbar_icon"] = pendingCastBarIconValue
+        end
+        pendingCastBarIconValue = nil
       end
     end)
 
     -- Hook RevertAllChanges to revert action bar settings
     hooksecurefunc(EditModeManagerFrame, "RevertAllChanges", function()
       if editModeImprovedEnabled then
+        -- Drop in-progress previews, then reload the persisted layout.
+        discardAllPendingActionBarSettings()
         revertActionBarSettings()
         frameVisibilitySettings_OnUpdate()
         hideMacroTextSettings_OnUpdate()
         abbreviatedKeybinginsSettings_OnUpdate()
+      end
+      -- Discard pending player castbar icon change and restore from saved value.
+      if pendingCastBarIconValue ~= nil then
+        pendingCastBarIconValue = nil
+      end
+      applyPlayerCastBarIcon(BUIIDatabase and BUIIDatabase["castbar_icon"] == true)
+
+      -- Refresh injected option widgets in the dialog if it is still
+      -- attached. Blizzard's RevertAllChanges normally calls
+      -- ClearSelectedSystem (which hides the dialog), but in some flows
+      -- the dialog stays visible and our checkbox would otherwise keep
+      -- showing the now-discarded pending value.
+      if
+        editModeSettingsDialog
+        and editModeSettingsDialog.attachedToSystem
+        and editModeSettingsDialog.IsShown
+        and editModeSettingsDialog:IsShown()
+      then
+        editModeSettingsDialog:UpdateSettings(editModeSettingsDialog.attachedToSystem)
+      end
+    end)
+
+    -- Hook RevertSystemChanges (per-system Revert button) to drop pending values
+    -- for the system being reverted and refresh the dialog widgets.
+    hooksecurefunc(EditModeManagerFrame, "RevertSystemChanges", function(_, systemFrame)
+      if not editModeImprovedEnabled or not systemFrame then
+        return
+      end
+      local frameName = systemFrame.GetName and systemFrame:GetName()
+      if not frameName then
+        return
+      end
+
+      if frameName == "PlayerCastingBarFrame" then
+        pendingCastBarIconValue = nil
+        applyPlayerCastBarIcon(BUIIDatabase and BUIIDatabase["castbar_icon"] == true)
+      else
+        discardPendingForFrame(frameName)
+        frameVisibilitySettings_OnUpdate()
+        hideMacroTextSettings_OnUpdate()
+        abbreviatedKeybinginsSettings_OnUpdate()
+      end
+
+      -- Refresh injected option widgets in the dialog if it's still showing this system.
+      if editModeSettingsDialog and editModeSettingsDialog.attachedToSystem == systemFrame then
+        editModeSettingsDialog:UpdateSettings(systemFrame)
       end
     end)
 
@@ -1077,7 +1320,6 @@ local function setupActionBarSettingsHooks()
           frameVisibilitySettings_OnUpdate()
           hideMacroTextSettings_OnUpdate()
           abbreviatedKeybinginsSettings_OnUpdate()
-          actionBarSettingsHasChanges = false
         end)
       end
     end)
@@ -1219,6 +1461,9 @@ function BUII_ImprovedEditModeEnable()
   )
 
   editModeImprovedEnabled = true
+
+  -- Apply saved player castbar icon state now that the module is active.
+  applyPlayerCastBarIcon(BUIIDatabase and BUIIDatabase["castbar_icon"] == true)
 end
 
 --- Disable Improved EditMode module
@@ -1236,6 +1481,7 @@ end
 
 local DB_DEFAULTS = {
   improved_edit_mode = false,
+  castbar_icon = false,
 }
 
 function BUII_ImprovedEditMode_InitDB()

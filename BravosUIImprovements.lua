@@ -1,12 +1,9 @@
 local addonName, addon = ...
 ---@type boolean
 local spellBarHookSet = false
----@type boolean
-local castingBarHookSet = false
 
 ---@class BUIIDatabase
 ---@field class_color boolean
----@field castbar_icon boolean
 ---@field castbar_on_top boolean
 ---@field font_name string
 ---@field font_outline string
@@ -58,7 +55,6 @@ _G.BUIICharacterDatabase = BUIICharacterDatabase or {}
 ---@type table<string, any>
 local BUII_CORE_DB_DEFAULTS = {
   class_color = false,
-  castbar_icon = false,
   castbar_on_top = false,
   font_name = "Friz Quadrata TT",
   font_outline = "OUTLINE",
@@ -197,33 +193,6 @@ end
 local function setHideStanceBar(shouldHide)
   BUIICharacterDatabase["hide_stance_bar"] = shouldHide
   hideStanceButtons(shouldHide)
-end
-
---- Toggles display of the player cast bar icon
----@param shouldShow boolean
----@return nil
-local function showPlayerCastBarIcon(shouldShow)
-  if shouldShow then
-    local point, relativeTo, relativePoint = PlayerCastingBarFrame.Icon:GetPoint()
-    PlayerCastingBarFrame.Icon:SetSize(24, 24)
-    PlayerCastingBarFrame.Icon:SetPoint(point, relativeTo, relativePoint, -2, -6)
-    PlayerCastingBarFrame.Icon:Show()
-    BUIIDatabase["castbar_icon"] = true
-
-    if not castingBarHookSet then
-      PlayerCastingBarFrame:HookScript("OnEvent", function()
-        if BUIIDatabase["castbar_icon"] then
-          PlayerCastingBarFrame.Icon:Show()
-        else
-          PlayerCastingBarFrame.Icon:Hide()
-        end
-      end)
-      castingBarHookSet = true
-    end
-  else
-    PlayerCastingBarFrame.Icon:Hide()
-    BUIIDatabase["castbar_icon"] = false
-  end
 end
 
 --- Handles Unit Frame Portrait updates (used for class coloring)
@@ -700,11 +669,6 @@ function BUII_OnEventHandler(self, event, arg1, ...)
       C_Container.GetSortBagsRightToLeft() and not C_Container.GetInsertItemsLeftToRight() and "TOP" or "BOTTOM"
     )
 
-    -- if BUIIDatabase["castbar_icon"] then
-    --   showPlayerCastBarIcon(true)
-    --   defaultUI.CastBarIcon:SetChecked(true)
-    -- end
-
     -- if BUIIDatabase["castbar_on_top"] then
     --   setCastBarOnTop(true)
     --   defaultUI.CastBarOnTop:SetChecked(true)
@@ -785,17 +749,6 @@ end
 --- Toggle handler for Cast Bar Timers check button (XML global shim)
 function BUII_CastBarTimersCheckButton_OnClick(self)
   BUII_CreateToggleHandler("castbar_timers", BUII_CastBarTimersEnable, BUII_CastBarTimersDisable)(self)
-end
-
---- Toggle handler for Cast Bar Icon check button
----@param self CheckButton|any
----@return nil
-function BUII_CastBarIconCheckButton_OnClick(self)
-  if self:GetChecked() then
-    showPlayerCastBarIcon(true)
-  else
-    showPlayerCastBarIcon(false)
-  end
 end
 
 --- Toggle handler for Cast Bar on Top check button
