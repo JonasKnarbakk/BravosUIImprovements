@@ -10,8 +10,6 @@ local editModeSettingsDialog = EditModeSystemSettingsDialog
 local editModeManagerFrame = EditModeManagerFrame
 ---@type boolean
 local unitFrameSettingsHasChanges = false
----@type Frame|nil
-local combatWatcher = nil
 
 ---@type table
 local coords = {
@@ -110,7 +108,96 @@ local function settingsDialogPlayerFrameAddOptions()
   )
 end
 
+---@type boolean
 local isSyncPending = false
+
+---@type table|nil
+local playerFrameCache = nil
+
+--- Snapshot atlases / numeric values that we mutate so we can restore them.
+---@return nil
+local function cachePlayerFrameDefaults()
+  if playerFrameCache then
+    return
+  end
+
+  local container = PlayerFrame.PlayerFrameContainer
+  local healthBarsContainer = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer
+  local mask = healthBarsContainer.HealthBarMask
+  local healthBar = healthBarsContainer.HealthBar
+
+  local function snapshotTextureRegion(region)
+    -- Atlas takes precedence over texture path. GetAtlas returns nil if
+    -- the region was set via SetTexture instead.
+    return {
+      atlas = region.GetAtlas and region:GetAtlas() or nil,
+      texture = region.GetTextureFilePath and region:GetTextureFilePath() or nil,
+    }
+  end
+
+  playerFrameCache = {
+    frameTexture = snapshotTextureRegion(container.FrameTexture),
+    alternateFrameTexture = snapshotTextureRegion(container.AlternatePowerFrameTexture),
+    frameFlash = snapshotTextureRegion(container.FrameFlash),
+    maskAtlas = mask.GetAtlas and mask:GetAtlas() or nil,
+    healthBarHeight = healthBar:GetHeight(),
+  }
+end
+
+--- Re-apply a cached texture region (atlas wins; falls back to texture path).
+---@param region table
+---@param snapshot table from snapshotTextureRegion
+local function restoreTextureRegion(region, snapshot)
+  if snapshot.atlas then
+    -- useAtlasSize=true preserves the original sizing behavior.
+    region:SetAtlas(snapshot.atlas, true)
+    region:SetTexCoord(0, 1, 0, 1)
+  elseif snapshot.texture then
+    region:SetTexture(snapshot.texture)
+  end
+end
+
+--- Restore the PlayerFrame to its pre-mutation appearance.
+---@return nil
+local function restorePlayerFrame()
+  if not playerFrameCache then
+    return
+  end
+
+  local container = PlayerFrame.PlayerFrameContainer
+  local healthBarsContainer = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer
+  local mask = healthBarsContainer.HealthBarMask
+  local healthBar = healthBarsContainer.HealthBar
+
+  restoreTextureRegion(container.FrameTexture, playerFrameCache.frameTexture)
+  restoreTextureRegion(container.AlternatePowerFrameTexture, playerFrameCache.alternateFrameTexture)
+  restoreTextureRegion(container.FrameFlash, playerFrameCache.frameFlash)
+
+  if playerFrameCache.maskAtlas then
+    mask:SetAtlas(playerFrameCache.maskAtlas, true)
+  end
+  mask:ClearAllPoints()
+  mask:SetPoint("TOPLEFT", healthBar, "TOPLEFT", -2, 6)
+  mask:Show()
+
+  healthBar:SetHeight(playerFrameCache.healthBarHeight)
+
+  local leftText = healthBarsContainer.LeftText
+  local middleText = healthBarsContainer.HealthBarText
+  local rightText = healthBarsContainer.RightText
+  leftText:ClearAllPoints()
+  leftText:SetPoint("LEFT", healthBarsContainer, "LEFT", 2, 0)
+  middleText:ClearAllPoints()
+  middleText:SetPoint("CENTER", healthBarsContainer, "CENTER", 0, 0)
+  rightText:ClearAllPoints()
+  rightText:SetPoint("RIGHT", healthBarsContainer, "RIGHT", -2, 0)
+
+  AlternatePowerBar:RegisterEvent("UNIT_DISPLAYPOWER")
+
+  for i = 1, #resourceBars do
+    resourceBars[i]:SetAlpha(1)
+  end
+end
 
 --- Sync the PlayerFrame with applied settings
 ---@type frame
@@ -126,6 +213,8 @@ local function syncPlayerFrame()
   end
 
   if GetImprovedUnitFramesDB()["PlayerFrame"]["hide_power"] then
+    cachePlayerFrameDefaults()
+
     for i = 1, #resourceBars do
       local statusBar = resourceBars[i]
       statusBar:SetAlpha(0)
@@ -162,6 +251,8 @@ local function syncPlayerFrame()
     healthTextLeft:SetPoint("LEFT", healthBar, "LEFT")
     healthTextMiddle:SetPoint("CENTER", healthBar, "CENTER")
     healthTextRight:SetPoint("RIGHT", healthBar, "RIGHT")
+  else
+    restorePlayerFrame()
   end
 
   isSyncPending = false
@@ -268,36 +359,11 @@ end
 --- Disables ImprovedUnitFrames and undos any applied setting
 ---@return nil
 function BUII_ImprovedUnitFramesDisable()
-  print("disable called, initialized: ", initialized)
   if initialized then
     -- de-init
     initialized = false
 
-    local isAlterntePowerFrame = PlayerFrame.activeAlternatePowerBar
-    local frameTexture = isAlterntePowerFrame and PlayerFrame.PlayerFrameContainer.AlternatePowerFrameTexture
-      or PlayerFrame.PlayerFrameContainer.FrameTexture
-    local frameFlash = PlayerFrame.PlayerFrameContainer.FrameFlash
-    local mask = addonTable.globalUnitVariables.player.healthBarMask
-    local healthBar = addonTable.globalUnitVariables.player.healthBar
-    if isAlterntePowerFrame then
-      frameTexture:SetAtlas("UI-HUD-UnitFrame-Player-PortraitOn-ClassResource")
-      frameTexture:SetTexCoord(0, 1, 0, 1)
-      frameFlash:SetAtlas("UI-HUD-UnitFrame-Player-PortraitOn-ClassResource-InCombat")
-      frameFlash:SetTexCoord(0, 1, 0, 1)
-    else
-      frameTexture:SetAtlas("UI-HUD-UnitFrame-Player-PortraitOn")
-      frameTexture:SetTexCoord(0, 1, 0, 1)
-      frameFlash:SetAtlas("UI-HUD-UnitFrame-Player-PortraitOn-InCombat")
-      frameFlash:SetTexCoord(0, 1, 0, 1)
-    end
-    mask:SetAtlas("UI-HUD-UnitFrame-Player-PortraitOn-Bar-Health-Mask")
-
-    AlternatePowerBar:RegisterEvent("UNIT_DISPLAYPOWER")
-
-    healthBar:SetHeight(20)
-    for i = 1, #resourceBars do
-      resourceBars[i]:SetAlpha(1)
-    end
+    restorePlayerFrame()
   end
 end
 
