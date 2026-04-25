@@ -37,12 +37,6 @@ local coords = {
     0.1669921875, --top
     0.3056640625, -- bottom
   },
-  healthBarMask = {
-    2 / 128, --left
-    126 / 128, --right
-    15 / 64, --top
-    52 / 64, -- bottom
-  },
 }
 
 ---@type table
@@ -135,12 +129,44 @@ local function cachePlayerFrameDefaults()
     }
   end
 
+  local tempMaxHPLoss = healthBarsContainer.PlayerFrameTempMaxHealthLoss
+  local tempMaxHealthLossAnchors = {}
+  if tempMaxHPLoss then
+    for i = 1, tempMaxHPLoss:GetNumPoints() do
+      local point, relativeTo, relativePoint, x, y = tempMaxHPLoss:GetPoint(i)
+      tempMaxHealthLossAnchors[#tempMaxHealthLossAnchors + 1] = {
+        point = point,
+        relativeTo = relativeTo,
+        relativePoint = relativePoint,
+        x = x,
+        y = y,
+      }
+    end
+  end
+
+  local frameFlash = container.FrameFlash
+  local frameFlashAnchors = {}
+  for i = 1, frameFlash:GetNumPoints() do
+    local point, relativeTo, relativePoint, x, y = frameFlash:GetPoint(i)
+    frameFlashAnchors[#frameFlashAnchors + 1] = {
+      point = point,
+      relativeTo = relativeTo,
+      relativePoint = relativePoint,
+      x = x,
+      y = y,
+    }
+  end
+
   playerFrameCache = {
     frameTexture = snapshotTextureRegion(container.FrameTexture),
     alternateFrameTexture = snapshotTextureRegion(container.AlternatePowerFrameTexture),
     frameFlash = snapshotTextureRegion(container.FrameFlash),
+    frameFlashAnchors = frameFlashAnchors,
     maskAtlas = mask.GetAtlas and mask:GetAtlas() or nil,
+    maskHeight = mask:GetHeight(),
     healthBarHeight = healthBar:GetHeight(),
+    healthBarsContainerHeight = healthBarsContainer:GetHeight(),
+    tempMaxHealthLossAnchors = tempMaxHealthLossAnchors,
   }
 end
 
@@ -173,14 +199,41 @@ local function restorePlayerFrame()
   restoreTextureRegion(container.AlternatePowerFrameTexture, playerFrameCache.alternateFrameTexture)
   restoreTextureRegion(container.FrameFlash, playerFrameCache.frameFlash)
 
+  local frameFlash = container.FrameFlash
+  if playerFrameCache.frameFlashAnchors and #playerFrameCache.frameFlashAnchors > 0 then
+    frameFlash:ClearAllPoints()
+    for _, a in ipairs(playerFrameCache.frameFlashAnchors) do
+      frameFlash:SetPoint(a.point, a.relativeTo, a.relativePoint, a.x, a.y)
+    end
+  end
+
   if playerFrameCache.maskAtlas then
     mask:SetAtlas(playerFrameCache.maskAtlas, true)
   end
   mask:ClearAllPoints()
   mask:SetPoint("TOPLEFT", healthBar, "TOPLEFT", -2, 6)
+  if playerFrameCache.maskHeight then
+    mask:SetHeight(playerFrameCache.maskHeight)
+  end
   mask:Show()
 
   healthBar:SetHeight(playerFrameCache.healthBarHeight)
+  if playerFrameCache.healthBarsContainerHeight then
+    healthBarsContainer:SetHeight(playerFrameCache.healthBarsContainerHeight)
+  end
+
+  local tempMaxHPLoss = healthBarsContainer.PlayerFrameTempMaxHealthLoss
+  if tempMaxHPLoss and playerFrameCache.tempMaxHealthLossAnchors and #playerFrameCache.tempMaxHealthLossAnchors > 0 then
+    tempMaxHPLoss:ClearAllPoints()
+    for _, a in ipairs(playerFrameCache.tempMaxHealthLossAnchors) do
+      tempMaxHPLoss:SetPoint(a.point, a.relativeTo, a.relativePoint, a.x, a.y)
+    end
+  end
+
+  local divider = healthBarsContainer.TempMaxHealthLossDivider
+  if divider then
+    divider:SetAlpha(1)
+  end
 
   local leftText = healthBarsContainer.LeftText
   local middleText = healthBarsContainer.HealthBarText
@@ -220,10 +273,14 @@ local function syncPlayerFrame()
       statusBar:SetAlpha(0)
     end
 
+    local container = PlayerFrame.PlayerFrameContainer
+    local healthBarsContainer = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer
+    local mask = healthBarsContainer.HealthBarMask
+    local healthBar = healthBarsContainer.HealthBar
+
     local isAlterntePowerFrame = PlayerFrame.activeAlternatePowerBar
-    local frameTexture = isAlterntePowerFrame and PlayerFrame.PlayerFrameContainer.AlternatePowerFrameTexture
-      or PlayerFrame.PlayerFrameContainer.FrameTexture
-    local frameFlash = PlayerFrame.PlayerFrameContainer.FrameFlash
+    local frameTexture = isAlterntePowerFrame and container.AlternatePowerFrameTexture or container.FrameTexture
+    local frameFlash = container.FrameFlash
 
     frameTexture:SetTexture("Interface\\AddOns\\BravosUIImprovements\\Media\\Textures\\PlayerFrameHealthOnly.tga")
     frameFlash:SetTexture("Interface\\AddOns\\BravosUIImprovements\\Media\\Textures\\PlayerFrameHealthOnly.tga")
@@ -236,17 +293,33 @@ local function syncPlayerFrame()
       frameFlash:SetTexCoord(unpack(coords.frameFlash))
     end
 
-    local mask = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer.HealthBarMask
-    local healthBar = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer.HealthBar
     mask:SetTexture("Interface\\AddOns\\BravosUIImprovements\\Media\\Textures\\PlayerFrameHealthOnlyMask.tga")
-    mask:SetPoint("TOPLEFT", healthBar, -3, 7)
-    mask:SetPoint("BOTTOMRIGHT", healthBar, 2, -12)
+    mask:ClearAllPoints()
+    mask:SetPoint("TOPLEFT", healthBarsContainer, "TOPLEFT", -2, 6)
+    mask:SetPoint("BOTTOMRIGHT", healthBarsContainer, "BOTTOMRIGHT", 2, -10)
     mask:Show()
-    healthBar:SetHeight(30.5)
 
-    local healthTextLeft = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer.LeftText
-    local healthTextMiddle = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer.HealthBarText
-    local healthTextRight = PlayerFrame.PlayerFrameContent.PlayerFrameContentMain.HealthBarsContainer.RightText
+    healthBar:SetHeight(30.5)
+    healthBarsContainer:SetHeight(32)
+
+    local tempMaxHPLoss = healthBarsContainer.PlayerFrameTempMaxHealthLoss
+    if tempMaxHPLoss then
+      tempMaxHPLoss:ClearAllPoints()
+      tempMaxHPLoss:SetPoint("TOPLEFT", healthBarsContainer, "TOPLEFT", 0, 0)
+      tempMaxHPLoss:SetPoint("BOTTOMRIGHT", healthBarsContainer, "BOTTOMRIGHT", 0, 0)
+    end
+
+    -- Hide the temp max HP loss divider line. The divider's mask atlas has a
+    -- fixed ~16px native size with CLAMPTOBLACKADDITIVE wrap mode, which makes
+    -- it impossible to stretch cleanly to the taller (32px) container
+    local divider = healthBarsContainer.TempMaxHealthLossDivider
+    if divider then
+      divider:SetAlpha(0)
+    end
+
+    local healthTextLeft = healthBarsContainer.LeftText
+    local healthTextMiddle = healthBarsContainer.HealthBarText
+    local healthTextRight = healthBarsContainer.RightText
 
     healthTextLeft:SetPoint("LEFT", healthBar, "LEFT")
     healthTextMiddle:SetPoint("CENTER", healthBar, "CENTER")
@@ -336,8 +409,13 @@ function BUII_ImprovedUnitFramesEnable()
         "OnSettingValueChanged",
         editModeSystemSettingsDialog_OnSettingValueChanged
       )
-      -- Prevent the PlayerFrame from changing back
+      -- Prevent the PlayerFrame from changing back. Both PlayerFrame_Update
+      -- and PlayerFrame_UpdateArt can reset our changes — _UpdateArt fires on
+      -- alternate-power-bar toggle, vehicle enter/exit, etc., and explicitly
+      -- resets HealthBarsContainer:SetHeight(19) and the HealthBarMask atlas
+      -- (see PlayerFrame_ToPlayerArt in wow-ui-source PlayerFrame.lua:701-711).
       hooksecurefunc("PlayerFrame_Update", syncPlayerFrame)
+      hooksecurefunc("PlayerFrame_UpdateArt", syncPlayerFrame)
       secureHooksInstalled = true
     end
 
