@@ -363,7 +363,7 @@ local function UpdatePoints()
               myPartial = partialFill[i]
             end
           end
-        elseif type(partialFill) == "number" and i == currentStacks + 1 then
+        elseif type(partialFill) == "number" and not issecretvalue(currentStacks) and i == currentStacks + 1 then
           myPartial = partialFill
         end
 
