@@ -2,6 +2,7 @@
 
     <Script file="Core.lua"/>
     <Script file="Handlers.lua"/>
+    <Script file="LayoutHelper.lua"/>
     <Script file="Classes\DeathKnight.lua"/>
     <Script file="Classes\DemonHunter.lua"/>
     <Script file="Classes\Druid.lua"/>

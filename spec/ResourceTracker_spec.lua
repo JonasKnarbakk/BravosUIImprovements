@@ -44,6 +44,7 @@ local originals = {
 -- Load ResourceTracker modules in dependency order
 pcall(dofile, "Modules/WeakAura-like/ResourceTracker/Core.lua")
 pcall(dofile, "Modules/WeakAura-like/ResourceTracker/Handlers.lua")
+pcall(dofile, "Modules/WeakAura-like/ResourceTracker/LayoutHelper.lua")
 pcall(dofile, "Modules/WeakAura-like/ResourceTracker/Classes/DeathKnight.lua")
 pcall(dofile, "Modules/WeakAura-like/ResourceTracker/Classes/DemonHunter.lua")
 pcall(dofile, "Modules/WeakAura-like/ResourceTracker/Classes/Druid.lua")
@@ -58,6 +59,8 @@ pcall(dofile, "Modules/WeakAura-like/ResourceTracker/Classes/Shaman.lua")
 pcall(dofile, "Modules/WeakAura-like/ResourceTracker/Classes/Warlock.lua")
 pcall(dofile, "Modules/WeakAura-like/ResourceTracker/Classes/Warrior.lua")
 pcall(dofile, "Modules/WeakAura-like/ResourceTracker/ResourceTracker.lua")
+
+originals.BUII_ResourceTracker_GetActiveConfig = _G.BUII_ResourceTracker_GetActiveConfig
 
 describe("BravosUIImprovements ResourceTracker", function()
   -- Helper to reset all mocks
@@ -80,6 +83,7 @@ describe("BravosUIImprovements ResourceTracker", function()
     _G.UnitPowerType = originals.UnitPowerType
     _G.issecretvalue = originals.issecretvalue
     _G.CreateFrame = originals.CreateFrame
+    _G.BUII_ResourceTracker_GetActiveConfig = originals.BUII_ResourceTracker_GetActiveConfig
   end
 
   -- reset state before each test
@@ -382,11 +386,18 @@ describe("BravosUIImprovements ResourceTracker", function()
       _G.UnitPowerType = function()
         return Enum.PowerType.Mana
       end
+      _G.EditModeManagerFrame.IsShown = function()
+        return false
+      end
 
-      assert.has_no.errors(function()
-        BUII_ResourceTracker_Enable()
-        BUII_ResourceTracker_Refresh()
-      end)
+      BUII_ResourceTracker_Enable()
+      local frame = _G.BUII_ResourceTrackerFrame
+
+      BUII_ResourceTracker_Refresh()
+      assert.is_true(frame.shouldShow)
+      if frame.Points and frame.Points[1] then
+        assert.is_false(frame.Points[1]:IsShown())
+      end
     end)
 
     it("handles Druid in energy form", function()
@@ -402,11 +413,145 @@ describe("BravosUIImprovements ResourceTracker", function()
       _G.UnitPower = function()
         return 3
       end
+      _G.EditModeManagerFrame.IsShown = function()
+        return false
+      end
 
+      BUII_ResourceTracker_Enable()
+      local frame = _G.BUII_ResourceTrackerFrame
+
+      BUII_ResourceTracker_Refresh()
+      assert.is_true(frame.shouldShow)
+    end)
+
+    it("handles Demon Hunter Vengeance Soul Fragments (cast count tracking)", function()
+      _G.UnitClass = function()
+        return "Demon Hunter", "DEMONHUNTER"
+      end
+      _G.PlayerUtil.GetCurrentSpecID = function()
+        return 581
+      end
+      _G.C_Spell.GetSpellCastCount = function(spellId)
+        if spellId == 228477 then
+          return 4
+        end
+        return 0
+      end
+
+      BUII_ResourceTracker_Enable()
       assert.has_no.errors(function()
-        BUII_ResourceTracker_Enable()
         BUII_ResourceTracker_Refresh()
       end)
+      
+      local activeConfig = BUII_ResourceTracker_GetActiveConfig()
+      assert.is_not_nil(activeConfig)
+      assert.are.equal("BuffStacks", activeConfig.handler)
+      assert.are.equal(203981, activeConfig.buffs[1])
+    end)
+
+    it("handles Demon Hunter Vengeance Soul Fragments in combat with secret value", function()
+      _G.UnitClass = function()
+        return "Demon Hunter", "DEMONHUNTER"
+      end
+      _G.PlayerUtil.GetCurrentSpecID = function()
+        return 581
+      end
+      _G.EditModeManagerFrame.IsShown = function()
+        return false
+      end
+      
+      local secretMock = { isSecret = true }
+      _G.issecretvalue = function(v)
+        return v == secretMock
+      end
+      _G.C_Spell.GetSpellCastCount = function(spellId)
+        if spellId == 228477 then
+          return secretMock
+        end
+        return 0
+      end
+
+      BUII_ResourceTracker_Enable()
+      
+      local minMaxCalledWith = {}
+      local valCalledWith = {}
+      local frame = _G.BUII_ResourceTrackerFrame
+      
+      for i = 1, 6 do
+        local point = frame.Points[i]
+        point.IsShown = function() return true end
+        point.ProgressBar.SetMinMaxValues = function(self, min, max)
+          minMaxCalledWith[i] = { min = min, max = max }
+        end
+        point.ProgressBar.SetValue = function(self, val)
+          valCalledWith[i] = val
+        end
+      end
+
+      assert.has_no.errors(function()
+        BUII_ResourceTracker_Refresh()
+      end)
+
+      for i = 1, 6 do
+        assert.is_not_nil(minMaxCalledWith[i])
+        assert.are.equal(i - 1, minMaxCalledWith[i].min)
+        assert.are.equal(i, minMaxCalledWith[i].max)
+        assert.are.equal(secretMock, valCalledWith[i])
+      end
+    end)
+
+    it("handles Demon Hunter Havoc hides stack counter text when points are hidden", function()
+      _G.UnitClass = function()
+        return "Demon Hunter", "DEMONHUNTER"
+      end
+      _G.PlayerUtil.GetCurrentSpecID = function()
+        return 577
+      end
+
+      BUII_ResourceTracker_Enable()
+      local frame = _G.BUII_ResourceTrackerFrame
+      frame.GetSettingsDB = function()
+        return { showText = true }
+      end
+
+      local hideCalled = false
+      frame.CounterText.Hide = function()
+        hideCalled = true
+      end
+
+      BUII_ResourceTracker_Refresh()
+
+      assert.is_true(hideCalled)
+    end)
+
+    it("handles Demon Hunter Devourer (Aldrachi Reaver) Soul Fragments", function()
+      _G.UnitClass = function()
+        return "Demon Hunter", "DEMONHUNTER"
+      end
+      _G.PlayerUtil.GetCurrentSpecID = function()
+        return 1480
+      end
+      _G.C_UnitAuras.GetPlayerAuraBySpellID = function(spellId)
+        if spellId == 1225789 then
+          return { applications = 3 }
+        end
+        return nil
+      end
+      _G.C_Spell.GetSpellMaxCumulativeAuraApplications = function(spellId)
+        if spellId == 1225789 then
+          return 6
+        end
+        return 1
+      end
+
+      BUII_ResourceTracker_Enable()
+      assert.has_no.errors(function()
+        BUII_ResourceTracker_Refresh()
+      end)
+
+      local activeConfig = BUII_ResourceTracker_GetActiveConfig()
+      assert.is_not_nil(activeConfig)
+      assert.is_true(activeConfig.isBar)
     end)
 
     it("handles nil aura returns", function()
@@ -441,6 +586,56 @@ describe("BravosUIImprovements ResourceTracker", function()
         BUII_ResourceTracker_Enable()
         BUII_ResourceTracker_Refresh()
       end)
+    end)
+
+    it("handles Fire Mage in-combat secret charges", function()
+      _G.UnitClass = function()
+        return "Mage", "MAGE"
+      end
+      _G.PlayerUtil.GetCurrentSpecID = function()
+        return 63
+      end
+      _G.EditModeManagerFrame.IsShown = function()
+        return false
+      end
+      
+      local secretMock = { isSecret = true }
+      _G.issecretvalue = function(v)
+        return v == secretMock
+      end
+      _G.C_Spell.GetSpellCharges = function(spellId)
+        if spellId == 108853 then
+          return { currentCharges = secretMock }
+        end
+        return nil
+      end
+
+      BUII_ResourceTracker_Enable()
+      local frame = _G.BUII_ResourceTrackerFrame
+      
+      local minMaxCalledWith = {}
+      local valCalledWith = {}
+      for i = 1, 3 do
+        local point = frame.Points[i]
+        point.IsShown = function() return true end
+        point.ProgressBar.SetMinMaxValues = function(self, min, max)
+          minMaxCalledWith[i] = { min = min, max = max }
+        end
+        point.ProgressBar.SetValue = function(self, val)
+          valCalledWith[i] = val
+        end
+      end
+
+      assert.has_no.errors(function()
+        BUII_ResourceTracker_Refresh()
+      end)
+
+      for i = 1, 3 do
+        assert.is_not_nil(minMaxCalledWith[i])
+        assert.are.equal(i - 1, minMaxCalledWith[i].min)
+        assert.are.equal(i, minMaxCalledWith[i].max)
+        assert.are.equal(secretMock, valCalledWith[i])
+      end
     end)
 
     it("handles combat lockdown", function()
@@ -500,6 +695,42 @@ describe("BravosUIImprovements ResourceTracker", function()
         BUII_ResourceTracker_Refresh()
       end)
     end)
+
+    it("handles Shadow Priest Insanity bar with secret value and UnitPowerPercent", function()
+      _G.UnitClass = function()
+        return "Priest", "PRIEST"
+      end
+      _G.PlayerUtil.GetCurrentSpecID = function()
+        return 258
+      end
+      _G.EditModeManagerFrame.IsShown = function()
+        return false
+      end
+
+      local secretMock = { isSecret = true }
+      _G.issecretvalue = function(v)
+        return v == secretMock
+      end
+      _G.UnitPower = function()
+        return secretMock
+      end
+      _G.UnitPowerPercent = function(unit, powerType)
+        if powerType == Enum.PowerType.Insanity then
+          return 0.75
+        end
+        return 0
+      end
+
+      BUII_ResourceTracker_Enable()
+      local frame = _G.BUII_ResourceTrackerFrame
+      local percentCalledWith = nil
+      frame.ResourceBar.ProgressBar.SetValue = function(self, val)
+        percentCalledWith = val
+      end
+
+      BUII_ResourceTracker_Refresh()
+      assert.are.equal(0.75, percentCalledWith)
+    end)
   end)
 
   describe("Database Defaults", function()
@@ -537,6 +768,72 @@ describe("BravosUIImprovements ResourceTracker", function()
       assert.are.equal(2, BUIIDatabase["resource_tracker_power_bar_padding"])
       assert.are.equal(false, BUIIDatabase["resource_tracker_power_bar_show_text"])
       assert.are.equal(12, BUIIDatabase["resource_tracker_power_bar_font_size"])
+    end)
+  end)
+
+  describe("Stack Counter Text Bugfix", function()
+    it("hides the counter text when hidePrimary is true even if showText is enabled", function()
+      local mockCounterText = {
+        ShowCalled = false,
+        HideCalled = false,
+        Show = function(self) self.ShowCalled = true end,
+        Hide = function(self) self.HideCalled = true end,
+        SetPoint = function() end,
+        ClearAllPoints = function() end,
+        SetText = function() end,
+        SetFont = function() end,
+        SetShadowOffset = function() end,
+      }
+      local mockFrame = {
+        GetName = function() return "MockTrackerFrame" end,
+        CounterText = mockCounterText,
+        GetSettingsDB = function()
+          return { showText = true }
+        end,
+      }
+
+      _G.BUII_ResourceTracker_GetActiveConfig = function()
+        return {
+          hidePrimary = true,
+        }
+      end
+
+      BUII_ResourceTracker_LayoutHelper:UpdateCounterText(mockFrame, 0, nil)
+
+      assert.is_true(mockCounterText.HideCalled)
+      assert.is_false(mockCounterText.ShowCalled)
+    end)
+
+    it("shows the counter text when hidePrimary is not true and showText is enabled", function()
+      local mockCounterText = {
+        ShowCalled = false,
+        HideCalled = false,
+        Show = function(self) self.ShowCalled = true end,
+        Hide = function(self) self.HideCalled = true end,
+        SetPoint = function() end,
+        ClearAllPoints = function() end,
+        SetText = function() end,
+        SetFont = function() end,
+        SetShadowOffset = function() end,
+      }
+      local mockFrame = {
+        GetName = function() return "MockTrackerFrame" end,
+        CounterText = mockCounterText,
+        GetSettingsDB = function()
+          return { showText = true }
+        end,
+      }
+
+      _G.BUII_ResourceTracker_GetActiveConfig = function()
+        return {
+          hidePrimary = false,
+        }
+      end
+
+      BUII_ResourceTracker_LayoutHelper:UpdateCounterText(mockFrame, 0, nil)
+
+      assert.is_false(mockCounterText.HideCalled)
+      assert.is_true(mockCounterText.ShowCalled)
     end)
   end)
 end)

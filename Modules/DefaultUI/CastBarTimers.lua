@@ -286,7 +286,7 @@ local function setTimerText(castBarFrame, timerTextFrame)
       name, _, _, _, endTimeMS = UnitCastingInfo(castBarFrame.unit)
     end
 
-    if name and endTimeMS and not issecretvalue(endTimeMS) then
+    if name and endTimeMS and not BUII_IsSecretValue(endTimeMS) then
       local remaining = (endTimeMS / 1000) - GetTime()
       if remaining >= 0 then
         timerTextFrame.text:SetText(string.format("%.1f s", remaining))

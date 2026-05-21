@@ -4,6 +4,21 @@
 local addonName, addon = ...
 
 BUII_ResourceTracker_CONFIG = {}
+BUII_ResourceTracker_Modules = {}
+
+---Registers a spec rendering/layout module for a specific class
+---@param classFilename string
+---@param module table
+function BUII_ResourceTracker_RegisterModule(classFilename, module)
+  BUII_ResourceTracker_Modules[classFilename] = module
+end
+
+---Gets the registered spec rendering/layout module for a specific class
+---@param classFilename string
+---@return table|nil
+function BUII_ResourceTracker_GetModule(classFilename)
+  return BUII_ResourceTracker_Modules[classFilename]
+end
 
 ---@return table
 function BUII_ResourceTracker_GetDB()

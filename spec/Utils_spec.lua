@@ -48,6 +48,39 @@ describe("BravosUIImprovements Utils", function()
     end)
   end)
 
+  describe("BUII_IsSecretValue", function()
+    it("returns false for nil or normal numbers/values", function()
+      assert.are.equal(false, BUII_IsSecretValue(nil))
+      assert.are.equal(false, BUII_IsSecretValue(100))
+      assert.are.equal(false, BUII_IsSecretValue("hello"))
+      assert.are.equal(false, BUII_IsSecretValue({}))
+    end)
+
+    it("returns true when issecretvalue returns true", function()
+      local original_issecret = _G.issecretvalue
+      _G.issecretvalue = function() return true end
+      
+      assert.are.equal(true, BUII_IsSecretValue(100))
+      
+      _G.issecretvalue = original_issecret
+    end)
+
+    it("returns true on pcall comparison failure if issecretvalue is nil", function()
+      local original_issecret = _G.issecretvalue
+      _G.issecretvalue = nil
+
+      -- A table that raises an error when compared (simulating a secret value structure or mock error)
+      local secretMock = setmetatable({}, {
+        __lt = function() error("secret comparison error") end,
+        __le = function() error("secret comparison error") end,
+      })
+
+      assert.are.equal(true, BUII_IsSecretValue(secretMock))
+
+      _G.issecretvalue = original_issecret
+    end)
+  end)
+
   describe("BUII_GetFontShadow", function()
     it("returns defaults when BUIIDatabase is nil", function()
       _G.BUIIDatabase = nil
