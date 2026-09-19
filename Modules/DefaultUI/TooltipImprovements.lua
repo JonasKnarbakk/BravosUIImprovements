@@ -86,52 +86,37 @@ local function checkForItemOverride(item)
   return nil
 end
 
---- Adds the current season's expansion line to the tooltip
----@param tooltip GameTooltip|any
----@return nil
-local function addCurrentSeasonLine(tooltip)
-  if GetServerExpansionLevel() == 9 then
-    tooltip:AddLine("Dragonflight", 0, 1, 0.6)
-  else
-    tooltip:AddLine("The War Within", 1, 0.4, 0)
-  end
-end
-
 --- Adds a colored expansion line to the tooltip
 ---@param name string
 ---@param tooltip GameTooltip|any
 ---@return nil
 local function addColoredExpLine(name, tooltip)
-  if name == "Classic" then
+  if name == EXPANSION_NAME0 or name == "Classic" then
     tooltip:AddLine(name, 1, 1, 1)
-  elseif name == "Burning Crusade" then
+  elseif name == EXPANSION_NAME1 or name == "Burning Crusade" then
     tooltip:AddLine(name, 0, 1, 0)
-  elseif name == "Wrath of the Lich King" then
+  elseif name == EXPANSION_NAME2 or name == "Wrath of the Lich King" then
     tooltip:AddLine(name, 0, 0.8, 1)
-  elseif name == "Cataclysm" then
+  elseif name == EXPANSION_NAME3 or name == "Cataclysm" then
     tooltip:AddLine(name, 0.8, 0.2, 0)
-  elseif name == "Mists of Pandaria" then
+  elseif name == EXPANSION_NAME4 or name == "Mists of Pandaria" then
     tooltip:AddLine(name, 0, 1, 0.6)
-  elseif name == "Warlords of Draenor" then
+  elseif name == EXPANSION_NAME5 or name == "Warlords of Draenor" then
     tooltip:AddLine(name, 0.78, 0.61, 0.43)
-  elseif name == "Legion" then
+  elseif name == EXPANSION_NAME6 or name == "Legion" then
     tooltip:AddLine(name, 0, 0.8, 0)
-  elseif name == "Battle for Azeroth" then
+  elseif name == EXPANSION_NAME7 or name == "Battle for Azeroth" then
     tooltip:AddLine(name, 0.20, 0.39, 0.67)
-  elseif name == "Shadowlands" then
+  elseif name == EXPANSION_NAME8 or name == "Shadowlands" then
     tooltip:AddLine(name, 0.6, 0.8, 1)
-  elseif name == "Dragonflight" then
+  elseif name == EXPANSION_NAME9 or name == "Dragonflight" then
     tooltip:AddLine(name, 0, 1, 0.6)
-  elseif name == "The War Within" then
+  elseif name == EXPANSION_NAME10 or name == "The War Within" then
     tooltip:AddLine(name, 1, 0.4, 0)
-  elseif name == "Midnight" then
+  elseif name == EXPANSION_NAME11 or name == "Midnight" then
     tooltip:AddLine(name, 0.45, 0.2, 0.9)
-  elseif name == "Current Season" then
-    -- Blizz seems to have added a Current Season tag in 10.2.7
-    -- to have the same behaviour as before the patch make it Dragonflight
-    addCurrentSeasonLine(tooltip)
   else
-    print("Missing expansion: " .. name)
+    tooltip:AddLine(name, 1, 1, 1)
   end
 end
 
@@ -150,11 +135,14 @@ local function BUII_TooltipImprovements_OnTooltipSetItem(tooltip, data)
           local expansionName = checkForItemOverride(item)
 
           if not expansionName then
-            -- EJ_GetTierInfo needs expansionID + 1 to get the correct expansion
-            expansionName = EJ_GetTierInfo(expansionID + 1)
+            -- Item expansion IDs directly index these localized names. Journal
+            -- tiers depend on loaded data and can include a Current Season tier.
+            expansionName = _G["EXPANSION_NAME" .. expansionID]
           end
 
-          addColoredExpLine(expansionName, tooltip)
+          if expansionName and expansionName ~= "" then
+            addColoredExpLine(expansionName, tooltip)
+          end
         end
       end
     end
