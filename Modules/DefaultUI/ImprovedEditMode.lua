@@ -457,15 +457,24 @@ end
 
 local queueStatusButtonOverlay = nil
 local queueStatusButtonHooksInstalled = false
+local queueStatusButtonEnabled = false
+local queueStatusButtonSyncInProgress = false
 local enum_QueueStatusButtonSetting_Scale = 30
 
 local function syncButtonToOverlay()
-  if not queueStatusButtonOverlay or not QueueStatusButton then
+  if
+    not queueStatusButtonEnabled
+    or queueStatusButtonSyncInProgress
+    or not queueStatusButtonOverlay
+    or not QueueStatusButton
+  then
     return
   end
+  queueStatusButtonSyncInProgress = true
   -- Direct atomic anchor to prevent spazzing/jitter during resizing or moving
   QueueStatusButton:ClearAllPoints()
   QueueStatusButton:SetPoint("CENTER", queueStatusButtonOverlay, "CENTER", 0, 0)
+  queueStatusButtonSyncInProgress = false
 end
 
 local function setupQueueStatusButton()
@@ -515,16 +524,13 @@ local function setupQueueStatusButton()
   end)
 
   if not queueStatusButtonHooksInstalled then
-    hooksecurefunc(QueueStatusButton, "UpdatePosition", function(self)
-      if not editModeImprovedEnabled then
-        return
-      end
-      syncButtonToOverlay()
-    end)
+    -- UpdatePosition is not available on every client. Hook the frame API
+    -- instead; syncButtonToOverlay guards against its own SetPoint call.
+    hooksecurefunc(QueueStatusButton, "SetPoint", syncButtonToOverlay)
 
-    if MicroMenuContainer then
+    if MicroMenuContainer and type(MicroMenuContainer.Layout) == "function" then
       hooksecurefunc(MicroMenuContainer, "Layout", function(self)
-        if not editModeImprovedEnabled then
+        if not queueStatusButtonEnabled then
           return
         end
         -- Force container size to only match MicroMenu
@@ -541,10 +547,14 @@ local function setupQueueStatusButton()
 end
 
 function BUII_QueueStatusButton_Enable()
+  queueStatusButtonEnabled = true
   setupQueueStatusButton()
   if queueStatusButtonOverlay then
     -- Delay unparenting to ensure it happens after Blizzard's initial layout
     RunNextFrame(function()
+      if not queueStatusButtonEnabled then
+        return
+      end
       if QueueStatusButton:GetParent() ~= UIParent then
         QueueStatusButton:SetParent(UIParent)
       end
@@ -561,12 +571,15 @@ function BUII_QueueStatusButton_Enable()
 end
 
 function BUII_QueueStatusButton_Disable()
+  queueStatusButtonEnabled = false
   if queueStatusButtonOverlay then
     queueStatusButtonOverlay:Hide()
   end
   if QueueStatusButton and MicroMenuContainer then
     QueueStatusButton:SetParent(MicroMenuContainer)
-    MicroMenuContainer:Layout()
+    if type(MicroMenuContainer.Layout) == "function" then
+      MicroMenuContainer:Layout()
+    end
   end
 end
 

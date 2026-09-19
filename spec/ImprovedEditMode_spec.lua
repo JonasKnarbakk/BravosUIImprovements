@@ -125,3 +125,100 @@ describe("BravosUIImprovements ImprovedEditMode", function()
     end)
   end)
 end)
+
+describe("ImprovedEditMode queue button without UpdatePosition", function()
+  local overlay
+  local nextFrame
+  local setPointCalls
+  local queueHookCount
+
+  before_each(function()
+    _G.BUIIDatabase = {}
+    overlay = nil
+    nextFrame = nil
+    setPointCalls = 0
+    queueHookCount = 0
+    _G.QueueStatusButton = CreateFrame("Frame", "QueueStatusButton")
+    QueueStatusButton.parent = MicroMenuContainer
+    QueueStatusButton.SetParent = function(self, parent)
+      self.parent = parent
+    end
+    QueueStatusButton.GetParent = function(self)
+      return self.parent
+    end
+    QueueStatusButton.SetPoint = function(self, ...)
+      setPointCalls = setPointCalls + 1
+      self.point = { ... }
+    end
+    MicroMenuContainer.Layout = function(self)
+      QueueStatusButton:SetPoint("LEFT", self, "RIGHT", 0, 0)
+    end
+    _G.RunNextFrame = function(callback)
+      nextFrame = callback
+    end
+    BUII_EditModeUtils.RegisterSystem = function(_, frame, _, _, _, dbKey)
+      if dbKey == "queue_status_button" then
+        overlay = frame
+      end
+    end
+    _G.hooksecurefunc = function(target, method, callback)
+      if target == QueueStatusButton or target == MicroMenuContainer then
+        -- Match WoW's validation and execute the post-hook, including reentry.
+        assert.is_function(target[method])
+        local original = target[method]
+        target[method] = function(...)
+          original(...)
+          callback(...)
+        end
+        if target == QueueStatusButton then
+          queueHookCount = queueHookCount + 1
+        end
+      end
+    end
+    dofile("Modules/DefaultUI/ImprovedEditMode.lua")
+  end)
+
+  it("enables and retains its overlay anchor when Blizzard repositions it", function()
+    assert.is_nil(QueueStatusButton.UpdatePosition)
+    BUII_ImprovedEditModeEnable()
+    nextFrame()
+    assert.are.equal(UIParent, QueueStatusButton:GetParent())
+    assert.are.equal(overlay, QueueStatusButton.point[2])
+
+    setPointCalls = 0
+    QueueStatusButton:SetPoint("LEFT", MicroMenuContainer, "RIGHT", 0, 0)
+    assert.are.equal(2, setPointCalls)
+    assert.are.equal("CENTER", QueueStatusButton.point[1])
+    assert.are.equal(overlay, QueueStatusButton.point[2])
+  end)
+
+  it("allows Blizzard to restore the normal anchor on disable", function()
+    BUII_ImprovedEditModeEnable()
+    nextFrame()
+    BUII_ImprovedEditModeDisable()
+    assert.are.equal(MicroMenuContainer, QueueStatusButton:GetParent())
+    assert.are.equal(MicroMenuContainer, QueueStatusButton.point[2])
+
+    BUII_ImprovedEditModeEnable()
+    nextFrame()
+    assert.are.equal(1, queueHookCount)
+    assert.are.equal(overlay, QueueStatusButton.point[2])
+  end)
+
+  it("does not detach the button if disabled before the deferred setup", function()
+    BUII_ImprovedEditModeEnable()
+    BUII_ImprovedEditModeDisable()
+    nextFrame()
+    assert.are.equal(MicroMenuContainer, QueueStatusButton:GetParent())
+    assert.are.equal(MicroMenuContainer, QueueStatusButton.point[2])
+  end)
+
+  it("also tolerates a client without MicroMenuContainer.Layout", function()
+    MicroMenuContainer.Layout = nil
+    BUII_ImprovedEditModeEnable()
+    nextFrame()
+    assert.are.equal(overlay, QueueStatusButton.point[2])
+    BUII_ImprovedEditModeDisable()
+    assert.are.equal(MicroMenuContainer, QueueStatusButton:GetParent())
+  end)
+end)
