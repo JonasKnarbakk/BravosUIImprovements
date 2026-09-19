@@ -39,6 +39,8 @@ local coords = {
   },
 }
 
+-- Class-specific bars can be absent, so this table may have gaps. Use pairs
+-- when iterating to include the mana bar even when earlier entries are nil.
 ---@type table
 local resourceBars = {
   AlternatePowerBar,
@@ -247,8 +249,8 @@ local function restorePlayerFrame()
 
   AlternatePowerBar:RegisterEvent("UNIT_DISPLAYPOWER")
 
-  for i = 1, #resourceBars do
-    resourceBars[i]:SetAlpha(1)
+  for _, statusBar in pairs(resourceBars) do
+    statusBar:SetAlpha(1)
   end
 end
 
@@ -268,8 +270,7 @@ local function syncPlayerFrame()
   if GetImprovedUnitFramesDB()["PlayerFrame"]["hide_power"] then
     cachePlayerFrameDefaults()
 
-    for i = 1, #resourceBars do
-      local statusBar = resourceBars[i]
+    for _, statusBar in pairs(resourceBars) do
       statusBar:SetAlpha(0)
     end
 
