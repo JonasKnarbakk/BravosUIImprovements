@@ -1,4 +1,9 @@
 local editModeImprovedEnabled = false
+local castBarTimersIconEnabled = false
+
+local function playerCastBarIconEnabled()
+  return editModeImprovedEnabled or castBarTimersIconEnabled
+end
 
 local VisibilityMode = {
   ALWAYS_VISIBLE = 0,
@@ -187,7 +192,7 @@ end
 --- without needing a cast event to fire.
 ---@param shouldShow boolean
 local function applyPlayerCastBarIcon(shouldShow)
-  if not PlayerCastingBarFrame or not PlayerCastingBarFrame.Icon then
+  if not playerCastBarIconEnabled() or not PlayerCastingBarFrame or not PlayerCastingBarFrame.Icon then
     return
   end
 
@@ -195,6 +200,9 @@ local function applyPlayerCastBarIcon(shouldShow)
     -- Instance hook on PlayerCastingBarFrame:UpdateIconShown. Fires after
     -- Blizzard's body so our visibility preference always wins.
     hooksecurefunc(PlayerCastingBarFrame, "UpdateIconShown", function(self)
+      if not playerCastBarIconEnabled() then
+        return
+      end
       if effectiveCastBarIconValue() then
         self.Icon:Show()
       else
@@ -902,6 +910,13 @@ end
 ---@param self table EditModeSystemSettingsDialog
 ---@param systemFrame table The frame the settings belong to e.g MainMenuBar
 local function editModeSystemSettingsDialog_OnUpdateSettings(self, systemFrame)
+  if systemFrame == PlayerCastingBarFrame and systemFrame == self.attachedToSystem then
+    if playerCastBarIconEnabled() then
+      settingsDialogPlayerCastBarAddOptions()
+    end
+    return
+  end
+
   if not editModeImprovedEnabled then
     return
   end
@@ -923,8 +938,6 @@ local function editModeSystemSettingsDialog_OnUpdateSettings(self, systemFrame)
       settingsDialogBagBarAddOptions()
     elseif currentFrameName == "MicroMenuContainer" then
       settingsDialogMicroMenuAddOptions()
-    elseif currentFrameName == "PlayerCastingBarFrame" then
-      settingsDialogPlayerCastBarAddOptions()
     end
   end
 end
@@ -1144,6 +1157,9 @@ local function editModeSystemSettingsDialog_OnSettingValueChanged(self, setting,
   -- print("editModeSystemSettingsDialog_OnSettingValueChanged frame: ", self.attachedToSystem:GetName(), " setting: ",
   --   setting, " value: ", value)
   local currentFrame = self.attachedToSystem
+  if not currentFrame then
+    return
+  end
   local currentFrameName = currentFrame:GetName()
 
   if not currentFrameName then
@@ -1158,7 +1174,7 @@ local function editModeSystemSettingsDialog_OnSettingValueChanged(self, setting,
   -- Buffer the change as pending and apply for live preview; the value is
   -- only committed to BUIIDatabase on Save (and discarded on Revert).
   if currentFrameName == "PlayerCastingBarFrame" then
-    if setting == enum_EditModePlayerCastBarSetting_ShowIcon then
+    if playerCastBarIconEnabled() and setting == enum_EditModePlayerCastBarSetting_ShowIcon then
       local enabled = value == 1
       pendingCastBarIconValue = enabled
       applyPlayerCastBarIcon(enabled)
@@ -1175,6 +1191,10 @@ local function editModeSystemSettingsDialog_OnSettingValueChanged(self, setting,
         editModeSettingsDialog:UpdateButtons(currentFrame)
       end
     end
+    return
+  end
+
+  if not editModeImprovedEnabled then
     return
   end
 
@@ -1286,7 +1306,7 @@ local function setupActionBarSettingsHooks()
     -- Hook RevertSystemChanges (per-system Revert button) to drop pending values
     -- for the system being reverted and refresh the dialog widgets.
     hooksecurefunc(EditModeManagerFrame, "RevertSystemChanges", function(_, systemFrame)
-      if not editModeImprovedEnabled or not systemFrame then
+      if not systemFrame then
         return
       end
       local frameName = systemFrame.GetName and systemFrame:GetName()
@@ -1295,13 +1315,18 @@ local function setupActionBarSettingsHooks()
       end
 
       if frameName == "PlayerCastingBarFrame" then
+        if not playerCastBarIconEnabled() then
+          return
+        end
         pendingCastBarIconValue = nil
         applyPlayerCastBarIcon(BUIIDatabase and BUIIDatabase["castbar_icon"] == true)
-      else
+      elseif editModeImprovedEnabled then
         discardPendingForFrame(frameName)
         frameVisibilitySettings_OnUpdate()
         hideMacroTextSettings_OnUpdate()
         abbreviatedKeybinginsSettings_OnUpdate()
+      else
+        return
       end
 
       -- Refresh injected option widgets in the dialog if it's still showing this system.
@@ -1336,12 +1361,49 @@ local function setupActionBarSettingsHooks()
   actionBarSettingsHooksInitialized = true
 end
 
---- Register nessecary hooks for Edit Mode Setttings
-local function setupEditModeSystemSettingsDialog()
+-- Shared by Improved Edit Mode and the native player castbar options.
+local function setupSettingsDialogHooks()
   if not frameHookSet["EditModeSystemSettingsDialog"] then
     hooksecurefunc(editModeSettingsDialog, "UpdateSettings", editModeSystemSettingsDialog_OnUpdateSettings)
     hooksecurefunc(editModeSettingsDialog, "OnSettingValueChanged", editModeSystemSettingsDialog_OnSettingValueChanged)
     frameHookSet["EditModeSystemSettingsDialog"] = true
+  end
+end
+
+local function restorePlayerCastBarIcon()
+  if not playerCastBarIconEnabled() then
+    pendingCastBarIconValue = nil
+    if PlayerCastingBarFrame and PlayerCastingBarFrame.UpdateIconShown then
+      PlayerCastingBarFrame:UpdateIconShown()
+    end
+  end
+end
+
+-- Castbar Timers uses the existing native castbar dialog rather than a second overlay.
+function BUII_PlayerCastBarIcon_Enable()
+  castBarTimersIconEnabled = true
+  setupSettingsDialogHooks()
+  setupActionBarSettingsHooks()
+  EventRegistry:RegisterCallback("EditMode.Enter", function()
+    if not InCombatLockdown() then
+      applyPlayerCastBarIcon(effectiveCastBarIconValue())
+    end
+  end, "BUII_PlayerCastBarIcon_OnEnter")
+  applyPlayerCastBarIcon(effectiveCastBarIconValue())
+end
+
+function BUII_PlayerCastBarIcon_Disable()
+  castBarTimersIconEnabled = false
+  EventRegistry:UnregisterCallback("EditMode.Enter", "BUII_PlayerCastBarIcon_OnEnter")
+  restorePlayerCastBarIcon()
+end
+
+--- Register nessecary hooks for Edit Mode Setttings
+local actionBarDialogOptionsInitialized = false
+local function setupEditModeSystemSettingsDialog()
+  setupSettingsDialogHooks()
+  if not actionBarDialogOptionsInitialized then
+    actionBarDialogOptionsInitialized = true
 
     -- Add the On Hover option for MultiBar frames
     local actionBarDropdownOptions =
@@ -1477,6 +1539,7 @@ function BUII_ImprovedEditModeDisable()
   EventRegistry:UnregisterCallback("PLAYER_REGEN_ENABLED", "BUII_ImprovedEditMode_OnCombatLeave")
 
   editModeImprovedEnabled = false
+  restorePlayerCastBarIcon()
 end
 
 local DB_DEFAULTS = {

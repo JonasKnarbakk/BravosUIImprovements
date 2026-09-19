@@ -323,8 +323,10 @@ end
 --- Enables castbar timers and hooks their OnUpdate scripts
 ---@return nil
 function BUII_CastBarTimersEnable()
+  BUII_PlayerCastBarIcon_Enable()
   if not castBarTimersInitialized then
     repositionPlayerCastBarText()
+
     detachAndSetupCastBar(
       "target",
       "BUIITargetFrameSpellBarEditModeSystemTemplate",
@@ -338,8 +340,7 @@ function BUII_CastBarTimersEnable()
       Enum.EditModeSystem.BUII_FocusFrameSpellBar,
       BUII_HUD_EDIT_MODE_FOCUS_FRAME_SPELL_BAR_LABEL
     )
-    -- createChildTimerFrame(PlayerCastingBarFrame, -14, -17)
-    -- PlayerCastingBarFrame:HookScript("OnUpdate", handlePlayerCastBar_OnUpdate)
+
     createChildTimerFrame(TargetFrameSpellBar, -16, -16)
     TargetFrameSpellBar:HookScript("OnUpdate", handleTargetSpellBar_OnUpdate)
     createChildTimerFrame(FocusFrameSpellBar, -16, -16)
@@ -370,9 +371,9 @@ end
 --- Disables castbar timers and hides them
 ---@return nil
 function BUII_CastBarTimersDisable()
+  BUII_PlayerCastBarIcon_Disable()
   if castBarTimersInitialized then
     restoreSpellNameText()
-    -- _G["BUIICastBarTimerPlayerCastingBarFrame"]:Hide()
     _G["BUIICastBarTimerTargetFrameSpellBar"]:Hide()
     _G["BUIICastBarTimerFocusFrameSpellBar"]:Hide()
   end

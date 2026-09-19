@@ -24,6 +24,14 @@ _G.BUIIDatabase = {
   castbar_timers = true,
 }
 
+local playerIconEnabled = false
+_G.BUII_PlayerCastBarIcon_Enable = function()
+  playerIconEnabled = true
+end
+_G.BUII_PlayerCastBarIcon_Disable = function()
+  playerIconEnabled = false
+end
+
 -- Load module
 dofile("Modules/DefaultUI/CastBarTimers.lua")
 
@@ -56,10 +64,12 @@ describe("BravosUIImprovements CastBarTimers", function()
   describe("BUII_CastBarTimersDisable", function()
     it("restores text alignment and hides frames", function()
       BUII_CastBarTimersEnable() -- Ensure initialized
+      assert.is_true(playerIconEnabled)
 
       local setJustifySpy = spy.on(_G.PlayerCastingBarFrame.Text, "SetJustifyH")
 
       BUII_CastBarTimersDisable()
+      assert.is_false(playerIconEnabled)
 
       assert.spy(setJustifySpy).was.called_with(_G.PlayerCastingBarFrame.Text, "CENTER")
     end)

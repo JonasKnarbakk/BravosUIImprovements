@@ -53,6 +53,7 @@ _G.MainMenuBar = _G.CreateFrame("Frame", "MainMenuBar")
 _G.BagsBar = _G.CreateFrame("Frame", "BagsBar")
 _G.MicroMenu = _G.CreateFrame("Frame", "MicroMenu")
 _G.MicroMenuContainer = _G.CreateFrame("Frame", "MicroMenuContainer")
+_G.MicroMenuContainer.Layout = function() end
 
 -- Capture EditMode.Enter callback so the spec can fire it.
 local editModeEnterCallback = nil
@@ -368,5 +369,112 @@ describe("ImprovedEditMode Player CastBar Icon", function()
       BUII_ImprovedEditMode_InitDB()
       assert.is_true(_G.BUIIDatabase["castbar_icon"])
     end)
+  end)
+end)
+
+describe("Player castbar options with only Castbar Timers enabled", function()
+  local settings
+  local dialog = _G.EditModeSystemSettingsDialog
+
+  local function updateDialog(frame)
+    settings = {}
+    dialog.attachedToSystem = frame
+    for _, hook in ipairs(dialogUpdateSettingsHooks) do
+      hook(dialog, frame)
+    end
+  end
+
+  before_each(function()
+    saveHooks = {}
+    revertHooks = {}
+    revertSystemHooks = {}
+    castBarUpdateIconShownHooks = {}
+    dialogUpdateSettingsHooks = {}
+    dialogOnSettingValueChangedHooks = {}
+    _G.BUIIDatabase = { castbar_icon = false, improved_edit_mode = false, castbar_timers = true }
+    _G.PlayerCastingBarFrame.Icon = makeIcon()
+    dialog.Show = function() end
+    dialog.Layout = function() end
+    dialog.GetSettingPool = function()
+      return {
+        Acquire = function()
+          local widget = _G.CreateFrame("Frame")
+          widget.SetupSetting = function(_, data)
+            table.insert(settings, data)
+          end
+          return widget
+        end,
+      }
+    end
+    dofile("Modules/DefaultUI/ImprovedEditMode.lua")
+    BUII_PlayerCastBarIcon_Enable()
+  end)
+
+  it("adds Show Icon to the native player dialog without enabling action bar options", function()
+    updateDialog(_G.PlayerCastingBarFrame)
+    assert.are.equal(1, #settings)
+    assert.are.equal("Show Icon", settings[1].settingName)
+    assert.are.equal(0, settings[1].currentValue)
+
+    updateDialog(_G.MainMenuBar)
+    assert.are.equal(0, #settings)
+  end)
+
+  it("previews, saves and reverts the icon without Improved Edit Mode", function()
+    fireSettingChanged(_G.PlayerCastingBarFrame, SHOW_ICON_SETTING, 1)
+    updateDialog(_G.PlayerCastingBarFrame)
+    assert.are.equal(1, settings[1].currentValue)
+    assert.is_true(_G.PlayerCastingBarFrame.Icon.shown)
+    assert.is_false(_G.BUIIDatabase.castbar_icon)
+
+    for _, hook in ipairs(saveHooks) do
+      hook()
+    end
+    assert.is_true(_G.BUIIDatabase.castbar_icon)
+
+    fireSettingChanged(_G.PlayerCastingBarFrame, SHOW_ICON_SETTING, 0)
+    for _, hook in ipairs(revertSystemHooks) do
+      hook(_G.EditModeManagerFrame, _G.PlayerCastingBarFrame)
+    end
+    assert.is_true(_G.PlayerCastingBarFrame.Icon.shown)
+
+    fireSettingChanged(_G.PlayerCastingBarFrame, SHOW_ICON_SETTING, 0)
+    for _, hook in ipairs(revertHooks) do
+      hook()
+    end
+    assert.is_true(_G.PlayerCastingBarFrame.Icon.shown)
+  end)
+
+  it("keeps a single checkbox when both modules are enabled", function()
+    BUII_ImprovedEditModeEnable()
+    updateDialog(_G.PlayerCastingBarFrame)
+    assert.are.equal(1, #settings)
+    BUII_PlayerCastBarIcon_Disable()
+    updateDialog(_G.PlayerCastingBarFrame)
+    assert.are.equal(1, #settings)
+
+    BUII_PlayerCastBarIcon_Enable()
+    BUII_ImprovedEditModeDisable()
+    updateDialog(_G.PlayerCastingBarFrame)
+    assert.are.equal(1, #settings)
+  end)
+
+  it("restores the saved icon state on Edit Mode entry", function()
+    _G.BUIIDatabase.castbar_icon = true
+    _G.PlayerCastingBarFrame.Icon:Hide()
+    editModeEnterCallback()
+    assert.is_true(_G.PlayerCastingBarFrame.Icon.shown)
+  end)
+
+  it("stops injecting and overriding the icon when both modules are disabled", function()
+    BUII_PlayerCastBarIcon_Disable()
+    updateDialog(_G.PlayerCastingBarFrame)
+    assert.are.equal(0, #settings)
+
+    _G.PlayerCastingBarFrame.Icon:Show()
+    for _, hook in ipairs(castBarUpdateIconShownHooks) do
+      hook(_G.PlayerCastingBarFrame)
+    end
+    assert.is_true(_G.PlayerCastingBarFrame.Icon.shown)
   end)
 end)
