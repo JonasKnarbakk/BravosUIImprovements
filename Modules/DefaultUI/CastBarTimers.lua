@@ -118,7 +118,12 @@ local function detachAndSetupCastBar(frameKey, frameOverlayTemplate, systemEnum,
   local frame = frames[frameKey]
   local frameOverlay = overlays[frameKey]
 
-  overlays[frameKey]:SetSize(frames[frameKey]:GetWidth(), frames[frameKey]:GetHeight() + 10)
+  -- Width/height can be secret values on some clients; arithmetic on them taints
+  local width, height = frame:GetWidth(), frame:GetHeight()
+  if issecretvalue and (issecretvalue(width) or issecretvalue(height)) then
+    width, height = 150, 10
+  end
+  frameOverlay:SetSize(width, height + 10)
   overlays[frameKey]:SetMovable(true)
   overlays[frameKey]:SetClampedToScreen(true)
   overlays[frameKey]:SetDontSavePosition(true)
