@@ -690,7 +690,16 @@ function BUII_OnEventHandler(self, event, arg1, ...)
         checkbox = weakAura[childKey]
       end
 
-      if BUIIDatabase[mod.dbKey] then
+      if mod.retailOnly and not BUII_IsRetail() then
+        if checkbox then
+          checkbox:SetChecked(false)
+          checkbox:Disable()
+          local label = _G[checkbox:GetName() .. "Label"]
+          if label then
+            label:SetTextColor(GRAY_FONT_COLOR:GetRGB())
+          end
+        end
+      elseif BUIIDatabase[mod.dbKey] then
         mod.enable()
         if checkbox then
           checkbox:SetChecked(true)
@@ -715,6 +724,30 @@ function BUII_OnEventHandler(self, event, arg1, ...)
     weakAura.ResourceTrackerDeathKnight:SetChecked(BUIIDatabase["resource_tracker_deathknight"] or false)
     weakAura.ResourceTrackerEvoker:SetChecked(BUIIDatabase["resource_tracker_evoker"] or false)
     weakAura.ResourceTrackerHunter:SetChecked(BUIIDatabase["resource_tracker_hunter"] or false)
+
+    if not BUII_IsRetail() then
+      for _, key in ipairs({
+        "Shaman",
+        "DemonHunter",
+        "Rogue",
+        "Druid",
+        "Mage",
+        "Warlock",
+        "Paladin",
+        "Priest",
+        "Monk",
+        "DeathKnight",
+        "Evoker",
+        "Hunter",
+      }) do
+        local checkbox = weakAura["ResourceTracker" .. key]
+        checkbox:Disable()
+        local label = _G[checkbox:GetName() .. "Label"]
+        if label then
+          label:SetTextColor(GRAY_FONT_COLOR:GetRGB())
+        end
+      end
+    end
 
     -- Sub-toggles: stance tracker per-class checkboxes
     weakAura.StanceTrackerDruid:SetChecked(BUIIDatabase["stance_tracker_druid"] or false)

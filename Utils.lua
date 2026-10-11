@@ -225,6 +225,15 @@ function BUII_GetFontShadow()
   return 1, -1
 end
 
+--- Checks if we're running on the retail (mainline) client
+---@return boolean
+function BUII_IsRetail()
+  if WOW_PROJECT_ID == nil or WOW_PROJECT_MAINLINE == nil then
+    return true
+  end
+  return WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
+end
+
 --- Checks if a value is a secret value securely.
 ---@param val any
 ---@return boolean

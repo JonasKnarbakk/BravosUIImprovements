@@ -246,6 +246,9 @@ local function BUII_LootSpec_Initialize()
 end
 
 function BUII_LootSpec_Enable()
+  if not BUII_IsRetail() then
+    return
+  end
   BUII_LootSpec_Initialize()
 
   frame:RegisterEvent("PLAYER_LOOT_SPEC_UPDATED")
@@ -290,6 +293,7 @@ end
 BUII_RegisterModule({
   dbKey = "loot_spec",
   enable = BUII_LootSpec_Enable,
+  retailOnly = true,
   disable = BUII_LootSpec_Disable,
   refresh = BUII_LootSpec_Refresh,
   checkboxPath = "weakAura.LootSpec",

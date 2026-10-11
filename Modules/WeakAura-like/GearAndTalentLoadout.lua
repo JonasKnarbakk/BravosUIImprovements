@@ -252,6 +252,9 @@ end
 --- Enables the Gear and Talent Loadout feature by registering events and displaying the frame
 ---@return nil
 function BUII_GearAndTalentLoadout_Enable()
+  if not BUII_IsRetail() then
+    return
+  end
   BUII_GearAndTalentLoadout_Initialize()
 
   frame:RegisterEvent("EQUIPMENT_SWAP_FINISHED")
@@ -303,6 +306,7 @@ end
 BUII_RegisterModule({
   dbKey = "gear_talent_loadout",
   enable = BUII_GearAndTalentLoadout_Enable,
+  retailOnly = true,
   disable = BUII_GearAndTalentLoadout_Disable,
   refresh = BUII_GearAndTalentLoadout_Refresh,
   checkboxPath = "weakAura.GearAndTalentLoadout",

@@ -288,6 +288,9 @@ end
 --- Enables the Group Tools feature and registers required events
 ---@return nil
 function BUII_GroupTools_Enable()
+  if not BUII_IsRetail() then
+    return
+  end
   BUII_GroupTools_Initialize()
 
   frame:RegisterEvent("PLAYER_ENTERING_WORLD")
@@ -341,6 +344,7 @@ end
 BUII_RegisterModule({
   dbKey = "group_tools",
   enable = BUII_GroupTools_Enable,
+  retailOnly = true,
   disable = BUII_GroupTools_Disable,
   refresh = BUII_GroupTools_Refresh,
   checkboxPath = "weakAura.GroupTools",

@@ -556,6 +556,9 @@ local function BUII_ResourceTracker_Initialize()
 end
 
 function BUII_ResourceTracker_Enable()
+  if not BUII_IsRetail() then
+    return
+  end
   BUII_ResourceTracker_Initialize()
 
   frame:RegisterUnitEvent("UNIT_AURA", "player")
@@ -615,6 +618,7 @@ end
 BUII_RegisterModule({
   dbKey = "resource_tracker",
   enable = BUII_ResourceTracker_Enable,
+  retailOnly = true,
   disable = BUII_ResourceTracker_Disable,
   refresh = BUII_ResourceTracker_Refresh,
   refreshTexture = true,

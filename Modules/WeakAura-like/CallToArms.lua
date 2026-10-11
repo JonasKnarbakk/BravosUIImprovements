@@ -778,6 +778,9 @@ end
 --- Enables the Call to Arms feature and registers events
 ---@return nil
 function BUII_CallToArms_Enable()
+  if not BUII_IsRetail() then
+    return
+  end
   BUII_CallToArms_Initialize()
 
   frame:RegisterEvent("LFG_UPDATE_RANDOM_INFO")
@@ -884,6 +887,7 @@ end
 BUII_RegisterModule({
   dbKey = "call_to_arms",
   enable = BUII_CallToArms_Enable,
+  retailOnly = true,
   disable = BUII_CallToArms_Disable,
   refresh = BUII_CallToArms_Refresh,
   checkboxPath = "weakAura.CallToArms",

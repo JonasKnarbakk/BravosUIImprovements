@@ -267,6 +267,9 @@ end
 --- Enables the Ready Check Notification feature
 ---@return nil
 function BUII_ReadyCheck_Enable()
+  if not BUII_IsRetail() then
+    return
+  end
   BUII_ReadyCheck_Initialize()
 
   frame:RegisterEvent("READY_CHECK")
@@ -331,6 +334,7 @@ end
 BUII_RegisterModule({
   dbKey = "ready_check",
   enable = BUII_ReadyCheck_Enable,
+  retailOnly = true,
   disable = BUII_ReadyCheck_Disable,
   refresh = BUII_ReadyCheck_Refresh,
   checkboxPath = "weakAura.ReadyCheck",
