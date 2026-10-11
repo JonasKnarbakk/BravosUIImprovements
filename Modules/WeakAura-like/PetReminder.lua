@@ -29,6 +29,10 @@ local function isPetClass()
     return true
   end
   if classFilename == "DEATHKNIGHT" then
+    -- Clients without specializations: Raise Dead pets aren't permanent there
+    if not PlayerUtil or not PlayerUtil.GetCurrentSpecID then
+      return false
+    end
     local specId = PlayerUtil.GetCurrentSpecID()
     if specId == 252 then -- Unholy
       return true
@@ -287,7 +291,14 @@ local function BUII_PetReminder_Initialize()
 
   local bounceDown = animGroup:CreateAnimation("Translation")
   bounceDown:SetDuration(0.3)
+  bounceDown:SetOrder(2)
   bounceDown:SetSmoothing("IN_OUT")
+
+  -- Initialize with default intensity
+  local defaultIntensity = BUIIDatabase["pet_reminder_intensity"] or 20
+  text:SetPoint("CENTER", frame, "CENTER", 0, -defaultIntensity)
+  bounceUp:SetOffset(0, defaultIntensity * 2)
+  bounceDown:SetOffset(0, -defaultIntensity * 2)
 
   -- Register System
   local settingsConfig = {
@@ -377,7 +388,14 @@ function BUII_PetReminder_Enable()
   frame:RegisterEvent("PET_ATTACK_STOP")
   frame:RegisterUnitEvent("UNIT_TARGET", "pet")
   frame:RegisterEvent("PLAYER_ENTERING_WORLD")
-  frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+  -- Not every client has specializations; registering an unknown event errors
+  if
+    not C_EventUtils
+    or not C_EventUtils.IsEventValid
+    or C_EventUtils.IsEventValid("PLAYER_SPECIALIZATION_CHANGED")
+  then
+    pcall(frame.RegisterEvent, frame, "PLAYER_SPECIALIZATION_CHANGED")
+  end
   frame:SetScript("OnEvent", onEvent)
 
   BUII_EditModeUtils:ApplySavedPosition(frame, "pet_reminder")
