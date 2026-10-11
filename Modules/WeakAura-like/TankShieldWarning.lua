@@ -69,6 +69,13 @@ end
 --- Check if player is a tank spec that uses shields
 ---@return boolean
 local function isShieldTankSpec()
+  -- Clients without specializations (e.g. WoW Forever): allow any shield-using class.
+  -- The warning itself only shows when a shield is actually equipped.
+  if not GetSpecialization or not GetSpecializationInfo then
+    local _, classFilename = UnitClass("player")
+    return classFilename == "WARRIOR" or classFilename == "PALADIN"
+  end
+
   local specID = GetSpecialization()
   if not specID then
     return false
