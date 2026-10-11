@@ -2,16 +2,6 @@
 
   <Script file="ImprovedEditMode.lua"/>
 
-  <Frame name="BUIIQueueStatusButtonEditModeSystemTemplate" inherits="EditModeSystemTemplate" virtual="true">
-    <KeyValues>
-      <KeyValue key="system" value="Enum.EditModeSystem.BUIIQueueStatusButton" type="global"/>
-      <KeyValue key="systemNameString" value="BUII_HUD_EDIT_MODE_QUEUE_STATUS_BUTTON_LABEL" type="global"/>
-    </KeyValues>
-    <Frames>
-      <Frame parentKey="Selection" inherits="EditModeSystemSelectionTemplate" setAllPoints="true" hidden="true"/>
-    </Frames>
-  </Frame>
-
   <Frame name="BUIITargetFrameSpellBarEditModeSystemTemplate" inherits="EditModeSystemTemplate" virtual="true">
     <KeyValues>
       <KeyValue key="system" value="Enum.EditModeSystem.BUII_TargetFrameSpellBar" type="global"/>

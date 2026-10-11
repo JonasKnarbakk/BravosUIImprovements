@@ -57,7 +57,6 @@ _G.PlayerCastingBarFrame.HasActiveChanges = function(self)
   local last = castBarSetHasActiveChangesCalls[#castBarSetHasActiveChangesCalls]
   return last == true
 end
-_G.QueueStatusButton = _G.CreateFrame("Frame", "QueueStatusButton")
 _G.MainMenuBar = _G.CreateFrame("Frame", "MainMenuBar")
 _G.BagsBar = _G.CreateFrame("Frame", "BagsBar")
 _G.MicroMenu = _G.CreateFrame("Frame", "MicroMenu")

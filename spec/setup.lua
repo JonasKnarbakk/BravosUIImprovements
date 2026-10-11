@@ -237,7 +237,6 @@ _G.Enum = {
     ActionBar = 1,
     -- Canonical BUII enum IDs (must match EditModeUtils.lua)
     BUII_GroupTools = 110,
-    BUIIQueueStatusButton = 111,
     BUII_PetReminder = 112,
     BUII_ArenaEnemyFrames = 113,
     BUII_StanceTracker = 114,

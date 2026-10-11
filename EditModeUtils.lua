@@ -41,7 +41,6 @@ BUII_EditModeUtils.HooksInitialized = false
 
 -- Define custom Edit Mode System Enums
 Enum.EditModeSystem.BUII_GroupTools = 110
-Enum.EditModeSystem.BUIIQueueStatusButton = 111
 Enum.EditModeSystem.BUII_PetReminder = 112
 Enum.EditModeSystem.BUII_ArenaEnemyFrames = 113
 Enum.EditModeSystem.BUII_StanceTracker = 114
@@ -69,7 +68,6 @@ _G["BUII_HUD_EDIT_MODE_RESOURCE_TRACKER_LABEL"] = "Resource Tracker"
 _G["BUII_HUD_EDIT_MODE_STAT_PANEL_LABEL"] = "Stat Panel"
 _G["BUII_HUD_EDIT_MODE_LOOT_SPEC_LABEL"] = "Loot Specialization"
 _G["BUII_HUD_EDIT_MODE_TANK_SHIELD_WARNING_LABEL"] = "Tank Shield Warning"
-_G["BUII_HUD_EDIT_MODE_QUEUE_STATUS_BUTTON_LABEL"] = "Queue Status Button"
 _G["BUII_HUD_EDIT_MODE_ARENA_ENEMY_FRAMES_LABEL"] = "Arena Enemy Frames"
 _G["BUII_HUD_EDIT_MODE_TOTEM_FRAME_LABEL"] = "Totem Frame"
 _G["BUII_HUD_EDIT_MODE_PLAYER_FRAME_HIDE_POWER_LABEL"] = "Hide Power Bar"
