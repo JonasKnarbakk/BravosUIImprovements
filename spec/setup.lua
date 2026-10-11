@@ -85,6 +85,7 @@ _G.CreateFrame = function(frameType, name, parent, template)
         end,
         SetTextColor = function() end,
         SetJustifyH = function() end,
+        SetWordWrap = function() end,
         SetShadowOffset = function() end,
         GetStringWidth = function()
           return 100

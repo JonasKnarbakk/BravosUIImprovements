@@ -7,6 +7,9 @@ local rows = {}
 ---@type FontString|nil
 local title = nil
 
+-- Flat Versatility bonus (e.g. Mark of the Wild) from the last time it was readable
+local lastFlatVersatilityBonus = 0
+
 -- Stats Definitions
 ---@type table[]
 local STATS = {
@@ -18,7 +21,24 @@ local STATS = {
     label = "Vers",
     name = "Versatility",
     func = function()
-      return GetCombatRatingBonus(CR_VERSATILITY_DAMAGE_DONE) + GetVersatilityBonus(CR_VERSATILITY_DAMAGE_DONE)
+      local ratingBonus = GetCombatRatingBonus(CR_VERSATILITY_DAMAGE_DONE)
+      local flatBonus = GetVersatilityBonus(CR_VERSATILITY_DAMAGE_DONE)
+      local isRatingSecret = BUII_IsSecretValue(ratingBonus)
+      local isFlatSecret = BUII_IsSecretValue(flatBonus)
+
+      if not isFlatSecret then
+        lastFlatVersatilityBonus = flatBonus
+      end
+      if not isRatingSecret and not isFlatSecret then
+        return ratingBonus + flatBonus
+      end
+
+      -- Secret values can be displayed but not added. Without a flat bonus the rating
+      -- bonus is the full value; otherwise show both parts.
+      if lastFlatVersatilityBonus == 0 then
+        return ratingBonus
+      end
+      return string.format("%.2f%% +%.2f%%", ratingBonus, flatBonus), true
     end,
     percent = true,
   },
@@ -51,7 +71,10 @@ end
 ---@param value number
 ---@param isPercent boolean
 ---@return string
-local function FormatValue(value, isPercent)
+local function FormatValue(value, isPercent, isPreformatted)
+  if isPreformatted == true then
+    return value
+  end
   if isPercent then
     return string.format("%.2f%%", value)
   else
@@ -146,8 +169,8 @@ local function UpdateStats()
       row.Label:SetPoint("LEFT", row, "LEFT", 0, 0)
 
       -- Same for value
-      local val = statDef.func()
-      local valueText = FormatValue(val, statDef.percent)
+      local val, isPreformatted = statDef.func()
+      local valueText = FormatValue(val, statDef.percent, isPreformatted)
       row.Value:SetText("")
 
       success = pcall(row.Value.SetFont, row.Value, fontPath, fontSize, fontFlags)
@@ -159,12 +182,19 @@ local function UpdateStats()
       row.Value:SetText(valueText)
 
       -- Left align values in a "column" on the right side
-      row.Value:SetJustifyH("LEFT")
+      row.Value:SetWordWrap(false)
       row.Value:ClearAllPoints()
-      -- Estimate width needed for "100.00%" based on font size
-      local valueColWidth = fontSize * 4.5
-      row.Value:SetPoint("RIGHT", row, "RIGHT", 0, 0)
-      row.Value:SetPoint("LEFT", row, "RIGHT", -valueColWidth, 0)
+      if isPreformatted == true then
+        -- Longer split values (e.g. "13.23% +6.00%") grow leftwards instead of wrapping
+        row.Value:SetJustifyH("RIGHT")
+        row.Value:SetPoint("RIGHT", row, "RIGHT", 0, 0)
+      else
+        row.Value:SetJustifyH("LEFT")
+        -- Estimate width needed for "100.00%" based on font size
+        local valueColWidth = fontSize * 4.5
+        row.Value:SetPoint("RIGHT", row, "RIGHT", 0, 0)
+        row.Value:SetPoint("LEFT", row, "RIGHT", -valueColWidth, 0)
+      end
 
       currentY = currentY - fontSize - spacing
     else
