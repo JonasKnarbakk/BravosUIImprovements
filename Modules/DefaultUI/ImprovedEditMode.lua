@@ -220,13 +220,13 @@ local function applyPlayerCastBarIcon(shouldShow)
   end
 
   if shouldShow then
+    local texture = PlayerCastingBarFrame.Icon:GetTexture()
+    if not BUII_IsSecretValue(texture) and not texture then
+      PlayerCastingBarFrame.Icon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
+    end
     PlayerCastingBarFrame.Icon:Show()
   else
     PlayerCastingBarFrame.Icon:Hide()
-  end
-
-  if PlayerCastingBarFrame.UpdateIconShown then
-    PlayerCastingBarFrame:UpdateIconShown()
   end
 end
 
@@ -1386,8 +1386,12 @@ end
 local function restorePlayerCastBarIcon()
   if not playerCastBarIconEnabled() then
     pendingCastBarIconValue = nil
-    if PlayerCastingBarFrame and PlayerCastingBarFrame.UpdateIconShown then
-      PlayerCastingBarFrame:UpdateIconShown()
+    if PlayerCastingBarFrame and PlayerCastingBarFrame.Icon then
+      -- Mirror Blizzard's ShouldIconBeShown without calling the tainted UpdateIconShown
+      local look = PlayerCastingBarFrame.look
+      PlayerCastingBarFrame.Icon:SetShown(
+        PlayerCastingBarFrame.showIcon ~= false and (look == nil or look == "UNITFRAME")
+      )
     end
   end
 end

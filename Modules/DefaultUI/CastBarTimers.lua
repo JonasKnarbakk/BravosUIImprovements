@@ -50,6 +50,9 @@ local enum_FrameSpellBarSetting_Scale = 10
 local enum_FrameSpellBarSetting_Icon = 11
 local enum_FrameSpellBarSetting_CastTime = 12
 
+local CASTBAR_WIDTH = 150
+local CASTBAR_HEIGHT = 10
+
 local function syncFrameSpellBar(self, parent)
   if not self or not parent or self.buiiTransformUpdateInProgress then
     return
@@ -65,14 +68,18 @@ local function syncFrameSpellBar(self, parent)
   -- end
 
   if self:GetParent() == parent then
+    self.buiiTransformUpdateInProgress = nil
     return
   end
   -- self.IsUserPlaced = true
   local showIcon = GetCastBarTimersDB()["improved_castbars_icon_" .. self:GetName()]
-  if showIcon then
-    self.Icon:Show()
-  else
-    self.Icon:Hide()
+  -- Don't call Blizzard's SetIconShown: from tainted code it errors on the secret interruptible flag
+  self.Icon:SetShown(showIcon and true or false)
+  if showIcon and self.isInEditMode then
+    local texture = self.Icon:GetTexture()
+    if not BUII_IsSecretValue(texture) and not texture then
+      self.Icon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
+    end
   end
 
   if _G["BUIICastBarTimer" .. self:GetName()] then
@@ -87,10 +94,24 @@ local function syncFrameSpellBar(self, parent)
   local scale = GetCastBarTimersDB()["improved_castbars_scale_" .. self:GetName()]
   if scale then
     self:SetScale(scale)
+  else
+    scale = 1
   end
 
+  -- Castbar dimensions are secret values on some clients, so use the known
+  -- TargetSpellBarTemplate layout: 150x10 bar, 2px border above, 12px text box
+  -- below, and a 20px icon with a 2px gap to the left.
+  local iconWidth = showIcon and 22 or 0
+  -- The castbar inherits its unit frame's scale, but the overlay lives on UIParent
+  local totalScale = scale
+  local barScale, overlayScale = self:GetEffectiveScale(), parent:GetEffectiveScale()
+  if not BUII_IsSecretValue(barScale) and not BUII_IsSecretValue(overlayScale) and overlayScale > 0 then
+    totalScale = barScale / overlayScale
+  end
+  parent:SetSize((CASTBAR_WIDTH + iconWidth) * totalScale, (CASTBAR_HEIGHT + 14) * totalScale)
+
   self:ClearAllPoints()
-  self:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, 0)
+  self:SetPoint("TOPLEFT", parent, "TOPLEFT", iconWidth, -2)
   self.buiiTransformUpdateInProgress = nil
 end
 
@@ -118,12 +139,7 @@ local function detachAndSetupCastBar(frameKey, frameOverlayTemplate, systemEnum,
   local frame = frames[frameKey]
   local frameOverlay = overlays[frameKey]
 
-  -- Width/height can be secret values on some clients; arithmetic on them taints
-  local width, height = frame:GetWidth(), frame:GetHeight()
-  if issecretvalue and (issecretvalue(width) or issecretvalue(height)) then
-    width, height = 150, 10
-  end
-  frameOverlay:SetSize(width, height + 10)
+  frameOverlay:SetSize(CASTBAR_WIDTH, CASTBAR_HEIGHT + 14)
   overlays[frameKey]:SetMovable(true)
   overlays[frameKey]:SetClampedToScreen(true)
   overlays[frameKey]:SetDontSavePosition(true)
@@ -143,6 +159,7 @@ local function detachAndSetupCastBar(frameKey, frameOverlayTemplate, systemEnum,
       setter = function(f, val)
         local db = GetCastBarTimersDB()
         db["improved_castbars_icon_" .. frame:GetName()] = (val == 1)
+        syncFrameSpellBar(frame, frameOverlay)
       end,
     },
     {
@@ -185,12 +202,20 @@ local function detachAndSetupCastBar(frameKey, frameOverlayTemplate, systemEnum,
         syncFrameSpellBar(frame, frameOverlay)
       end,
       OnEditModeEnter = function()
-        frame:Show()
+        frame.isInEditMode = true
+        if frame.UpdateShownState then
+          frame:UpdateShownState()
+        else
+          frame:Show()
+        end
         frameOverlay:Show()
         syncFrameSpellBar(frame, frameOverlay)
       end,
       OnEditModeExit = function()
-        -- frame:Hide()
+        frame.isInEditMode = false
+        if frame.UpdateShownState then
+          frame:UpdateShownState()
+        end
         frameOverlay:Hide()
         syncFrameSpellBar(frame, frameOverlay)
       end,
@@ -208,6 +233,14 @@ local function detachAndSetupCastBar(frameKey, frameOverlayTemplate, systemEnum,
     hooksecurefunc(frames[frameKey], "SetPoint", function(self)
       syncFrameSpellBar(self, frameOverlay)
     end)
+    -- Blizzard re-shows the icon on every cast; re-apply the user's setting afterwards
+    if frames[frameKey].UpdateIconShown then
+      hooksecurefunc(frames[frameKey], "UpdateIconShown", function(self)
+        if not GetCastBarTimersDB()["improved_castbars_icon_" .. self:GetName()] then
+          self.Icon:Hide()
+        end
+      end)
+    end
     hooks[frameKey] = true
   end
 end

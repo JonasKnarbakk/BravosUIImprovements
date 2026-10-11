@@ -14,6 +14,15 @@ local function makeIcon()
     Hide = function(self)
       self.shown = false
     end,
+    SetShown = function(self, shown)
+      self.shown = shown and true or false
+    end,
+    GetTexture = function(self)
+      return self.texture
+    end,
+    SetTexture = function(self, texture)
+      self.texture = texture
+    end,
     SetSize = function(self, w, h)
       self.width = w
       self.height = h
