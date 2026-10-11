@@ -125,12 +125,12 @@ local function UpdatePoints()
     frame.shouldShow = true
     module:SetupLayout(frame)
     module:Update(frame, db, isEditMode)
-    
+
     if not frame.shouldShow then
       frame:Hide()
       return
     end
-    
+
     frame:Show()
     UpdateNativeFrameVisibility()
   else

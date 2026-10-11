@@ -238,12 +238,16 @@ function BUII_IsSecretValue(val)
   -- Fallback to pcall comparison check if issecretvalue is not available in environment
   local t = type(val)
   if t == "number" then
-    local success = pcall(function() return val >= 0 end)
+    local success = pcall(function()
+      return val >= 0
+    end)
     return not success
   elseif t == "table" or t == "userdata" then
     local mt = getmetatable(val)
     if mt and (mt.__lt or mt.__le or mt.__gt or mt.__ge) then
-      local success = pcall(function() return val >= 0 end)
+      local success = pcall(function()
+        return val >= 0
+      end)
       return not success
     end
   end
