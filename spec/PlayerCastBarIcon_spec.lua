@@ -62,6 +62,7 @@ _G.BagsBar = _G.CreateFrame("Frame", "BagsBar")
 _G.MicroMenu = _G.CreateFrame("Frame", "MicroMenu")
 _G.MicroMenuContainer = _G.CreateFrame("Frame", "MicroMenuContainer")
 _G.MicroMenuContainer.Layout = function() end
+_G.QueueStatusButton = _G.CreateFrame("Frame", "QueueStatusButton")
 
 -- Capture EditMode.Enter callback so the spec can fire it.
 local editModeEnterCallback = nil
@@ -139,6 +140,7 @@ _G.hooksecurefunc = function(target, funcName, hookFunc)
 end
 
 dofile("Modules/DefaultUI/ImprovedEditMode.lua")
+dofile("Modules/DefaultUI/QueueStatusButton/QueueStatusButton.lua")
 
 -- Helper to drive a setting change as if the user clicked the checkbox.
 local function fireSettingChanged(systemFrame, setting, value)

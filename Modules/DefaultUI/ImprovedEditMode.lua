@@ -1298,6 +1298,7 @@ end
 
 --- Enable Improved EditMode module
 function BUII_ImprovedEditModeEnable()
+  BUII_QueueStatusButton_Enable()
   setupEditModeSystemSettingsDialog()
   setupActionBarSettingsHooks()
 
@@ -1385,6 +1386,8 @@ end
 
 --- Disable Improved EditMode module
 function BUII_ImprovedEditModeDisable()
+  BUII_QueueStatusButton_Disable()
+
   EventRegistry:UnregisterCallback("EditMode.Enter", "BUII_ImprovedEditMode_OnEnter")
   EventRegistry:UnregisterCallback("EditMode.Exit", "BUII_ImprovedEditMode_OnExit")
 

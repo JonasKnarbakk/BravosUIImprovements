@@ -28,6 +28,7 @@ _G.BagsBar = CreateFrame("Frame", "BagsBar")
 _G.MicroMenu = CreateFrame("Frame", "MicroMenu")
 _G.MicroMenuContainer = CreateFrame("Frame", "MicroMenuContainer")
 _G.MicroMenuContainer.Layout = function() end
+_G.QueueStatusButton = CreateFrame("Frame", "QueueStatusButton")
 
 -- Create child buttons for bars
 for i = 1, 12 do
@@ -38,6 +39,7 @@ for i = 1, 12 do
 end
 
 pcall(dofile, "Modules/DefaultUI/ImprovedEditMode.lua")
+pcall(dofile, "Modules/DefaultUI/QueueStatusButton/QueueStatusButton.lua")
 
 describe("BravosUIImprovements ImprovedEditMode", function()
   -- reset state
