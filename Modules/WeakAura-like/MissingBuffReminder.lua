@@ -320,6 +320,9 @@ end
 --- Enables the Missing Buff Reminder feature and registers events
 ---@return nil
 function BUII_MissingBuffReminder_Enable()
+  if not BUII_IsRetail() then
+    return
+  end
   BUII_MissingBuffReminder_Initialize()
 
   frame:RegisterEvent("SPELL_ACTIVATION_OVERLAY_GLOW_SHOW")
@@ -381,6 +384,7 @@ end
 BUII_RegisterModule({
   dbKey = "missing_buff_reminder",
   enable = BUII_MissingBuffReminder_Enable,
+  retailOnly = true,
   disable = BUII_MissingBuffReminder_Disable,
   refresh = BUII_MissingBuffReminder_Refresh,
   checkboxPath = "weakAura.MissingBuffReminder",

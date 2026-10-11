@@ -367,6 +367,9 @@ end
 --- Enables the Stat Panel feature
 ---@return nil
 function BUII_StatPanel_Enable()
+  if not BUII_IsRetail() then
+    return
+  end
   BUII_StatPanel_Initialize()
 
   frame:RegisterEvent("PLAYER_ENTERING_WORLD")
@@ -449,6 +452,7 @@ end
 BUII_RegisterModule({
   dbKey = "stat_panel",
   enable = BUII_StatPanel_Enable,
+  retailOnly = true,
   disable = BUII_StatPanel_Disable,
   refresh = BUII_StatPanel_Refresh,
   checkboxPath = "weakAura.StatPanel",
